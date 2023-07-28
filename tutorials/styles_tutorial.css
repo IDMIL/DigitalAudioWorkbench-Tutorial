@@ -16,6 +16,8 @@ footer{
   font-family: Cantarell, sans-serif;
   padding: 5px 10px 0px;
   background : lightgrey;
+  bottom: 0;
+  left: 0;
   font-size: 9pt;
   color: grey;
   text-align: center;

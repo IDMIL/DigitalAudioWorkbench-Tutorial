@@ -3,7 +3,30 @@ const WEBAUDIO_MAX_SAMPLERATE = 96000;
 const NUM_COLUMNS = 2;
 const MAX_HARMONICS = 100;
 function new_widget(panels, sliders, buttons, elem_id, elem_id2, margin_size, width_factor=1.0, height_factor=1.0) { const sketch = p => {
+/* 
+new_widget - 
 
+inputs:
+  panels:
+    list of panels to be used in the widget
+    []
+  sliders:
+    list of panels to be used in the widget, like 
+    []
+  buttons:
+    Tells the widget which button to have appear in the widget (play original, play reconstructed, play quantization noise)
+  elem_id:
+    Tells the widget in which Div class to place the buttons in (Questions or answers etc)
+  elem_id2:
+    Tells the widget which div with the according class name to take into account for placing the widget in height terms/
+  margin_size:
+    Used to place the uplaod buttons on a specific place.
+  width_factor:
+    By default is 1 and determines the width of the widget
+  height_factor:
+    By default is 1 and determines the height of the widget
+
+*/
 var element = undefined;
 if (elem_id) {
    element = document.getElementById(elem_id);
