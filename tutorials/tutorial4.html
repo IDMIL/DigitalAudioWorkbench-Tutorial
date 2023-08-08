@@ -29,7 +29,7 @@
       </center>
   <div id = "content-wrap" class="title qs">
     <H1>
-      Tutorial 4: Waveform Reconstruction
+      Tutorial 1: Waveform building
     </H1>
     <hr> 
   </div>
@@ -75,15 +75,22 @@
         <script>
           const widgetset = new_widget(
             [ new inputSigPanel()
-            , new inputPlusSampledPanel_no_binary()
-            , new reconstructedSigPanel()
-            ],
-            [ new freqSlider()
-            , new numHarmSlider()
-            , new sampleRateSlider()
-            , new phaseSlider()
-            , new timeZoomSlider()
-            ]
+                , new inputSigFreqPanel()
+                , new impulsePanel()
+                , new impulseFreqPanel()
+                , new inputPlusSampledPanel()
+                , new sampledInputFreqPanel()
+                , new reconstructedSigPanel()
+                , new reconstructedSigFFTPanel()
+                ],
+                [ new freqSlider()
+                , new numHarmSlider()
+                , new sampleRateSlider()
+                , new antialiasingSlider()
+                , new phaseSlider()
+                , new freqZoomSlider()
+                , new timeZoomSlider()
+                ]
             ,["original"]
             ,"Question" //question div id
             ,"qs" //questions class

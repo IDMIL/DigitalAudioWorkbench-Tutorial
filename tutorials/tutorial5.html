@@ -75,20 +75,15 @@
         <script>
           const widgetset = new_widget(
             [ new inputSigPanel()
-                , new inputSigFreqPanel()
-                , new impulsePanel()
-                , new impulseFreqPanel()
                 , new inputPlusSampledPanel()
-                , new sampledInputFreqPanel()
-                , new reconstructedSigPanel()
-                , new reconstructedSigFFTPanel()
                 ],
                 [ new freqSlider()
                 , new numHarmSlider()
                 , new sampleRateSlider()
-                , new antialiasingSlider()
+                , new bitDepthSlider()
+                , new amplitudeSlider()
                 , new phaseSlider()
-                , new freqZoomSlider()
+                , new ampZoomSlider()
                 , new timeZoomSlider()
                 ]
             ,["original"]
@@ -127,7 +122,6 @@
       </p>
     </div>
     </div>
-
     <footer>
       <div>Digital Audio Workbench Tutorial, by Maxwell Gentili-Morin & Marcelo M. Wanderley </div>
       <div>based on the Digital Audio Workbench</div>

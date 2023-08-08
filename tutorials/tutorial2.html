@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- TODO:  add the ability to adjust the sampling rate values/frequency rate-->
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="styles_tutorial.css" media="screen" />
@@ -18,7 +19,7 @@
   <body>
     <center>
       <div  class="tab">
-        <a href="index.html" class="button_round">&laquo; Prev </a>
+        <a href="tutorial1.html" class="button_round">&laquo; Prev </a>
         <a href="../index.html" class="button_round">Home </a>
         <a href="tutorial3.html" class="button_round">Next &raquo;</a>
       </div>
@@ -29,7 +30,7 @@
       </center>
   <div id = "content-wrap" class="title qs">
     <H1>
-      Tutorial 2: Sampling
+      Tutorial 3: Sampling a Waveform
     </H1>
     <hr> 
   </div>
@@ -74,17 +75,20 @@
       <main>
         <script>
           const widgetset = new_widget(
-            [ 
-              new impulsePanel()
-              ],
-              [ 
-              new sampleRateSlider()
-              , new phaseSlider()
-              , new timeZoomSlider()
-              ]
-              ,["original"]
-              ,"Question" //question div id
-              ,"qs" //questions class
+                [ new inputSigPanel()
+                ,new impulsePanel()
+                , new inputPlusSampledPanel_no_binary()
+                ],
+                [ new freqSlider()
+                , new numHarmSlider()
+                , new sampleRateSlider()
+                , new phaseSlider()
+                , new timeZoomSlider()
+                ]
+                ,["original"]
+                ,"Question" //question div id
+                ,"qs" //questions class
+                
         );
         </script>
         <br>

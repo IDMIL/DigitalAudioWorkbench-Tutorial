@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- TODO:  add the ability to adjust the sampling rate values/frequency rate-->
 <html>
   <head>
     <link rel="stylesheet" type="text/css" href="styles_tutorial.css" media="screen" />
@@ -30,7 +29,7 @@
       </center>
   <div id = "content-wrap" class="title qs">
     <H1>
-      Tutorial 3: Sampling a Waveform
+      Tutorial 4: Waveform Reconstruction
     </H1>
     <hr> 
   </div>
@@ -75,19 +74,19 @@
       <main>
         <script>
           const widgetset = new_widget(
-                [ new inputSigPanel()
-                , new inputPlusSampledPanel_no_binary()
-                ],
-                [ new freqSlider()
-                , new numHarmSlider()
-                , new sampleRateSlider()
-                , new phaseSlider()
-                , new timeZoomSlider()
-                ]
-                ,["original"]
-                ,"Question" //question div id
-                ,"qs" //questions class
-                
+            [ new inputSigPanel()
+            , new inputPlusSampledPanel_no_binary()
+            , new reconstructedSigPanel()
+            ],
+            [ new freqSlider()
+            , new numHarmSlider()
+            , new sampleRateSlider()
+            , new phaseSlider()
+            , new timeZoomSlider()
+            ]
+            ,["original"]
+            ,"Question" //question div id
+            ,"qs" //questions class
         );
         </script>
         <br>
@@ -121,6 +120,7 @@
       </p>
     </div>
     </div>
+
     <footer>
       <div>Digital Audio Workbench Tutorial, by Maxwell Gentili-Morin & Marcelo M. Wanderley </div>
       <div>based on the Digital Audio Workbench</div>

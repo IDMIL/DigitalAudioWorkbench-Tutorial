@@ -20,7 +20,6 @@
       <div  class="tab">
         <a href="tutorial6.html" class="button_round">&laquo; Prev </a>
         <a href="../index.html" class="button_round">Home </a>
-        <a href="tutorial8.html" class="button_round">Next &raquo;</a>
       </div>
       <div  class="tabs">
           <button class="button_round" onclick="samplingSection(event, 'Question')" id="defaultOpen">Question</button>
@@ -75,8 +74,11 @@
         <script>
           const widgetset = new_widget(
             [ new inputSigPanel()
+                , new inputSigFFTPanel()
                 , new inputPlusSampledPanel()
+                , new sampledInputFFTPanel()
                 , new quantNoisePanel()
+                , new quantNoiseFFTPanel()
                 ],
                 [ new freqSlider()
                 , new numHarmSlider()
@@ -87,6 +89,7 @@
                 , new amplitudeSlider()
                 , new phaseSlider()
                 , new ampZoomSlider()
+                , new freqZoomSlider()
                 , new timeZoomSlider()
                 ]
             ,["original"]
