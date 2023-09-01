@@ -19,9 +19,9 @@
   <body>
     <center>
       <div  class="tab">
-        <a href="tutorial1.html" class="button_round">&laquo; Prev </a>
+        <a href="index.html" class="button_round">&laquo; Prev </a>
         <a href="../index.html" class="button_round">Home </a>
-        <a href="tutorial3.html" class="button_round">Next &raquo;</a>
+        <!-- <a href="tutorial3.html" class="button_round">Next &raquo;</a> -->
       </div>
       <div  class="tabs">
           <button class="button_round" onclick="samplingSection(event, 'Question')" id="defaultOpen">Question</button>
@@ -30,7 +30,7 @@
       </center>
   <div id = "content-wrap" class="title qs">
     <H1>
-      Tutorial 3: Sampling a Waveform
+      Tutorial 2: Sampling a Waveform in the Time Domain
     </H1>
     <hr> 
   </div>
@@ -38,39 +38,45 @@
   <div id="Question" class="tabcontent active">
     <div class = "qs">
       <p>
-        In the left panel, you can see a sine wave with frequency 440 Hz. 
-        Click on the Play Original button at the bottom left to hear how it sounds. 
+        In the top panel, you can see a sine wave with frequency 440 Hz. Like in the previous tutorial,
+        you can hear the sound by clicking on "play original" at the bottom of the page.
       </p>
       <p>
-        In the right panel, a vertical line at 440 Hz represents the sine wave frequency component. 
-        Remember that a sine (or a cosine) wave has only one frequency component, 
-        in other words, it represents a <u>simple harmonic motion</u> such as the motion of an ideal pendulum or a tuning fork. 
+        As seen in the slides for class 1, the input signal would be some kind of continuous signal, whether analogue or acoustic and would be captured either directly or by a microphone. In this case it is a sinusoidal waveform. 
+        Before the continuous signal can be converted into a set of 0's and 1's, it must be sampled. A simple one-dimensional sampling system would be represented with equation: y[n] = x(nT<sub>s</sub>)
+      </p>
+      <p>
+        The middle panel represents said sampling signal (impulse train) that will poll the input x at time [n].
+      </p>
+      <p>
+        The bottom panel shows the resulting samples with amplitudes corresponding to the polled input signal. 
       </p>
     </div>
       <div class = "tab_questions qs">
-        <button class="button_round ques" onclick="questionlist(event, 'q1')" onmouseover="questionlist(event, 'q1')" id="defaulthover">Question 1</button>
+        <!-- onmouseover="questionlist(event, 'q1')" -->
+        <button class="button_round ques" onclick="questionlist(event, 'q1')" id="defaulthover">Question 1</button>
         <button class="button_round ques" onclick="questionlist(event, 'q2')">Question 2</button>
         <button class="button_round ques" onclick="questionlist(event, 'q3')">Question 3</button>
         <button class="button_round ques" onclick="questionlist(event, 'q4')">Question 4</button>
+        <button class="button_round ques" onclick="questionlist(event, 'q5')">Question 5</button>
       </div>
       <div id = "q1" class = "tab_questions_content qs">
-        Now use the top right slider. 
-        With the parameters loaded with the application 
-          (Odd harmonics, 1/x amplitude), 
-          add 10 components (harmonics) to the original sine wave. 
-          You can get the same effect by typing 10 in the top right
-          box and pressing the Update button. Describe what happens
-          in the left panel.
+        Let's get to know the panels, bring the zoom to 300% and start to reduce the sample rate to its minimum. What changes in panels 2 and 3?
       </div>
       <div id = "q2" class = "tab_questions_content qs">
-        If you add more components (say, 20), what do you see happening in the left panel?
+        Now type into the input signal frequency 150 Hz, press update and resize the zoom until you see at least one full cycle of the input signal. How many samples do you get in each period?
+        Now double the input signal frequency. How many samples do you get per period?
       </div>
       <div id = "q3" class = "tab_questions_content qs">
-        Now, what do you see when using 20 harmonics and changing the amplitude values to 1/x2?
+        Keep the sampling rate at 3 kHz (Nyquist Rate) and set the input signal frequency to 1.5 kHz at the Nyquist Frequency. How many samples per period do you see and where are they? What would the resulting sound look like? By moving the phase slider, what happens to the samples? 
+        What would the resulting sound look like? 
       </div>
       <div id = "q4" class = "tab_questions_content qs">
-        If you go back to 1/x, change Odd to All, and press the Update button, what happens? Remember that now your highest frequency will be half of the one with only Odd harmonics. 
-        To get a similar maximum frequency value you’ll need to add 40 harmonics in this case.
+        Now, bypass the Nyquist Frequency to 2700 Hz whilst keeping the sampling rate at 3000 Hz, what do you notice? Can you tell what the resulting frequency.
+      </div>
+      <div id = "q5" class = "tab_questions_content qs">
+        Now set the input signal frequency to 750 and the number of harmonics to two.  
+        With the sampling rate at 3000 Hz, do you notice something in how the input signal is being sampled?
       </div>
       <main>
         <script>
@@ -96,37 +102,41 @@
     </div>
     <div id="Answer" class="tabcontent">
       <p>
-        You have just played with approximations of the most 
-        common waves used in analog syntehsizers: square, triangular, and sawtooth waves. 
-        
-      </p>
-      <center><img src="../images/SH_101.png"></center>
-      <p>
+        These were the core concepts on how a signal is sampled.
         <ul>
           <li>
-            Click again on the Play Original button at the bottom left to hear how they sound. Add and remove 
-            partials and check the resulting visuals and sounds.
+            Question 1 demonstrates the sampling of a sine wave.
           </li>
-        </ul>
-      </p>
-      <p>
-        You can also play with these variable and see the results in both panels and hear the results. 
-      </p>
-      <p>
-        <ul>
           <li>
-            For instance, describe what do you hear when using 20 Even harmonics with flat amplitude? 
-            Compare the sonic result to using 20 Odd harmonics and flat amplitude. 
+            Question 2 prepares the user for the concept of input signals that are multiples of the sampling rate.
           </li>
-        </ul>
+          <li>
+            Question 3 further the idea of Q.2. and presents the concept of the Nyquist Frequency. What happens to the signal as it approaches
+            it and how the phase of the signal can change the outcome in the creation of DC signals.
+          </li>
+          <li>
+            Question 4 introduces the idea of signal folding when bypassing the Nyquist frequency.
+          </li>
+          <li>
+            Finally Question 5 introduces the idea that such concepts not only affect the base harmonic of a signal but also its nth harmonics.
+            Something that must be taken into account as many sounds contain frequencies above the sampling range and this must be filtered out to prevent ghosting.
+          </li>
+        </ul> 
       </p>
+      <!-- Q1 demonstrates how the sinwave is being sampled -->
+      <!-- Q2 prepares the user for the concept of input signals that are multiples of the sampling rate -->
+      <!-- Q3 Presents the concept of the Nyquist Frequency, what happens to the signal as it approaches 
+        it and how the phase of the signal can change the outcome. Also the concepts of a DC signal -->
+      <!-- Q4 Introduces the idea of signal folding when bypassing the nyquist frequency -->
+      <!-- Q5 Introduces the idea that such concepts not only affects the base harmonic of a signal but also it's nth harmonics.
+         Something that must be taken into account as many sounds contain frequencies above the sampling range and this must be filtered out to prevent ghosting.-->
     </div>
     </div>
-    <footer>
+    <!-- <footer>
       <div>Digital Audio Workbench Tutorial, by Maxwell Gentili-Morin & Marcelo M. Wanderley </div>
       <div>based on the Digital Audio Workbench</div>
       <div>Copyright <a href="//www-new.idmil.org/">IDMIL</a>/McGill University, 2023 </div>
-    </footer>
+    </footer> -->
     <script>
       function samplingSection(evt, cityName) {
         var i, tabcontent, tablinks;

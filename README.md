@@ -295,7 +295,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
 
   // specify filter parameters; as before, the cutoff is set to the Nyquist
   var filterCoeffs = firCalculator.lowpass(
-      { order:  200
+      { order:  1500
       , Fs: WEBAUDIO_MAX_SAMPLERATE
       , Fc: (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2
       });
