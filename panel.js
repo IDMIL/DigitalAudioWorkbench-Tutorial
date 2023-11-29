@@ -128,7 +128,7 @@ function drawSignal(panel, signal, zoom = 1)
 const lollipop_doc='Because this signal represents the discrete time output of the analog-to-digital conversion process, it is drawn with a lollipop plot where each stem represents a single sample. ';
 function drawDiscreteSignal(panel,signal){
   let gain = panel.plotHeight/2;
-  let visibleSamples = Math.floor(panel.plotWidth / panel.settings.downsamplingFactor/panel.settings.timeZoom+1);
+  let visibleSamples = Math.floor(panel.plotWidth / panel.settings.downsamplingFactor / panel.settings.timeZoom + 1);
   for (let x = 0; x < visibleSamples; x++) {
     let xpos = Math.round(panel.plotLeft + x * panel.settings.downsamplingFactor*panel.settings.timeZoom);
     let ypos = panel.halfh - gain * signal[x]*panel.settings.ampZoom;
@@ -197,45 +197,76 @@ function drawSignalAmplitudeTicks(panel, pixel_max, num_ticks) {
 }
 
 const bin_amp_ticks_doc='Ticks on the right side of this plot label the numerical value assigned to a given amplitude by the simulated analog-to-digital conversion. The labels are written in hexadecimal unless the bit depth is 7 bits or lower, in which case the labels are in binary. ';
-function drawSignalBinaryScaling(panel,pixel_max, num_ticks, settings){
-  let maxInt = Math.pow(2, settings.bitDepth)-1;
-  let stepSize = (settings.quantType == "midTread")?  2/(maxInt-1) : 2/(maxInt);
-  let numTicks = Math.min(num_ticks,maxInt+1);
-  let tickScale =(maxInt+1)/numTicks;
+function drawSignalBinaryScaling(panel, pixel_max, num_ticks, settings) {
+  let maxInt = Math.pow(2, settings.bitDepth) - 1;
+  let stepSize = (settings.quantType == "midTread") ? 2 / (maxInt - 1) : 2 / maxInt;
+  let numTicks = Math.min(num_ticks, maxInt + 1);
   let pixel_per_fullscale = pixel_max * panel.settings.ampZoom;
-  // let stepSize = (settings.quantType == "midRise")?  2/(numTicks-1) : 2/(numTicks);
 
-  let val=-1; let tick; let plotVal;
-  for ( tick =0; tick<numTicks;tick++){
-    switch(settings.quantType){
-      case "midTread" :
-         val = stepSize*Math.floor(val/stepSize + 0.5);
-        break;
-        case "midRise" :
-           val = stepSize*(Math.floor(val/stepSize) + 0.5);
-          break;
-        }
-        let tick_amp_pixels = val * pixel_max / num_ticks/panel.settings.ampZoom;
-        let pixel_amp = pixel_per_fullscale * val;
+  if (settings.encType === "Floating Point") {
+    let floats = new nFloat(settings.bitDepth);
+    let quantVals = floats.getQuantLevels();
+
+    if (settings.bitDepth <= 7) {
+      for (let i = 0; i < quantVals.length; i++) {
+        let pixel_amp = pixel_per_fullscale * quantVals[i];
         let y = panel.halfh - pixel_amp;
+        
+        if (y >= panel.plotTop - 0.1 && y <= panel.plotBottom + 0.1) {
+          let binaryRepresentation = floats.getBinaryRepresentation(quantVals[i]);
+          drawHorizontalTick(panel, binaryRepresentation, y, 5, "left");
 
-        if (y >= panel.plotTop-.1 && y <=panel.plotBottom+.1) {
+          panel.buffer.stroke("gray");
+          panel.buffer.drawingContext.setLineDash([5, 5]);
+          panel.buffer.line(panel.plotLeft, y, panel.plotRight, y);
+          panel.buffer.drawingContext.setLineDash([]);
+        }
+      }
+    } else {
+      // When we have more than 7 bits, we limit in terms of space, so we know which values we want (multiples of 1/8)
+      for (i = -1; i <= 1; i += 0.125) {
+        let pixel_amp = pixel_per_fullscale * i;
+        let y = panel.halfh - pixel_amp;
+        drawHorizontalTick(panel, "0x" + parseInt(floats.getBinaryRepresentation(i), 2).toString(16).padStart(4,"0"), y, 5, "left");
+
+        panel.buffer.stroke("gray");
+        panel.buffer.drawingContext.setLineDash([5, 5]);
+        panel.buffer.line(panel.plotLeft, y, panel.plotRight, y);
+        panel.buffer.drawingContext.setLineDash([]);
+      }
+    }
+  } else if (settings.encType === "Fixed Point") {
+    let tickScale = (maxInt + 1) / numTicks;
+    let val = -1;
+    let tick;
+    for (tick = 0; tick < numTicks; tick++) {
+      switch(settings.quantType) {
+        case "midTread":
+          val = stepSize * Math.floor(val / stepSize + 0.5);
+          break;
+        case "midRise":
+          val = stepSize * (Math.floor(val / stepSize) + 0.5);
+          break;
+      }
+      let pixel_amp = pixel_per_fullscale * val;
+      let y = panel.halfh - pixel_amp;
+
+      if (y >= panel.plotTop - 0.1 && y <= panel.plotBottom + 0.1) {
         if (maxInt<255){
           //if under 8 bits, we can write out binary values
-          drawHorizontalTick(panel, (Math.round(tick*tickScale)).toString(2).padStart(settings.bitDepth,"0"), y,5,"left");
-        }
-        else {
+          drawHorizontalTick(panel, (Math.round(tick * tickScale)).toString(2).padStart(settings.bitDepth, "0"), y,5,"left");
+        } else {
           //draw axis labels in hex because of limited space
-          drawHorizontalTick(panel, "0x" + (tick*tickScale).toString(16).padStart(4,"0"), y,5,"left");
+          drawHorizontalTick(panel, "0x" + (tick * tickScale).toString(16).padStart(4,"0"), y,5,"left");
         }
-          panel.buffer.stroke("gray");
-          panel.buffer.drawingContext.setLineDash([5,5]);
-          panel.buffer.line(panel.plotLeft, y, panel.plotRight, y);
-          panel.buffer.drawingContext.setLineDash([]);    // drawHorizontalTick(panel, tick.toString(2), y,5,"left");
+        panel.buffer.stroke("gray");
+        panel.buffer.drawingContext.setLineDash([5,5]);
+        panel.buffer.line(panel.plotLeft, y, panel.plotRight, y);
+        panel.buffer.drawingContext.setLineDash([]);    // drawHorizontalTick(panel, tick.toString(2), y,5,"left");
+      }
+      val = val + stepSize * tickScale;
     }
-    val = val + stepSize*tickScale;
   }
-
 }
 
 const time_ticks_doc='Time is plotted on the x-axis. ';
@@ -495,7 +526,7 @@ class sampledInputPanel extends Panel{
 
   drawPanel(){
     this.buffer.background(this.background);
-    drawDiscreteSignal(this,this.settings.downsampled)
+    drawDiscreteSignal(this, this.settings.downsampled)
     drawMidLine(this);
     drawName(this);
     drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
@@ -609,6 +640,7 @@ class quantNoisePanel extends Panel{
         + time_ticks_doc + amp_ticks_doc + midline_doc;
   }
   drawPanel(){
+    // TODO: Floating vs fixed
     this.buffer.background(this.background);
     drawDiscreteSignal(this, this.settings.quantNoise);
     drawMidLine(this);
@@ -642,8 +674,9 @@ class inputPlusSampledPanel extends Panel {
   }
 
   drawPanel() {
+    // TODO: Floating vs fixed
     this.buffer.background(this.background);
-    drawDiscreteSignal(this,this.settings.downsampled)
+    drawDiscreteSignal(this, this.settings.downsampled);
     this.buffer.stroke("gray");
     drawSignal(this, this.settings.original);
     drawMidLine(this);
