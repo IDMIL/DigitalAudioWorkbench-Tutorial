@@ -71,11 +71,13 @@ class nFloat {
             let binaryRepresentation = i.toString(2).padStart(this.numBits, "0");
             // Convert the binary representation to a decimal value
             let exponentStr = binaryRepresentation.slice(1, this.exponentSize + 1);
+            if (exponentStr === highestExponent)
+                continue; // Ignore Infinity and NaN values (for performance reasons)
             let mantissaStr = binaryRepresentation.slice(this.exponentSize + 1, this.exponentSize + this.mantissaSize + 1);
             let mantissa = parseInt(mantissaStr, 2);
             let exponent = parseInt(exponentStr, 2);
-            // Check for special values (Infinity, NaN, 0) and ignore them
-            if (exponentStr === highestExponent || (exponent === 0 && mantissa === 0))
+            // Check for special values 0 and ignore (to not have both 100... and 000... as values for 9)
+            if (exponent === 0 && mantissa === 0)
                 continue;
             this.binaryValues.push(binaryRepresentation);
             // Significand extension depends on if the number is normalized or subnormal

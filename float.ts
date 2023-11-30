@@ -79,16 +79,16 @@ class nFloat {
       let mantissaStr = binaryRepresentation.slice(this.exponentSize + 1, this.exponentSize + this.mantissaSize + 1);
       let mantissa = parseInt(mantissaStr, 2);
       let exponent = parseInt(exponentStr, 2);
-
       // Check for special values 0 and ignore (to not have both 100... and 000... as values for 9)
       if (exponent === 0 && mantissa === 0) continue;
-      
+
       this.binaryValues.push(binaryRepresentation);
       // Significand extension depends on if the number is normalized or subnormal
       let extension = (exponent === 0) ? 0 : 1;
       this.decimalValues.push(Math.pow(-1, parseInt(binaryRepresentation[0])) * (extension + mantissa) * Math.pow(2, exponent - this.bias));
     }
   }
+
   public getQuantizationValue(toQuantize: number): [string, number] {
     if (toQuantize === 0 && this.decimalValues.indexOf(0) != -1) return ["0".repeat(this.numBits), 0];
     let closestIndices: number[] = [];
