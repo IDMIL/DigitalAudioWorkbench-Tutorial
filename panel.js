@@ -640,7 +640,6 @@ class quantNoisePanel extends Panel{
         + time_ticks_doc + amp_ticks_doc + midline_doc;
   }
   drawPanel(){
-    // TODO: Floating vs fixed
     this.buffer.background(this.background);
     drawDiscreteSignal(this, this.settings.quantNoise);
     drawMidLine(this);
@@ -674,7 +673,6 @@ class inputPlusSampledPanel extends Panel {
   }
 
   drawPanel() {
-    // TODO: Floating vs fixed
     this.buffer.background(this.background);
     drawDiscreteSignal(this, this.settings.downsampled);
     this.buffer.stroke("gray");

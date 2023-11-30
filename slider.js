@@ -190,8 +190,7 @@ class bitDepthSlider extends slider {
     this.propName = "bitDepth";
     this.min = 1;
     this.max =  BIT_DEPTH_MAX;
-    // TODO: change this back to BIT_DEPTH_MAX
-    this.initial = 7;
+    this.initial = BIT_DEPTH_MAX;
     this.step = 1;
 
     this.encTypeSel = p.createSelect();
