@@ -67,9 +67,11 @@ class nFloat {
         this.binaryValues = ["0".repeat(this.numBits)];
         this.decimalValues = [0];
         let highestExponent = "1".repeat(this.exponentSize);
+        let largestDecimalValue = ((1 + parseInt("1".repeat(this.mantissaSize), 2)) * Math.pow(2, parseInt("1".repeat(this.exponentSize - 1) + "0", 2) - this.bias));
         for (let i = 1; i < Math.pow(2, this.numBits); i++) {
             let binaryRepresentation = i.toString(2).padStart(this.numBits, "0");
             // Convert the binary representation to a decimal value
+            // We also normalize the decimal value to be between -1 and 1 so that we get the full range of values
             let exponentStr = binaryRepresentation.slice(1, this.exponentSize + 1);
             if (exponentStr === highestExponent)
                 continue; // Ignore Infinity and NaN values (for performance reasons)
@@ -82,7 +84,7 @@ class nFloat {
             this.binaryValues.push(binaryRepresentation);
             // Significand extension depends on if the number is normalized or subnormal
             let extension = (exponent === 0) ? 0 : 1;
-            this.decimalValues.push(Math.pow(-1, parseInt(binaryRepresentation[0])) * (extension + mantissa) * Math.pow(2, exponent - this.bias));
+            this.decimalValues.push((Math.pow(-1, parseInt(binaryRepresentation[0])) * (extension + mantissa) * Math.pow(2, exponent - this.bias)) / largestDecimalValue);
         }
     }
     getQuantizationValue(toQuantize) {
