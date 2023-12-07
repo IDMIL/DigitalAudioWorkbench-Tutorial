@@ -207,7 +207,7 @@ function drawSignalBinaryScaling(panel, pixel_max, num_ticks, settings) {
     let floats = new nFloat(settings.bitDepth);
     let quantVals = floats.getQuantLevels();
 
-    if (settings.bitDepth <= 5) {
+    if (settings.bitDepth <= 4) {
       for (let i = 0; i < quantVals.length; i++) {
         let pixel_amp = pixel_per_fullscale * quantVals[i];
         let y = panel.halfh - pixel_amp;
@@ -223,7 +223,7 @@ function drawSignalBinaryScaling(panel, pixel_max, num_ticks, settings) {
         }
       }
     } else {
-      // When we have more than 5 bits, we limit in terms of space, so we know which values we want (multiples of 1/8)
+      // When we have more than 4 bits, we limit in terms of space, so we know which values we want (multiples of 1/8)
       for (i = -1; i <= 1; i += 0.125) {
         let quantValues = floats.getQuantizationValue(i);
         let pixel_amp = pixel_per_fullscale * quantValues[1];

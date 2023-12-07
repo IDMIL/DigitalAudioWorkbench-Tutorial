@@ -8,6 +8,12 @@ class nFloat {
   private bias: number;
   private binaryValues: string[] = [];
   private decimalValues: number[] = [];
+
+  private parseFractionalBinary(num: string): number {
+    // Helper function to convert a fractional binary number to decimal
+    return parseInt(num.replace('.', ''), 2) /
+      Math.pow(2, (num.split('.')[1] || '').length)
+  }
   
   constructor(numBits: number) {
     this.numBits = numBits;
@@ -69,7 +75,7 @@ class nFloat {
     this.binaryValues = ["0".repeat(this.numBits)];
     this.decimalValues = [0];
     let highestExponent = "1".repeat(this.exponentSize);
-    let largestDecimalValue = ((1 + parseInt("1".repeat(this.mantissaSize), 2)) * Math.pow(2, parseInt("1".repeat(this.exponentSize - 1) + "0", 2) - this.bias));
+    let largestDecimalValue = ((this.parseFractionalBinary("1." + "1".repeat(this.mantissaSize))) * Math.pow(2, parseInt("1".repeat(this.exponentSize - 1) + "0", 2) - this.bias));
     for (let i = 1; i < Math.pow(2, this.numBits); i++) {
       let binaryRepresentation = i.toString(2).padStart(this.numBits, "0");
       
@@ -78,16 +84,16 @@ class nFloat {
       let exponentStr = binaryRepresentation.slice(1, this.exponentSize + 1);
       if (exponentStr === highestExponent) continue; // Ignore Infinity and NaN values (for performance reasons)
 
-      let mantissaStr = binaryRepresentation.slice(this.exponentSize + 1, this.exponentSize + this.mantissaSize + 1);
-      let mantissa = parseInt(mantissaStr, 2);
       let exponent = parseInt(exponentStr, 2);
+
+      let mantissaStr = binaryRepresentation.slice(this.exponentSize + 1, this.exponentSize + this.mantissaSize + 1);
+      let mantissa = this.parseFractionalBinary(((exponent === 0) ? "0." : "1.") + mantissaStr);
       // Check for special values 0 and ignore (to not have both 100... and 000... as values for 9)
       if (exponent === 0 && mantissa === 0) continue;
 
       this.binaryValues.push(binaryRepresentation);
       // Significand extension depends on if the number is normalized or subnormal
-      let extension = (exponent === 0) ? 0 : 1;
-      this.decimalValues.push((Math.pow(-1, parseInt(binaryRepresentation[0])) * (extension + mantissa) * Math.pow(2, exponent - this.bias)) / largestDecimalValue);
+      this.decimalValues.push((Math.pow(-1, parseInt(binaryRepresentation[0])) * mantissa * Math.pow(2, exponent - this.bias)) / largestDecimalValue);
     }
   }
 
