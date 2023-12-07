@@ -124,6 +124,7 @@ class nFloat {
     }
     return [this.binaryValues[index], this.decimalValues[index]];
   }
+
   public getBinaryRepresentation(number: number): string {
     let index = this.decimalValues.indexOf(number);
     if (index === -1) {
@@ -131,6 +132,7 @@ class nFloat {
     }
     return this.binaryValues[index];
   }
+
   public getDecimalRepresentation(binary: string): number {
     let index = this.binaryValues.indexOf(binary);
     if (index === -1) {
@@ -138,6 +140,7 @@ class nFloat {
     }
     return this.decimalValues[index];
   }
+
   public getQuantLevels() {
     let uniqueValues: number[] = [];
     for (let i = 0; i < this.decimalValues.length; i++) {
@@ -147,9 +150,11 @@ class nFloat {
     }
     return uniqueValues;
   }
+
   public getBinaryValues() {
     return this.binaryValues;
   }
+
   public getDecimalValues() {
     return this.decimalValues;
   }
