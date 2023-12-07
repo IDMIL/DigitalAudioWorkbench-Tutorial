@@ -61,13 +61,13 @@ class nFloat {
       return;
     }
     if (this.numBits === 2) {
-      this.binaryValues = ["00", "01", "10", "11"];
-      this.decimalValues = [0, 1, 0, -1];
+      this.binaryValues = ["00", "01", "11"];
+      this.decimalValues = [0, 1, -1];
       return;
     }
     if (this.numBits === 3) {
-      this.binaryValues = ["000", "001", "100", "101"];
-      this.decimalValues = [0, 1, 0, -1];
+      this.binaryValues = ["000", "001", "101"];
+      this.decimalValues = [0, 1, -1];
       return;
     }
     
