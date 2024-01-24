@@ -8,6 +8,7 @@
     <!-- <script src="../p5.js"></script> -->
     <!-- p5.js end-->
     <script src="../fili.min.js"></script>
+    <script src="../float.js"></script>
     <script src="../panel.js"></script>
     <script src="../slider.js"></script>
     <script src="../fft.js"></script>
@@ -20,7 +21,7 @@
         const widget = new_widget(
                 [ new inputSigPanel()
                 , new inputSigFFTPanel()
-                , new inputPlusSampledPanel()
+                , new inputPlusSampledPanel_floatingPointEncoding()
                 , new sampledInputFFTPanel()
                 , new quantNoisePanel()
                 , new quantNoiseFFTPanel()
@@ -30,7 +31,7 @@
                 , new sampleRateSlider()
                 , new antialiasingSlider()
                 , new ditherSlider()
-                , new bitDepthSlider()
+                , new bitDepthSlider_floatingPointEncoding()
                 , new amplitudeSlider()
                 , new phaseSlider()
                 , new ampZoomSlider()
