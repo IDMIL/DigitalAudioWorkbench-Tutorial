@@ -202,6 +202,42 @@ function drawSignalBinaryScaling(panel, pixel_max, num_ticks, settings) {
   let stepSize = (settings.quantType == "midTread") ? 2 / (maxInt - 1) : 2 / maxInt;
   let numTicks = Math.min(num_ticks, maxInt + 1);
   let pixel_per_fullscale = pixel_max * panel.settings.ampZoom;
+  let tickScale = (maxInt + 1) / numTicks;
+  let val = -1;
+  let tick;
+  for (tick = 0; tick < numTicks; tick++) {
+    switch(settings.quantType) {
+      case "midTread":
+        val = stepSize * Math.floor(val / stepSize + 0.5);
+        break;
+      case "midRise":
+        val = stepSize * (Math.floor(val / stepSize) + 0.5);
+        break;
+    }
+    let pixel_amp = pixel_per_fullscale * val;
+    let y = panel.halfh - pixel_amp;
+
+    if (y >= panel.plotTop - 0.1 && y <= panel.plotBottom + 0.1) {
+      if (maxInt<255){
+        //if under 8 bits, we can write out binary values
+        drawHorizontalTick(panel, (Math.round(tick * tickScale)).toString(2).padStart(settings.bitDepth, "0"), y,5,"left");
+      } else {
+        //draw axis labels in hex because of limited space
+        drawHorizontalTick(panel, "0x" + (tick * tickScale).toString(16).padStart(4,"0"), y,5,"left");
+      }
+      panel.buffer.stroke("gray");
+      panel.buffer.drawingContext.setLineDash([5,5]);
+      panel.buffer.line(panel.plotLeft, y, panel.plotRight, y);
+      panel.buffer.drawingContext.setLineDash([]);    // drawHorizontalTick(panel, tick.toString(2), y,5,"left");
+    }
+    val = val + stepSize * tickScale;
+  }
+}
+function drawSignalBinaryScaling_floatingPointEncoding(panel, pixel_max, num_ticks, settings) {
+  let maxInt = Math.pow(2, settings.bitDepth) - 1;
+  let stepSize = (settings.quantType == "midTread") ? 2 / (maxInt - 1) : 2 / maxInt;
+  let numTicks = Math.min(num_ticks, maxInt + 1);
+  let pixel_per_fullscale = pixel_max * panel.settings.ampZoom;
 
   if (settings.encType === "Floating Point") {
     let floats = new nFloat(settings.bitDepth);
@@ -682,6 +718,28 @@ class inputPlusSampledPanel extends Panel {
     drawName(this);
     drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     drawSignalBinaryScaling(this, this.plotHeight/2, 16,this.settings);
+    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawBorder();
+  }
+}
+
+class inputPlusSampledPanel_floatingPointEncoding extends Panel {
+  constructor() {
+    super();
+    this.name = "Input with Sampled Signal Time Domain";
+    this.description = 'This plot shows the input signal with the sampled signal overlayed on top. See the documentation for the input signal time domain and sampled signal time domain for more information. ';
+    this.ellipseSize = 5;
+  }
+
+  drawPanel() {
+    this.buffer.background(this.background);
+    drawDiscreteSignal(this, this.settings.downsampled);
+    this.buffer.stroke("gray");
+    drawSignal(this, this.settings.original);
+    drawMidLine(this);
+    drawName(this);
+    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    drawSignalBinaryScaling_floatingPointEncoding(this, this.plotHeight/2, 16,this.settings);
     drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }

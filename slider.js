@@ -192,6 +192,19 @@ class bitDepthSlider extends slider {
     this.max =  BIT_DEPTH_MAX;
     this.initial = BIT_DEPTH_MAX;
     this.step = 1;
+    this.makeSlider(p);
+  }
+}
+
+class bitDepthSlider_floatingPointEncoding extends slider {
+  setup(p, settings){
+    this.settings = settings;
+    this.name ="Bit Depth";
+    this.propName = "bitDepth";
+    this.min = 1;
+    this.max =  BIT_DEPTH_MAX;
+    this.initial = BIT_DEPTH_MAX;
+    this.step = 1;
 
     this.encTypeSel = p.createSelect();
     this.encTypeSel.option("Fixed Point");
