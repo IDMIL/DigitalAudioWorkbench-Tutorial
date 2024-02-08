@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="styles_delta.css" media="screen" />
+    <!-- p5.js begin -->
+    <!-- 1) use p5.min.js for optimizing size/transfer -->
+    <script src="../p5.min.js"></script>
+    <!-- 2) use p5.js for debugging -->
+    <!-- <script src="../p5.js"></script> -->
+    <!-- p5.js end-->
+    <script src="../fili.min.js"></script>
+    <script src="panel_delta.js"></script>
+    <script src="slider_delta.js"></script>
+    <script src="../fft.js"></script>
+    <script src="waves_delta.js"></script>
+    <script src="widget_delta.js"></script>
+    
+  </head>
+  <body>
+    <div id="page-container">
+    <center>
+    <div  class="tab">
+      <a href="../index.html" class="button_round">Home </a>
+    </div>
+
+
+    </center>
+    <div id = "content-wrap" class="title qs">
+      <H1>
+        Delta Modulation
+      </H1>
+      <hr> 
+    </div>
+
+    <div id="Panel" class="tabcontent active">
+        <main>
+          <script>
+            const widgetset = new_widget(
+                    [ new deltaModPanel()
+                    ],
+                    [ new freqSlider()
+                    , new numHarmSlider()
+                    , new sampleRateDeltaSlider()
+                    , new deltaStepSlider()
+                    , new timeZoomSlider()
+                    ]
+                    , ["original"]
+                    ,"Panel"
+                    ,"qs"
+                    , 120
+                    )
+          </script>
+          <br>
+        </main>
+      </div>
+    
+    
+
+  <script>
+    function samplingSection(evt, cityName) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("button_round");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(cityName).style.display = "block";
+      evt.currentTarget.className += " active";
+    }
+
+
+    </script>
+  </body>
+</html>

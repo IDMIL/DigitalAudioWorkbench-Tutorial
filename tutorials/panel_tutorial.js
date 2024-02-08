@@ -30,7 +30,7 @@ class Panel {
     this.xbezel = Math.max(70, w * 0.1);
     this.xbezelLeft  = 0.60 * this.xbezel;
     this.xbezelRight = 0.40 * this.xbezel;
-    this.ybezel = Math.max(20, h * 0.1);
+    this.ybezel = Math.max(20, h *0.1);
     this.halfh = h/2;
     this.plotHeight = h - 2 * this.ybezel;
     this.plotWidth = w - this.xbezel;
@@ -108,19 +108,22 @@ function drawMidLine(panel) {
 }
 
 const time_signal_doc='Because this signal approximates a continuous analog signal in our simulation, the signal value is drawn with a simple interpolation scheme. There are currently bugs with this interpolation when zooming in (time zoom > 100%). In addition, visual aliasing may occur when viewing high frequency signals due to the limited number of pixels on the screen acting as a kind of spatial sampling process. This may appear as amplitude modulation in the plot that is not actually present in the signal. Finally, note that the amplitude of the signal is clipped to the size of the panel viewport. This visual clipping happens regardless of whether the signal itself actually exhibits clipping. ';
-function drawSignal(panel, signal, zoom = 1)
+function drawSignal(panel, signal)
 {
   let pixel_max = panel.plotHeight/2;
   let pixel_per_fullscale = pixel_max * panel.settings.ampZoom;
   panel.buffer.noFill();
   //TODO: there are some artifacts here due to the way the signal is drawn, especially when zoomed in and/or large amplitude
   panel.buffer.beginShape();
-  panel.buffer.curveTightness(1.0);
-  for (let x = 0; x < panel.plotWidth; x++) {
-    let pixel_amp = pixel_per_fullscale * signal[Math.round(x/panel.settings.timeZoom)];
+  max_x = 10000
+  for (let x = 0; x < max_x; x++) {
+    let pixel_x = (x/max_x)*panel.plotWidth/panel.settings.timeZoom
+    let amp = signal[Math.floor(pixel_x)]+(pixel_x-Math.floor(pixel_x))/(Math.ceil(pixel_x)-Math.floor(pixel_x))*(signal[Math.ceil(pixel_x)]-signal[Math.floor(pixel_x)]); //Linear interpolation
+    let pixel_amp = pixel_per_fullscale * amp;
     let y = panel.halfh - pixel_amp;
-    y = (y<panel.plotTop)? y=panel.plotTop : (y>panel.plotBottom)? y= panel.plotBottom : y=y; panel.buffer.curveTightness(0.0);
-    panel.buffer.curveVertex(x + panel.plotLeft, y);
+    panel.buffer.curveTightness(1.0);
+    y = (y<panel.plotTop)? y=panel.plotTop : (y>panel.plotBottom)? y= panel.plotBottom: y=y;panel.buffer.curveTightness(1.0)
+    panel.buffer.curveVertex((x/max_x)*panel.plotWidth + panel.plotLeft, y);
   }
   panel.buffer.endShape();
 }
