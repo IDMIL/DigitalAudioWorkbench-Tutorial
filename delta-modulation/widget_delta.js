@@ -172,7 +172,7 @@ function resize(w, h) {
 
 function buttonSetup() {
   originalButton = p.createButton("play original");
-  originalButton.position(p.width/2 + 10, p.height - p.height / numPanels );
+  originalButton.position(p.width/2 + 10, p.height - p.height /numPanels, 'absolute');
   originalButton.mousePressed( () => {
   renderWaves(true);
   if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();

@@ -129,12 +129,10 @@ function drawSignal(panel, signal)
 
 function drawDeltaModulation(panel, signal) {
 	let pixel_max = panel.plotHeight/2;
-	let pixel_per_fullscale = pixel_max * panel.settings.ampZoom;
 	panel.buffer.noFill();
 	panel.buffer.beginShape();
 	panel.buffer.curveTightness(1.0);
 	let visibleSamples = Math.floor(panel.plotWidth / panel.settings.downsamplingFactor/panel.settings.timeZoom+1);
-	console.log(visibleSamples);
 	let ypos = panel.halfh;
 	for (let x = 0; x < visibleSamples; x++) {
 		let xpos = Math.round(panel.plotLeft + x * panel.settings.downsamplingFactor*panel.settings.timeZoom);

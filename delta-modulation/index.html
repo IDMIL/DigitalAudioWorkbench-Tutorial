@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="../tutorials/styles_tutorial.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="styles_delta.css" media="screen" />
     <!-- p5.js begin -->
     <!-- 1) use p5.min.js for optimizing size/transfer -->
     <script src="../p5.min.js"></script>
@@ -26,7 +26,7 @@
         </div>
         <div  class="tabs">
             <button class="button_round" onclick="samplingSection(event, 'Question')" id="defaultOpen">Question</button>
-            <button class="button_round" onclick="samplingSection(event, 'Answer')">Answer</button>
+
         </div>
         </center>
     <div id = "content-wrap" class="title qs">
@@ -41,6 +41,7 @@
           <script>
             const widgetset = new_widget(
                     [ new deltaModPanel()
+                    , new reconstructedSigPanel()
                     ],
                     [ new freqSlider()
                     , new numHarmSlider()
@@ -48,7 +49,7 @@
                     , new deltaStepSlider()
                     , new timeZoomSlider()
                     ]
-                    , ["original"]
+                    , ["original","recon","quant"]
                     ,"Question"
                     ,"qs"
                     , 120
