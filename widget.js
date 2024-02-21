@@ -102,6 +102,7 @@ p.windowResized = function() {
   originalButton.position(x + 20, y);
   reconstructedButton.position(originalButton.x + originalButton.width * 1.1, originalButton.y);
   quantNoiseButton.position(reconstructedButton.x + reconstructedButton.width * 1.1, reconstructedButton.y);
+  
 };
 
 function resize(w, h) {

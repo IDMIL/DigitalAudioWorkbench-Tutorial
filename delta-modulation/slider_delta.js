@@ -51,10 +51,10 @@ class slider{
   
       this.slider.style('width', Math.round(sliderWidth).toString() + "px");
       this.slider.position(x, y);
-      this.textLabel.position(x + this.slider.width + 10, y - 15);
+      this.textLabel.position(x + this.slider.width+5, y-18);
       this.textBox.position(x+this.slider.width + labelWidth,y);
       this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
-      this.button.position(this.textBox.x+this.textBox.width+5,y);
+      this.button.position(this.textBox.x+this.textBox.width,y);
       this.button.style('width', Math.round(buttonWidth).toString() + "px");
     }
     buttonPressed(){
@@ -76,7 +76,7 @@ class slider{
       this.settings = settings;
       this.name ="Frequency (Hz)";
       this.propName = "fundFreq";
-      this.min = 0;
+      this.min = 100;
       this.max = this.settings.sampleRate / 4 ;
       this.initial = 440;
       this.step = 1.0;
@@ -133,7 +133,7 @@ class slider{
       this.oddEvenSel.position(x+this.slider.width+10,y);
       this.slopeSel.style('width', Math.round(dropDownWidth).toString() + "px");
       this.slopeSel.position(x+this.slider.width+dropDownWidth+10,y);
-      this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 20, y - 15);
+      this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 18, y - 18);
       this.textBox.position(x + this.slider.width + 2*dropDownWidth+ labelWidth+10,y);
       this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
       this.button.position(this.textBox.x + this.textBox.width,y);
@@ -195,7 +195,7 @@ class slider{
   class deltaStepSlider extends slider {
     setup(p,settings){
       this.settings = settings;
-      this.name ="Delta Step (%):";
+      this.name ="Delta Step (%)";
       this.propName="deltaStep";
       this.min = 0.001;
       this.max =  0.1;

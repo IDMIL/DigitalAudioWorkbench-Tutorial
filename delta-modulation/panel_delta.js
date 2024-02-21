@@ -134,15 +134,25 @@ function drawDeltaModulation(panel, signal) {
 	panel.buffer.curveTightness(1.0);
 	let visibleSamples = Math.floor(panel.plotWidth / panel.settings.downsamplingFactor/panel.settings.timeZoom+1);
 	let ypos = panel.halfh;
+	let counter = 0; //Consecutive similar bits counter for adaptive modulation
+	let lastBit = 0;
 	for (let x = 0; x < visibleSamples; x++) {
 		let xpos = Math.round(panel.plotLeft + x * panel.settings.downsamplingFactor*panel.settings.timeZoom);
 		panel.buffer.curveVertex(xpos, ypos);
 		if (pixel_max * signal[Math.floor((x/visibleSamples)*panel.plotWidth/panel.settings.timeZoom)]*panel.settings.ampZoom < panel.halfh - ypos) {
-			ypos += panel.settings.deltaStep*panel.plotHeight;
-			//if (ypos >= panel.plotBottom) ypos -= 2*panel.settings.deltaStep*panel.plotHeight; //Prevent signal from going below bounds
+			if (panel.settings.deltaType == "adaptive") {
+				if (lastBit == 1) { //If the last bit is similar to this one, increment counter, otherwise reset
+					counter++;
+				} else {counter = 0; lastBit = 1;}
+			}
+			ypos += panel.settings.deltaStep*panel.plotHeight*(1+Math.floor(counter/panel.settings.adaptiveNumSteps)); //For adaptive modulation, increase the multiplier every numSteps consecutive steps
 		} else {
-			ypos -= panel.settings.deltaStep*panel.plotHeight;
-			//if (ypos <=  panel.plotTop) ypos += 2*panel.settings.deltaStep*panel.plotHeight; //Same for the top bound
+			if (panel.settings.deltaType == "adaptive") {
+				if (lastBit == 0) {
+					counter++;
+				} else {counter = 0; lastBit = 0;}
+			}
+			ypos -= panel.settings.deltaStep*panel.plotHeight*(1+Math.floor(counter/panel.settings.adaptiveNumSteps));
 		}
 		ypos = (ypos<panel.plotTop)? ypos=panel.plotTop : (ypos>panel.plotBottom)? ypos= panel.plotBottom: ypos=ypos;
 		panel.buffer.curveVertex(xpos, ypos);

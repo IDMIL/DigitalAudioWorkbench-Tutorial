@@ -84,6 +84,8 @@ var settings =
     , timeZoom: 1.0 // X axis zoom for signal panels
     , deltaFrequency: 96000
     , deltaStep: 0.05
+    , deltaType: "non-adaptive"
+    , adaptiveNumSteps: 1 //Number of consecutive steps needed to trigger adaptive delta modulation
     , element : element
     , margine_size : margin_size+20
     , p5: undefined
@@ -142,15 +144,16 @@ p.windowResized = function() {
  
   console.log("slider position", sliderPos);
   sliders.forEach( (slider, index) => {
-    let y = yoffset + p.floor(index / numColumns) * sliderHeight;
+    let y = yoffset + p.floor(index / numColumns) * sliderHeight+20;
     //let x = p.floor(index % numColumns) * panelWidth;
     slider.resize(sliderPos[index % numColumns], y, sliderWidth,p);
   });
-  let y = yoffset + p.floor((numSliders)/ numColumns) * sliderHeight;
+  let y = yoffset + p.floor((numSliders+1)/ numColumns) * sliderHeight+5;
   let x = margin_size;
   originalButton.position(x + 20, y);
   reconstructedButton.position(originalButton.x + originalButton.width * 1.1, originalButton.y);
   quantNoiseButton.position(reconstructedButton.x + reconstructedButton.width * 1.1, reconstructedButton.y);
+  adaptiveSwitchButton.position(quantNoiseButton.x + quantNoiseButton.width * 1.1, quantNoiseButton.y);
   intro_height = 0;
 };
 
@@ -162,7 +165,7 @@ function resize(w, h) {
   panelWidth   = w / numColumns;
   sliderWidth  = w / numColumns - 200;
   panelHeight  = h / panelRows;
-  sliderHeight = 200 / sliderRows;
+  sliderHeight = panelHeight / sliderRows*2/3;
   if (sliderHeight < 30) { // keep sliders from getting squished
     sliderHeight = 30;
     let sliderPanelHeight = sliderHeight * sliderRows;
@@ -171,8 +174,7 @@ function resize(w, h) {
 }
 
 function buttonSetup() {
-  originalButton = p.createButton("play original");
-  originalButton.position(p.width/2 + 10, p.height - p.height /numPanels, 'absolute');
+  originalButton = p.createButton("Play original");
   originalButton.mousePressed( () => {
   renderWaves(true);
   if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
@@ -182,9 +184,9 @@ function buttonSetup() {
   if(!buttons.includes("original")){
     originalButton.hide();
   }
+  console.log("button",originalButton.width,originalButton.x, originalButton.y)
   
-  reconstructedButton = p.createButton("play reconstructed");
-  reconstructedButton.position(originalButton.x + originalButton.width * 1.1, originalButton.y);
+  reconstructedButton = p.createButton("Play reconstructed");
   reconstructedButton.mousePressed( () => {
     renderWaves(true);
     if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
@@ -194,8 +196,8 @@ function buttonSetup() {
   if(!buttons.includes("recon")){
     reconstructedButton.hide();
   }
-  quantNoiseButton = p.createButton("play quantization noise");
-  quantNoiseButton.position(reconstructedButton.x + reconstructedButton.width * 1.1, reconstructedButton.y);
+
+  quantNoiseButton = p.createButton("Play quantization noise");
   quantNoiseButton.mousePressed( () => {
     renderWaves(true);
     if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
@@ -204,6 +206,18 @@ function buttonSetup() {
   quantNoiseButton.parent(element.id);
   if(!buttons.includes("quant")){
     quantNoiseButton.hide();
+  }
+
+  adaptiveSwitchButton = p.createButton("Switch to adaptive modulation");
+  adaptiveSwitchButton.mousePressed( () => {
+    if (settings.deltaType == "adaptive") {settings.deltaType = "non-adaptive";adaptiveSwitchButton.html("Switch to adaptive modulation");}
+    else {settings.deltaType = "adaptive";adaptiveSwitchButton.html("Switch to non-adaptive modulation");}
+    settings.render();
+    settings.p5.draw();
+  });
+  adaptiveSwitchButton.parent(element.id);
+  if(!buttons.includes("adaptive")){
+    adaptiveSwitchButton.hide();
   }
   
 }

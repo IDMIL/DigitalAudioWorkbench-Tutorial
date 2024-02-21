@@ -75,7 +75,7 @@ body {
     
   }
   .input {
-    margin-bottom: 0px;
+    margin-bottom: 100px;
   }
   .button:hover{
     background-color: #ddd;
@@ -141,7 +141,7 @@ body {
   }
   #footer {
     position: relative;
-    bottom: 0;
+    bottom: 10;
     width: 100%;
     height: 2.5rem;            /* Footer height */
     

@@ -31,7 +31,7 @@
         </center>
     <div id = "content-wrap" class="title qs">
       <H1>
-        Delta Modulation
+        Adaptive Delta Modulation
       </H1>
       <hr> 
     </div>
@@ -41,7 +41,9 @@
           <script>
             const widgetset = new_widget(
                     [ new deltaModPanel()
+                    , new inputSigFreqPanel()
                     , new reconstructedSigPanel()
+                    , new reconstructedSigFFTPanel()
                     ],
                     [ new freqSlider()
                     , new numHarmSlider()
@@ -49,7 +51,7 @@
                     , new deltaStepSlider()
                     , new timeZoomSlider()
                     ]
-                    , ["original","recon","quant"]
+                    , ["original","recon","quant","adaptive"]
                     ,"Question"
                     ,"qs"
                     , 120

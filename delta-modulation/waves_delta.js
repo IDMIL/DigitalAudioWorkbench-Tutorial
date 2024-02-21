@@ -242,11 +242,23 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
   let stepSize = (settings.quantType == "midTread") ? 2/(maxInt-1) : 2/(maxInt);
 
   let currentAmp = 0;
+  let counter = 0; //Consecutive similar bits counter for adaptive modulation
+	let lastBit = 0;
   for (let x = 0; x < downsampled.length; x++) {
-    if (original[Math.floor(x/downsampled.length*original.length)] > currentAmp) {
-      currentAmp += settings.deltaStep;
+    if (original[Math.floor(x/downsampled.length*original.length)] >= currentAmp) {
+      if (settings.deltaType == "adaptive") {
+        if (lastBit == 0) { //If the last bit is similar to this one, increment counter, otherwise reset
+          counter++;
+        } else {counter = 0; lastBit = 0;}
+      }
+      currentAmp += 2*settings.deltaStep*(1+Math.floor(counter/settings.adaptiveNumSteps)); //For adaptive modulation, increase the multiplier every numSteps consecutive steps
     } else {
-      currentAmp -= settings.deltaStep;
+      if (settings.deltaType == "adaptive") {
+        if (lastBit == 1) {
+          counter++;
+        } else {counter = 0; lastBit = 1;}
+      }
+      currentAmp -= 2*settings.deltaStep*(1+Math.floor(counter/settings.adaptiveNumSteps));
     }
     currentAmp = (currentAmp>1.0)? currentAmp = 1.0 : (currentAmp<-1.0)? currentAmp = -1.0 : currentAmp = currentAmp;
     downsampled[x] = currentAmp;
