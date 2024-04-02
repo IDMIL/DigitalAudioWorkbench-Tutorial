@@ -34,27 +34,28 @@ class slider{
       this.button.mousePressed(this.buttonPressed.bind(this));
       this.button.mouseReleased(this.onEdit.bind(this));
       this.slider.parent(this.settings.element.id);
-      this.button.parent(this.settings.element.id);
-      this.textBox.parent(this.settings.element.id);
+      //this.button.parent(this.settings.element.id);
+      //this.textBox.parent(this.settings.element.id);
       this.textLabel.parent(this.settings.element.id);
     }
   
     resize(x, y, w, p){
       let width = w - 20;
-      let labelWidth = 140;
+      let labelWidth = 160;
       width -= labelWidth;
       let sliderWidth = width * 0.6;
       width -= sliderWidth;
-      let textboxWidth = width *.4;
+      let textboxWidth = width * 0.4;
       width -= textboxWidth;
       let buttonWidth = width;
   
       this.slider.style('width', Math.round(sliderWidth).toString() + "px");
+      console.log("normal slider", x, y, w)
       this.slider.position(x, y);
-      this.textLabel.position(x + this.slider.width+5, y-18);
-      this.textBox.position(x+this.slider.width + labelWidth,y);
+      this.textLabel.position(x+sliderWidth+8, y-18);
+      this.textBox.position(x+sliderWidth+labelWidth,y+8);
       this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
-      this.button.position(this.textBox.x+this.textBox.width,y);
+      this.button.position(x+sliderWidth+labelWidth+textboxWidth,y+8);
       this.button.style('width', Math.round(buttonWidth).toString() + "px");
     }
     buttonPressed(){
@@ -76,7 +77,7 @@ class slider{
       this.settings = settings;
       this.name ="Frequency (Hz)";
       this.propName = "fundFreq";
-      this.min = 100;
+      this.min = 30;
       this.max = this.settings.sampleRate / 4 ;
       this.initial = 440;
       this.step = 1.0;
@@ -89,7 +90,7 @@ class slider{
   class numHarmSlider extends slider{
     setup(p,settings){
       this.settings = settings;
-      this.name ="Number of harmonics";
+      this.name ="Num. of harmonics";
       this.propName="numHarm"
       this.min = 1;
       this.max = 100;
@@ -101,7 +102,7 @@ class slider{
       this.oddEvenSel.option("Even");
       this.oddEvenSel.option("All");
       this.oddEvenSel.selected(this.settings.harmType);
-      this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
+      this.oddEvenSel.changed(()=>{this.settings.harmType = this.oddEvenSel.value();this.onEdit();});
       this.oddEvenSel.parent(this.settings.element.id);
   
       this.slopeSel = p.createSelect();
@@ -111,32 +112,33 @@ class slider{
       this.slopeSel.option("flat");
       this.slopeSel.option("log");
       this.slopeSel.selected(this.settings.harmSlope);
-      this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
+      this.slopeSel.changed(()=>{this.settings.harmSlope = this.slopeSel.value();this.onEdit();});
       this.slopeSel.parent(this.settings.element.id);
       this.makeSlider(p);
     }
     resize(x, y, w, p){
   
       let width = w - 20;
-      let labelWidth = 170;
+      let labelWidth = 160;
       width -= labelWidth;
-      let sliderWidth = width * 0.5; // slider + dropdowns
+      let sliderWidth = width * 0.6; // slider + dropdowns
       width -= sliderWidth;
-      let dropDownWidth = sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
-      sliderWidth = sliderWidth * .75; // Slider
-      let textboxWidth = width * 0.42;
-      let buttonWidth = width*.4;
+      let dropDownWidth = 50; // Make slider + dropdown the same width as other sliders.
+      sliderWidth = sliderWidth-(dropDownWidth*2)-20; // Slider
+      let textboxWidth = width * 0.5;
+      let buttonWidth = width*.5;
   
       this.slider.style('width', Math.round(sliderWidth).toString() + "px");
+      console.log("harmSlider", x, y, w);
       this.slider.position(x, y);
       this.oddEvenSel.style('width', Math.round(dropDownWidth).toString() + "px");
-      this.oddEvenSel.position(x+this.slider.width+10,y);
+      this.oddEvenSel.position(x+sliderWidth+20,y);
       this.slopeSel.style('width', Math.round(dropDownWidth).toString() + "px");
-      this.slopeSel.position(x+this.slider.width+dropDownWidth+10,y);
-      this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 18, y - 18);
-      this.textBox.position(x + this.slider.width + 2*dropDownWidth+ labelWidth+10,y);
+      this.slopeSel.position(x+sliderWidth+20+dropDownWidth,y);
+      this.textLabel.position(x+sliderWidth+20+2*dropDownWidth+7, y-18);
+      this.textBox.position(x+sliderWidth+22+2*dropDownWidth+labelWidth,y+8);
       this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
-      this.button.position(this.textBox.x + this.textBox.width,y);
+      this.button.position(x+sliderWidth+22+2*dropDownWidth+labelWidth+textboxWidth,y+8);
       this.button.style('width', Math.round(buttonWidth).toString() + "px");
     }
     }
@@ -145,7 +147,7 @@ class slider{
   class sampleRateSlider extends slider{
     setup(p,settings){
       this.settings = settings;
-      this.name ="Sample Rate(Hz):";
+      this.name ="Sample Rate (Hz):";
       this.propName="downsamplingFactor";
       this.min = p.log(3000)/p.log(2);
       this.max =  p.log(48000)/p.log(2);
@@ -171,8 +173,8 @@ class slider{
   class sampleRateDeltaSlider extends sampleRateSlider{
     setup(p,settings){
       this.settings = settings;
-      this.name ="Sample Rate (Hz):";
-      this.propName="downsamplingFactor";
+      this.name ="Delta Sample Rate (Hz):";
+      this.propName="downsamplingFactorDelta";
       this.min = p.log(1500)/p.log(2);
       this.max =  p.log(this.settings.deltaFrequency)/p.log(2);
       this.initial = p.log(1500)/p.log(2);
@@ -181,11 +183,11 @@ class slider{
     }
 
     calcDisplayVal(){
-      return this.displayVal= Math.round(this.settings.deltaFrequency / this.settings.downsamplingFactor , 3);//
+      return this.displayVal= Math.round(this.settings.deltaFrequency / this.settings.downsamplingFactorDelta , 3);//
     }
 
     updateValue(p){
-      this.settings.downsamplingFactor = Math.round(this.settings.deltaFrequency/Math.pow(2, this.slider.value()))/32;
+      this.settings.downsamplingFactorDelta = Math.round(this.settings.deltaFrequency/Math.pow(2, this.slider.value()))/32;
       this.displayVal = this.calcDisplayVal();
       this.textBox.value(this.displayVal);//
       this.textLabel.html(this.name);// + p.round(this.settings.sampleRate / this.settings.downsamplingFactor / 1000, 3) + " kHz")
@@ -299,7 +301,7 @@ class slider{
   }
   }
   
-  const minTimeZoom = .25;
+  const minTimeZoom = .30;
   class timeZoomSlider extends zoomSlider{
     setup(p,settings){
       this.settings = settings;

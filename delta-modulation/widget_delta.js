@@ -2,7 +2,7 @@ const BIT_DEPTH_MAX = 16;
 const WEBAUDIO_MAX_SAMPLERATE = 96000;  
 const NUM_COLUMNS = 2;
 const MAX_HARMONICS = 100;
-function new_widget(panels, sliders, buttons, elem_id, elem_id2, margin_size, width_factor=1.0, height_factor=1.0) { const sketch = p => {
+function new_widget(panels, sliders, buttons, elem_id, elem_id2, margin_size, width_factor=1.0, height_factor=1.0) {sketch = p => {
 /* 
 new_widget - 
 
@@ -41,7 +41,7 @@ var intro_height = 0;
 var numPanels = panels.length;
 var numSliders = sliders.length;
 var old_x = 220;
-let panelHeight, panelWidth, sliderWidth, sliderHeight, numColumns;
+let panelHeight, panelWidth, sliderWidth, sliderHeight, numColumns, contentWrap;
 resize(1080, 1920);
 
 // set display and fftSize to ensure there is enough data to fill the panels when zoomed all the way out
@@ -53,7 +53,8 @@ var settings =
     , fundFreq : 1250 // input signal fundamental freq
     , sampleRate : WEBAUDIO_MAX_SAMPLERATE
     , downsamplingFactor : 2
-    , numHarm : 2 //Number of harmonics
+    , downsamplingFactorDelta : 2
+    , numHarm : 1 //Number of harmonics
     , harmType : "Odd" // Harmonic series to evaluate - Odd, even or all
     , harmSlope : "1/x" // Amplitude scaling for harmonics. can be used to create different shapes like saw or square
     , harmonicFreqs : new Float32Array(MAX_HARMONICS) //Array storing harmonic frequency in hz
@@ -66,17 +67,24 @@ var settings =
     , antialiasing : 0 // antialiasing filter order
     , original: new Float32Array(displaySignalSize)
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
+    , downsampledDelta: new Float32Array(1)
     , reconstructed: new Float32Array(displaySignalSize)
+    , reconstructedDelta: new Float32Array(displaySignalSize)
     , stuffed: new Float32Array(displaySignalSize)
     , quantNoiseStuffed: new Float32Array(displaySignalSize)
+    , quantNoiseStuffedDelta: new Float32Array(displaySignalSize)
     , quantNoise: new Float32Array(displaySignalSize)
     , original_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
     , reconstructed_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
+    , reconstructedDelta_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
     , quantNoise_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
+    , quantNoiseDelta_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
     , originalFreq : fft.createComplexArray()
     , stuffedFreq : fft.createComplexArray()
     , reconstructedFreq : fft.createComplexArray()
+    , reconstructedDeltaFreq : fft.createComplexArray()
     , quantNoiseFreq : fft.createComplexArray()
+    , quantNoiseDeltaFreq : fft.createComplexArray()
     , snd : undefined
     , maxVisibleFrequency : WEBAUDIO_MAX_SAMPLERATE / 2
     , freqZoom : 1.0 //X axis zoom for frequency panels
@@ -85,12 +93,14 @@ var settings =
     , deltaFrequency: 96000
     , deltaStep: 0.05
     , deltaType: "non-adaptive"
-    , adaptiveNumSteps: 1 //Number of consecutive steps needed to trigger adaptive delta modulation
+    , adaptiveNumSteps: 3 //Number of consecutive steps needed to trigger adaptive delta modulation
     , element : element
     , margine_size : margin_size+20
     , p5: undefined
     , render : undefined
     , play : undefined
+
+    , oldPageNum : 0
     };
 
 p.settings = settings;
@@ -102,10 +112,23 @@ p.setup = function () {
   settings.render = renderWaves;
   settings.play = playWave;
 
-  p.createCanvas(p.windowWidth, p.windowHeight);
+  p.createCanvas(p.windowWidth, p.windowHeight+500);
   console.log(p.windowWidth,p.windowHeight)
   p.textAlign(p.CENTER);
-  panels.forEach(panel => panel.setup(p, panelHeight, panelWidth, settings));
+  contentWrap = p.createDiv();
+  contentWrap.id("content-wrap");
+  contentWrap.position(0,100);
+  contentWrap.class("title qs");
+  contentWrap.elt.innerHtml = `
+    <H1>
+      Waveforms
+    </H1>
+    <hr> 
+    <p id = "main page">
+      Leave blank
+    </p>`;
+
+    panels.forEach(panel => panel.setup(p, panelHeight, panelWidth, settings));
   sliders.forEach(slider => slider.setup(p, settings));
   sliders.forEach(slider => slider.updateValue(p));
   renderWaves();
@@ -116,11 +139,12 @@ p.setup = function () {
 };
 
 p.draw = function() {
+  console.log("Page Num:", pageNum);
   panels.forEach(panel => panel.drawPanel());
   panels.forEach( (panel, index) => {
     let y = p.floor(index / numColumns) * panelHeight;
     let x = p.floor(index % numColumns) * panelWidth;
-    p.image(panel.buffer, x, y);
+    p.image(panel.buffer, x, y+intro_height);
   });
 };
 
@@ -130,31 +154,42 @@ p.windowResized = function() {
   let h = height_factor * p.windowHeight - 20;
   resize(w, h);
   
+  intro_height = contentWrap.elt.clientHeight;
+
   p.resizeCanvas(w, h);
   panels.forEach(panel => panel.resize(panelHeight, panelWidth));
-
-  intro_text.forEach(element => {
-    intro_height += element.clientHeight;
-  })
-  let yoffset = panelHeight * p.ceil(numPanels/numColumns) + intro_height + 100;
-  let sliderPos = new Array(numColumns).fill(1);
-  sliderPos.forEach((pos,index)=>{
-    sliderPos[index] = 150+index*sliderWidth;
+  
+  let sliderPosX = new Array(numColumns).fill(1);
+  sliderPosX.forEach((pos,index)=>{
+    sliderPosX[index] = 100+index*sliderWidth + index*100;
   });
- 
-  console.log("slider position", sliderPos);
+  
+  yoffset = intro_height+p.ceil(numPanels/numColumns)*panelHeight+100;
+  console.log("slider position", sliderPosX, yoffset);
+  console.log("sliders:", sliders);
   sliders.forEach( (slider, index) => {
-    let y = yoffset + p.floor(index / numColumns) * sliderHeight+20;
-    //let x = p.floor(index % numColumns) * panelWidth;
-    slider.resize(sliderPos[index % numColumns], y, sliderWidth,p);
+    slider.resize(150, yoffset+index*sliderHeight, sliderWidth,p);
   });
-  let y = yoffset + p.floor((numSliders+1)/ numColumns) * sliderHeight+5;
+  let y = yoffset+(numSliders)*sliderHeight;
   let x = margin_size;
-  originalButton.position(x + 20, y);
+  //originalButton.position(x + 20, y);
+  console.log(x+20,400, yoffset);
+  originalButton.position(x+20, y);
   reconstructedButton.position(originalButton.x + originalButton.width * 1.1, originalButton.y);
   quantNoiseButton.position(reconstructedButton.x + reconstructedButton.width * 1.1, reconstructedButton.y);
-  adaptiveSwitchButton.position(quantNoiseButton.x + quantNoiseButton.width * 1.1, quantNoiseButton.y);
-  intro_height = 0;
+  reconstructedDeltaButton.position(quantNoiseButton.x + quantNoiseButton.width * 1.1, originalButton.y);
+  quantNoiseDeltaButton.position(reconstructedDeltaButton.x + reconstructedDeltaButton.width * 1.1, reconstructedButton.y);
+  adaptiveSwitchButton.position(quantNoiseDeltaButton.x + quantNoiseDeltaButton.width * 1.1, quantNoiseButton.y);
+  updateButton.position(adaptiveSwitchButton.x + adaptiveSwitchButton.width * 1.2, adaptiveSwitchButton.y);
+  
+  timeZoomSliderCheckbox.position(originalButton.x, originalButton.y + originalButton.height * 1.1);
+  inputFrequencySliderCheckbox.position(originalButton.x, originalButton.y+2*originalButton.height*1.1);
+  samplingFrequencySliderCheckbox.position(originalButton.x, originalButton.y+3*originalButton.height*1.1);
+  deltaStepSliderCheckbox.position(originalButton.x, originalButton.y+4*originalButton.height*1.1);
+  numHarmSliderCheckbox.position(originalButton.x, originalButton.y+5*originalButton.height*1.1);
+  inputDeltaPanelCheckbox.position(originalButton.x, originalButton.y+6*originalButton.height*1.1);
+  reconstructedDeltaPanelCheckbox.position(originalButton.x, originalButton.y+7*originalButton.height*1.1);
+  freqPanelsCheckbox.position(originalButton.x, originalButton.y+8*originalButton.height*1.1);
 };
 
 function resize(w, h) {
@@ -163,9 +198,9 @@ function resize(w, h) {
   let panelRows = Math.ceil((numPanels+1)/numColumns);
   let sliderRows = Math.ceil((numSliders+1)/numColumns);
   panelWidth   = w / numColumns;
-  sliderWidth  = w / numColumns - 200;
+  sliderWidth  = w-300//w / numColumns - 200;
   panelHeight  = h / panelRows;
-  sliderHeight = panelHeight / sliderRows*2/3;
+  sliderHeight = 45;
   if (sliderHeight < 30) { // keep sliders from getting squished
     sliderHeight = 30;
     let sliderPanelHeight = sliderHeight * sliderRows;
@@ -174,17 +209,40 @@ function resize(w, h) {
 }
 
 function buttonSetup() {
+  nextButton = p.createButton("Next Page");
+  nextButton.position(p.windowWidth/2+38,13,"absolute");
+  nextButton.class("button_round");
+  nextButton.mousePressed( () => {
+    pageNum++;
+    console.log("pageNum:", pageNum);
+    updatePage(pageNum);
+    p.windowResized();
+    redraw();
+  })
+  prevButton = p.createButton("Prev. Page");
+  prevButton.position(p.windowWidth/2-158,13,"absolute");
+  prevButton.class("button_round");
+  prevButton.mousePressed( () => {
+    pageNum--;
+    console.log("pageNum:", pageNum);
+    updatePage(pageNum);
+    p.windowResized();
+    redraw();
+  })
+  updatePage(0);
+
+
   originalButton = p.createButton("Play original");
   originalButton.mousePressed( () => {
   renderWaves(true);
   if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
   playWave(settings.original_pb, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
   });
-  originalButton.parent(element.id);
+  //originalButton.parent(element.id);
   if(!buttons.includes("original")){
     originalButton.hide();
   }
-  console.log("button",originalButton.width,originalButton.x, originalButton.y)
+  originalButton.class("button");
   
   reconstructedButton = p.createButton("Play reconstructed");
   reconstructedButton.mousePressed( () => {
@@ -208,6 +266,28 @@ function buttonSetup() {
     quantNoiseButton.hide();
   }
 
+  reconstructedDeltaButton = p.createButton("Play reconstructed delta modulation");
+  reconstructedDeltaButton.mousePressed( () => {
+    renderWaves(true);
+    if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
+    playWave(settings.reconstructedDelta_pb, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
+  });
+  reconstructedDeltaButton.parent(element.id);
+  if(!buttons.includes("reconDelta")){
+    reconstructedDeltaButton.hide();
+  }
+
+  quantNoiseDeltaButton = p.createButton("Play quantization noise");
+  quantNoiseDeltaButton.mousePressed( () => {
+    renderWaves(true);
+    if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
+    playWave(settings.quantNoiseDelta_pb, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
+  });
+  quantNoiseDeltaButton.parent(element.id);
+  if(!buttons.includes("quantDelta")){
+    quantNoiseDeltaButton.hide();
+  }
+
   adaptiveSwitchButton = p.createButton("Switch to adaptive modulation");
   adaptiveSwitchButton.mousePressed( () => {
     if (settings.deltaType == "adaptive") {settings.deltaType = "non-adaptive";adaptiveSwitchButton.html("Switch to adaptive modulation");}
@@ -219,7 +299,270 @@ function buttonSetup() {
   if(!buttons.includes("adaptive")){
     adaptiveSwitchButton.hide();
   }
-  
+
+  timeZoomSliderCheckbox = p.createCheckbox("Time Zoom Slider");
+  timeZoomSliderCheckbox.parent(element.id);
+  inputFrequencySliderCheckbox = p.createCheckbox("Input Frequency Slider", true);
+  inputFrequencySliderCheckbox.parent(element.id);
+  samplingFrequencySliderCheckbox = p.createCheckbox("Sampling Frequency Slider", true);
+  samplingFrequencySliderCheckbox.parent(element.id);
+  deltaStepSliderCheckbox = p.createCheckbox("Delta Step", true);
+  deltaStepSliderCheckbox.parent(element.id);
+  numHarmSliderCheckbox = p.createCheckbox("Harmonics Slider", true);
+  numHarmSliderCheckbox.parent(element.id);
+  inputDeltaPanelCheckbox = p.createCheckbox("Input with Delta Modulation Panel", true);
+  inputDeltaPanelCheckbox.parent(element.id);
+  reconstructedDeltaPanelCheckbox = p.createCheckbox("Reconstruction with Delta Modulation Panel", true);
+  reconstructedDeltaPanelCheckbox.parent(element.id);
+  freqPanelsCheckbox = p.createCheckbox("Frequency Domain Panels", true);
+  freqPanelsCheckbox.parent(element.id);
+  updateButton = p.createButton("Add/Remove Widgets");
+  updateButton.mousePressed( () => {
+    updatePanel(panels, "Input Signal Time Domain with Delta Modulation", inputDeltaPanelCheckbox.checked());
+    updatePanel(panels, "Input Signal Frequency Domain", freqPanelsCheckbox.checked());
+    updatePanel(panels, "Reconstructed Signal Time Domain", reconstructedDeltaPanelCheckbox.checked());
+    updatePanel(panels, "Reconstructed Signal FFT", freqPanelsCheckbox.checked());
+    
+    /*updatePanel(panels, "Input Signal Time Domain", true);
+    updatePanel(panels, "Sampled Signal FFT", true);
+    updatePanel(panels, "Sampling Signal Time Domain", true);
+    updatePanel(panels, "Sampling Signal Frequency Domain", true);
+    updatePanel(panels, "Sampled Signal Time Domain", true);
+    updatePanel(panels, "Sampled Signal Frequency Domain", true);
+    updatePanel(panels, "Quantization Noise Time Domain", true);
+    updatePanel(panels, "Quantization Noise FFT", true);
+    updatePanel(panels, "Input with Sampled Signal Time Domain", true);
+    updatePanel(panels, "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain", true);*/
+
+
+    updateSlider(sliders, "timeZoom", timeZoomSliderCheckbox.checked());
+    updateSlider(sliders, "fundFreq", inputFrequencySliderCheckbox.checked());
+    updateSlider(sliders, "downsamplingFactor", samplingFrequencySliderCheckbox.checked());
+    updateSlider(sliders, "deltaStep", deltaStepSliderCheckbox.checked());
+    updateSlider(sliders, "numHarm", numHarmSliderCheckbox.checked());
+
+    updateSlider(sliders, "", true);
+    updateSlider(sliders, "", true);
+    updateSlider(sliders, "", true);
+    updateSlider(sliders, "", true);
+    updateSlider(sliders, "", true);
+    updateSlider(sliders, "", true);
+    updateSlider(sliders, "", true);
+    updateSlider(sliders, "", true);
+
+    reorderPanels();
+    reorderSliders();
+
+    redraw();
+  });
+  updateButton.parent(element.id);
+  if (!buttons.includes("options")) {
+    timeZoomSliderCheckbox.hide();
+    inputFrequencySliderCheckbox.hide();
+    samplingFrequencySliderCheckbox.hide();
+    deltaStepSliderCheckbox.hide();
+    numHarmSliderCheckbox.hide();
+    inputDeltaPanelCheckbox.hide();
+    reconstructedDeltaPanelCheckbox.hide();
+    freqPanelsCheckbox.hide();
+    updateButton.hide();
+  }
+
+  text = p.select("main page");
+  console.log("text: ", text);
+  //nextButton.mousePressed( () => {console.log("does this work?");});
+}
+
+
+function redraw() {
+  settings.p5.windowResized();     
+  settings.render();
+  settings.p5.draw();
+}
+
+function updatePanel(panels, name, checkBoxState) {
+  if (checkBoxState) {//Add the given panel if not present
+    let panelPresent = false;
+    for (let i=0;i<numPanels;i++) {
+      if (panels[i].name == name) {
+        panelPresent = true;
+        break;
+      }
+    }
+    if (!panelPresent) {
+      //Replace/add lines for more options
+      if (name == "Input Signal Time Domain with Delta Modulation") {panels.push(new deltaModPanel());}
+      if (name == "Input Signal Frequency Domain") {panels.push(new inputSigFreqPanel());}
+      if (name == "Reconstructed Signal Time Domain") {panels.push(new reconstructedSigPanel());}
+      if (name == "Reconstructed Signal FFT") {panels.push(new reconstructedSigFFTPanel());}
+      if (name == "Input Signal Time Domain") {panels.push(new inputSigPanel());}
+      if (name == "Sampled Signal FFT") {panels.push(new sampledInputFFTPanel());}
+      if (name == "Sampling Signal Time Domain") {panels.push(new impulsePanel());}
+      if (name == "Sampling Signal Frequency Domain") {panels.push(new impulseFreqPanel());}
+      if (name == "Sampled Signal Time Domain") {panels.push(new sampledInputPanel());}
+      if (name == "Sampled Signal Frequency Domain") {panels.push(new sampledInputFreqPanel());}
+      if (name == "Quantization Noise Time Domain") {panels.push(new quantNoisePanel());}
+      if (name == "Quantization Noise FFT") {panels.push(new quantNoiseFFTPanel());}
+      if (name == "Input with Sampled Signal Time Domain") {panels.push(new inputPlusSampledPanel());}
+      if (name == "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain") {panels.push(new allSignalsPanel());}
+
+      
+      //reorderPanels();
+      //console.log(panels);
+      /* temp = panels[0]
+      panels[0] = panels[1]
+      panels[1] = temp */
+
+
+      numPanels++;
+      let w = width_factor * settings.p5.windowWidth - 20;
+      let h = height_factor * settings.p5.windowHeight - 20;
+      resize(w, h);
+      panels[numPanels-1].setup(settings.p5, panelHeight,panelWidth,settings);
+    }
+  } else {//Remove the given panel if present
+    let panelIndex = -1;
+    for (let i=0;i<numPanels;i++) {
+      if (panels[i].name == name) {
+        panelIndex=i;
+        break;
+      }
+    }
+    if (panelIndex != -1) {
+      panels[panelIndex].buffer.remove();
+
+      panels.splice(panelIndex,1);
+      //panels = reorderPanels(panels);
+      console.log(panels);
+      numPanels--;
+      settings.p5.windowResized();
+    }
+  }
+}
+
+function updateSlider(sliders, propName, checkBoxState) {
+  if (checkBoxState) {//Add the given slider if not present
+    let sliderPresent = false;
+    for (let i=0;i<numSliders;i++) {
+      if (sliders[i].propName == propName) {
+        sliderPresent = true;
+        break;
+      }
+    }
+    if (!sliderPresent) {
+      //Replace/add lines for more options
+      if (propName == "timeZoom") {sliders.push(new timeZoomSlider());}
+      if (propName == "fundFreq") {sliders.push(new freqSlider());}
+      if (propName == "downsamplingFactor") {sliders.push(new sampleRateSlider());}
+      if (propName == "downsamplingFactorDelta") {sliders.push(new sampleRateDeltaSlider());}
+      if (propName == "deltaStep") {sliders.push(new deltaStepSlider());}
+      if (propName == "numHarm") {sliders.push(new numHarmSlider());}
+      if (propName == "phase") {sliders.push(new phaseSlider());}
+      /*if (propName == "") {sliders.push(new ());}
+      if (propName == "") {sliders.push(new ());}
+      if (propName == "") {sliders.push(new ());}
+      if (propName == "") {sliders.push(new ());}
+      if (propName == "") {sliders.push(new ());}
+      if (propName == "") {sliders.push(new ());}*/
+
+      numSliders++;
+      sliders[numSliders-1].setup(settings.p5, settings);
+      sliders[numSliders-1].updateValue(settings.p5);
+    }
+  } else {//Remove the given slider if present
+    let sliderIndex = -1;
+    for (let i=0;i<numSliders;i++) {
+      if (sliders[i].propName == propName) {
+        sliderIndex=i;
+        break;
+      }
+    }
+    if (sliderIndex != -1) {
+      sliders[sliderIndex].slider.remove();
+      sliders[sliderIndex].textBox.remove();
+      sliders[sliderIndex].textLabel.remove();
+      sliders[sliderIndex].button.remove();
+      if (propName == "numHarm") {
+        sliders[sliderIndex].oddEvenSel.remove();
+        sliders[sliderIndex].slopeSel.remove();
+      }
+
+      sliders.splice(sliderIndex,1);
+      console.log(sliders);
+      numSliders--;
+    }
+  }
+}
+
+function reorderPanels() {
+  panelNames = [];
+  for (let i=0;i<panels.length;i++) {
+    panelNames.push(panels[i].name);
+  }
+  reorderedPanelNames = [];
+  //The first panel should be input signal time domain, if present
+  if (panelNames.includes("Input Signal Time Domain")) {
+    reorderedPanelNames.push("Input Signal Time Domain");
+    //Add the frequency domain if present
+    if (panelNames.includes("Input Signal Frequency Domain")) {
+      reorderedPanelNames.push("Input Signal Frequency Domain");
+    }
+  }
+  if (panelNames.includes("Input Signal Time Domain with Delta Modulation")) {
+    reorderedPanelNames.push("Input Signal Time Domain with Delta Modulation");
+    //Add the frequency domain if present
+    if (panelNames.includes("Input Signal Frequency Domain")) {
+      reorderedPanelNames.push("Input Signal Frequency Domain");
+    }
+  }
+  //The next panels should be the reconstruction
+  if (panelNames.includes("Reconstructed Signal Time Domain")) {
+    reorderedPanelNames.push("Reconstructed Signal Time Domain");
+    //Add the frequency domain if present
+    if (panelNames.includes("Reconstructed Signal FFT")) {
+      reorderedPanelNames.push("Reconstructed Signal FFT");
+    }
+  }
+  for (let i=0;i<reorderedPanelNames.length; i++) {
+    for (let j=0;j<panels.length;j++) {
+      if (panels[j].name == reorderedPanelNames[i]) {
+        temp = panels[i];
+        panels[i] = panels[j];
+        panels[j]=temp;
+        break;
+      }
+    }
+  }
+  //console.log("Got", panels, "returned", reorderedPanels)
+  return;
+}
+
+function reorderSliders() {
+  sliderNames = [];
+  for (let i=0;i<sliders.length;i++) {
+    sliderNames.push(sliders[i].propName);
+  }
+  reorderedSliderNames = [];
+  //The first slider should be frequency of the input signal, if present
+  if (sliderNames.includes("fundFreq")) {
+    reorderedSliderNames.push("fundFreq");
+  }
+  //The next slider should be the harmonics
+  if (sliderNames.includes("numHarm")) {
+    reorderedSliderNames.push("numHarm");
+  }
+  for (let i=0;i<reorderedSliderNames.length; i++) {
+    for (let j=0;j<sliders.length;j++) {
+      if (sliders[j].propName == reorderedSliderNames[i]) {
+        temp = sliders[i];
+        sliders[i] = sliders[j];
+        sliders[j]=temp;
+        break;
+      }
+    }
+  }
+  //console.log("Got", sliders, "returned", reorderedSliders)
+  return;
 }
 
 function playWave(wave, sampleRate, audioctx) {
@@ -233,6 +576,159 @@ function playWave(wave, sampleRate, audioctx) {
 
 function downloadWave(wave, sampleRate, audioctx) {
 
+}
+
+//These define the different pages, which edit the text and panels/sliders whenever the next/prev buttons are pressed
+function updatePage(pageNum) {
+  switch(pageNum) {
+    case 0:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 1: Waveform Building
+      </H1>
+      <hr> 
+      Let's start with the basics. A sound is created by a <i>variation of pressure</i> through the air (or some other medium).<br>
+      The characteristics of this sound depend on the characteristics of the variation. <br>
+      If the variation of pressure (i.e. the <i>amplitude</i>) is very large, the sound will be loud. <br>
+      If the pressure changes rapidly, we say that the sound signal has a high <i>frequency</i>, and the pitch will be high.<br><br>
+      In order to visualize a sound, we usually plot its amplitude as a function of time. The simplest such sound is a <i>sine wave</i>, which looks like the function in the panel below.<br>
+      A sine wave only has one frequency at a certain amplitude, and can be written as: (amplitude)*sin(frequency*time)<br>
+      Try playing around with the frequency slider below and press the "Play original" button to see what it sounds like.<br>
+      <b>Careful not to hurt your ears!</b>`;
+      updatePanel(panels, "Input Signal Frequency Domain", false);
+      break;
+    case 1:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 1: Waveform Building
+      </H1>
+      <hr> 
+      In the right panel, a vertical line at 440 Hz represents the sine wave frequency component.<br> 
+      Remember that a sine (or a cosine) wave has only one frequency component.<br>
+      In other words, it represents a <u>simple harmonic motion</u> such as the motion of an ideal pendulum or a tuning fork.`;
+      settings.fundFreq = 440;
+      updatePanel(panels, "Input Signal Frequency Domain", true);
+      updateSlider(sliders, "numHarm", false);
+      break;
+    case 2:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 1: Waveform Building
+      </H1>
+      <hr>
+      However, in the real world, sounds aren't just composed of a single frequency component. Usually, on top of the main frequency, sounds will also have a multitude of smaller<br> frequency components called <i>harmonics</i>, situated at integer multiples of the original frequency.<br>
+      You may now add harmonics to the generated waveforms. You may choose to have only even or odd-integer harmonics, as well as different harmonic schemes.<br>
+      Try playing around with the parameters. Can you build a waveform with:
+      <ul>
+      <li>Square Waves?</li>
+      <li>Triangular Waves?</li>
+      <li>Sawtooth Waves?</li>
+      </ul>
+      What do each of these sound like?
+      `;
+      updateSlider(sliders, "numHarm", true);
+      updatePanel(panels, "Sampling Signal Time Domain", false);
+      updateSlider(sliders, "downsamplingFactor", false);
+      updatePanel(panels, "Input with Sampled Signal Time Domain", false);
+      break;
+    case 3:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      We're now interested in what happens when trying to record a signal in the real world. For sound, an input signal would be some kind of continuous signal, whether analogue<br>
+      or acoustic and would be captured either directly or by a microphone. In this case, we have a sinusoidal waveform.<br> 
+      Before the continuous signal can be converted into a set of 0's and 1's, it must be sampled. A simple one-dimensional sampling system would be represented by: y[n] = x(nT<sub>s</sub>)<br>
+      The bottom right panel represents said sampling method (the <i>impulse train</i>) that will poll the input x at time [n].<br>
+      The bottom left panel shows the resulting samples with amplitudes corresponding to the polled input signal.
+      `;
+      settings.numHarm = 1;
+      updateSlider(sliders, "numHarm", false);
+      updateSlider(sliders, "downsamplingFactor", true);
+      updatePanel(panels, "Input with Sampled Signal Time Domain", true);
+      updatePanel(panels, "Sampling Signal Time Domain", true);
+      break;
+    case 4:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      Try putting the sample rate to its minimum value. What do you see happening in the polled input signal?
+      `;
+      break;
+    case 5:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      Now, set the input signal frequency to 150 Hz. You may do this using the textboxes and "Update" buttons. How many samples do you get in each period?
+      `;
+      break;
+    case 6:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      Now, what happens when you increase the input frequency?<br> 
+      In particular, try making it so that the input frequency is exactly half the sampling frequency.<br>
+      What happens to the location of the samples? What should the resulting waveform sound like?
+      `;
+      break;
+    case 7:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    You should've seen that when the sampling frequency is exactly twice that of the input frequency, no sound is detected by the sampling process.<br> 
+    This sampling frequency is called the "<i>Nyquist frequency</i>", and we will now explore methods to deal with the problems it poses.<br>
+    To start with, you may now control the phase of the input signal relative to the samples. What do you notice when you shift the phase of the input by a little bit?<br>
+    `;
+    updateSlider(sliders, "phase", true);
+    break;
+    case 8:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    You may have seen that by shifting the phase, we are able to gain more information about the input signal than was previously available.<br>
+    Now, set the phase back to zero, but decrease the input frequency so that the sampling frequency is slightly above the Nyquist.<br>
+    What do you notice? Can you tell what the resulting frequency would be?
+    `;
+    updateSlider(sliders, "numHarm", false);
+    break;
+    case 9:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    This is an example of "<i>signal folding</i>", which happens when the input signal bypasses the Nyquist frequency.<br>
+    Now set the input signal frequency to 750 and the number of harmonics to two.<br>
+    With the sampling rate at 3000 Hz, do you notice something in how the input signal is being sampled?
+    `;
+    updateSlider(sliders, "numHarm", true);
+    settings.phase = 0;
+    break;
+    case 10:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    You may have noticed that, when sampling at the Nyquist frequency, both the measurement of the fundamental frequency and its harmonics are affected.<br>
+    This is something that must be taken into account as many sounds contain frequencies above the sampling range and this must be filtered out to prevent ghosting.
+    `;
+    updateSlider(sliders, "numHarm", true);
+    break;
+  }
+  reorderPanels();
+  reorderSliders();
 }
 
 

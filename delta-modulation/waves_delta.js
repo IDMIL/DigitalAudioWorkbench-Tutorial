@@ -90,6 +90,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
   // select the buffer to render to; playback buffer, or simulation buffer
   var original = playback ? settings.original_pb : settings.original;
   var reconstructed = playback ? settings.reconstructed_pb : settings.reconstructed;
+  var reconstructedDelta = playback ? settings.reconstructedDelta_pb : settings.reconstructedDelta;
   var stuffed = settings.stuffed;
 
   // calculate harmonics ------------------------------------------------------
@@ -218,6 +219,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
 
   // zero initialize the reconstruction, and zero stuffed buffers
   reconstructed.fill(0);
+  reconstructedDelta.fill(0);
   stuffed.fill(0);
 
   // generate new signal buffers for the downsampled signal and quantization
@@ -226,26 +228,108 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
   if (playback) {
     settings.downsampled_pb = new Float32Array(p.round(original.length / settings.downsamplingFactor));
     settings.quantNoise_pb = new Float32Array(p.round(original.length));
-
+    settings.downsampledDelta_pb = new Float32Array(p.round(original.length / settings.downsamplingFactorDelta));
+    settings.quantNoiseDelta_pb = new Float32Array(p.round(original.length));
   } else {
     settings.downsampled = new Float32Array(p.round(original.length / settings.downsamplingFactor));
     settings.quantNoise = new Float32Array(p.round(original.length / settings.downsamplingFactor));
-  }
+    settings.downsampledDelta = new Float32Array(p.round(original.length / settings.downsamplingFactorDelta));
+    settings.quantNoiseDelta = new Float32Array(p.round(original.length / settings.downsamplingFactorDelta));  }
   var downsampled = playback ? settings.downsampled_pb : settings.downsampled;
   var quantNoise  = playback ? settings.quantNoise_pb  : settings.quantNoise;
+  var downsampledDelta = playback ? settings.downsampledDelta_pb : settings.downsampledDelta;
+  var quantNoiseDelta  = playback ? settings.quantNoiseDelta_pb  : settings.quantNoiseDelta;
   var quantNoiseStuffed = settings.quantNoiseStuffed;
+  var quantNoiseStuffedDelta = settings.quantNoiseStuffedDelta;
   quantNoiseStuffed.fill(0);
 
   // calculate the maximum integer value representable with the given bit depth
-  let maxInt = 1;
+  let maxInt = p.pow(2, settings.bitDepth) - 1;
 
   let stepSize = (settings.quantType == "midTread") ? 2/(maxInt-1) : 2/(maxInt);
 
+  // generate the output of the simulated ADC process by "sampling" (actually
+  // just downsampling), and quantizing with dither. During this process, we
+  // also load the buffer for the reconstructed signal with the sampled values;
+  // this allows us to skip an explicit zero-stuffing step later
+
+  downsampled.forEach( (_, n, arr) => {
+
+    // keep only every kth sample where k is the integer downsampling factor
+    let y = original[n * settings.downsamplingFactor];
+    y = y > 1.0 ? 1.0 : y < -1.0 ? -1.0 : y; // apply clipping
+
+    // if the bit depth is set to the maximum, we skip quantization and dither
+    if (settings.bitDepth == BIT_DEPTH_MAX) {
+
+      // record the sampled output of the ADC process
+      arr[n] = y;
+
+      // sparsely fill the reconstruction and zero stuffed buffers to avoid
+      // having to explicitly zero-stuff
+      reconstructed[n * settings.downsamplingFactor] = y;
+      stuffed[n * settings.downsamplingFactor] = y * settings.downsamplingFactor;
+      return;
+    }
+
+    // generate dither noise
+    let dither = (2 * Math.random() - 1) * settings.dither;
+
+    let quantized;
+    // Add dither signal and quantize. Constrain so we dont clip after dither
+    switch(settings.quantType) {
+      case "midTread" :
+        quantized = stepSize*p.floor(p.constrain((y+dither),-1,0.99)/stepSize + 0.5);
+        break;
+      case "midRise" :
+        quantized = stepSize*(p.floor(p.constrain((y+dither),-1,0.99)/stepSize) + 0.5);
+        break;
+    }
+
+    // record the sampled and quantized output of the ADC process with clipping
+    arr[n] = quantized;
+
+
+    // sparsely fill the reconstruction buffer to avoid having to zero-stuff
+    reconstructed[n * settings.downsamplingFactor] = quantized;
+      stuffed[n * settings.downsamplingFactor] = quantized * settings.downsamplingFactor;
+
+    // record the quantization error
+    quantNoise[n] = quantized - y;
+    quantNoiseStuffed[n * settings.downsamplingFactor] = quantNoise[n];
+  });
+
+  // render reconstructed wave by low pass filtering the zero stuffed array----
+
+  // specify filter parameters; as before, the cutoff is set to the Nyquist
+  var filterCoeffs = firCalculator.lowpass(
+      { order:  200
+      , Fs: WEBAUDIO_MAX_SAMPLERATE
+      , Fc: (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2
+      });
+
+  // generate the filter
+  var filter = new Fili.FirFilter(filterCoeffs);
+
+  // apply the filter
+  reconstructed.forEach( (x, n, arr) => {
+    let y = filter.singleStep(x);
+
+    // To retain the correct amplitude, we must multiply the output of the
+    // filter by the downsampling factor.
+    arr[n] = y * settings.downsamplingFactor;
+  });
+
+  // time shift the signal by half the filter order to compensate for the delay
+  // introduced by the FIR filter
+  reconstructed.forEach( (x, n, arr) => arr[n - 100] = x );
+
+  //Delta modulation reconstruction
   let currentAmp = 0;
   let counter = 0; //Consecutive similar bits counter for adaptive modulation
 	let lastBit = 0;
-  for (let x = 0; x < downsampled.length; x++) {
-    if (original[Math.floor(x/downsampled.length*original.length)] >= currentAmp) {
+  for (let x = 0; x < downsampledDelta.length; x++) {
+    if (original[Math.floor(x/downsampledDelta.length*original.length)] >= currentAmp) {
       if (settings.deltaType == "adaptive") {
         if (lastBit == 0) { //If the last bit is similar to this one, increment counter, otherwise reset
           counter++;
@@ -261,7 +345,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
       currentAmp -= 2*settings.deltaStep*(1+Math.floor(counter/settings.adaptiveNumSteps));
     }
     currentAmp = (currentAmp>1.0)? currentAmp = 1.0 : (currentAmp<-1.0)? currentAmp = -1.0 : currentAmp = currentAmp;
-    downsampled[x] = currentAmp;
+    downsampledDelta[x] = currentAmp;
 
 		/* let xpos = Math.round(panel.plotLeft + x * panel.settings.downsamplingFactor*panel.settings.timeZoom);
 		panel.buffer.curveVertex(xpos, ypos);
@@ -275,13 +359,13 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
 		ypos = (ypos<panel.plotTop)? ypos=panel.plotTop : (ypos>panel.plotBottom)? ypos= panel.plotBottom: ypos=ypos;
 		panel.buffer.curveVertex(xpos, ypos); */
 	}
-  console.log(settings.downsamplingFactor, quantNoise.length, reconstructed.length, original.length);
-  for (let x=0; x<reconstructed.length; x++) {
-    reconstructed[x]=downsampled[Math.floor(x/reconstructed.length*downsampled.length)];
-    let currentAmp = original[x] - reconstructed[x];
+  //console.log(settings.downsamplingFactorDelta, quantNoise.length, reconstructedDelta.length, original.length);
+  for (let x=0; x<reconstructedDelta.length; x++) {
+    reconstructedDelta[x]=downsampledDelta[Math.floor(x/reconstructedDelta.length*downsampledDelta.length)];
+    let currentAmp = original[x] - reconstructedDelta[x];
     currentAmp = (currentAmp>1.0)? currentAmp = 1.0 : (currentAmp<-1.0)? currentAmp = -1.0 : currentAmp = currentAmp;
-    quantNoise[Math.floor(x/reconstructed.length*quantNoise.length)] = currentAmp;
-    quantNoiseStuffed[Math.floor(x/reconstructed.length*quantNoiseStuffed.length)] = currentAmp;
+    quantNoiseDelta[Math.floor(x/reconstructedDelta.length*quantNoiseDelta.length)] = currentAmp;
+    quantNoiseStuffedDelta[Math.floor(x/reconstructedDelta.length*quantNoiseStuffedDelta.length)] = currentAmp;
   }
 
   // generate the output of the simulated ADC process by "sampling" (actually
@@ -360,13 +444,19 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     fft.completeSpectrum(settings.originalFreq);
 
     fft.realTransform(settings.stuffedFreq, stuffed)
-    fft.completeSpectrum(settings.reconstructedFreq);
+    fft.completeSpectrum(settings.stuffedFreq);
 
     fft.realTransform(settings.reconstructedFreq, reconstructed)
     fft.completeSpectrum(settings.reconstructedFreq);
 
+    fft.realTransform(settings.reconstructedDeltaFreq, reconstructedDelta)
+    fft.completeSpectrum(settings.reconstructedDeltaFreq);
+
     fft.realTransform(settings.quantNoiseFreq, quantNoiseStuffed)
     fft.completeSpectrum(settings.quantNoiseFreq); 
+    
+    fft.realTransform(settings.quantNoiseDeltaFreq, quantNoiseStuffedDelta)
+    fft.completeSpectrum(settings.quantNoiseDeltaFreq); 
   }
 
   // fade in and out and suppress clipping distortions ------------------------
@@ -394,8 +484,8 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
 
     // Apply the fade function
     original.forEach(fade);
-    reconstructed.forEach(fade);
-    quantNoise.forEach(fade);
+    reconstructedDelta.forEach(fade);
+    quantNoiseDelta.forEach(fade);
   }
 
 

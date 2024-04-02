@@ -1,7 +1,6 @@
 body {
     font-family: Cantarell, sans-serif;
     line-height: 1.5;
-  
   }
   
   canvas {
@@ -66,13 +65,13 @@ body {
     position :relative;
     z-index: 0;
     display: inline-block;
-    padding: 8px 16px;
+    padding: 8px 25px;
     background-color: rgb(255, 255, 255);
     color: black;
     border: solid;
     margin-right: 2px;
     margin-top: 3px;
-    
+    margin-bottom: 100px;
   }
   .input {
     margin-bottom: 100px;
@@ -147,7 +146,7 @@ body {
     
   }
   #Question{
-    padding-bottom: 2.5rem; 
+    padding-bottom: 10rem; 
   }
   #Answer{
     padding-bottom: 2.5rem;

@@ -14,44 +14,41 @@
     <script src="../fft.js"></script>
     <script src="waves_delta.js"></script>
     <script src="widget_delta.js"></script>
+    <script src="pages.js"></script>
     
   </head>
   <body>
     <div id="page-container">
       <center>
         <div  class="tab">
-          <a href="index.html" class="button_round">&laquo; Prev </a>
+          <!--<a id="prevButton" class="button_round">&laquo; Prev </a>-->
           <a href="../index.html" class="button_round">Home </a>
-          <a href="tutorial3.html" class="button_round">Next &raquo;</a>
+          <!--<a id="nextButton" class="button_round">Next &raquo;</a>-->
         </div>
         <div  class="tabs">
             <button class="button_round" onclick="samplingSection(event, 'Question')" id="defaultOpen">Question</button>
 
         </div>
         </center>
-    <div id = "content-wrap" class="title qs">
+    <!--<div id = "content-wrap" class="title qs">
       <H1>
-        Adaptive Delta Modulation
+        Waveforms
       </H1>
       <hr> 
-    </div>
-
+      <p id = "main page">
+        Leave blank
+      </p>
+    </div>-->
     <div id="Question" class="tabcontent active">
         <main>
           <script>
-            const widgetset = new_widget(
-                    [ new deltaModPanel()
-                    , new inputSigFreqPanel()
-                    , new reconstructedSigPanel()
-                    , new reconstructedSigFFTPanel()
+            widgetset = new_widget(
+                    [ new inputSigPanel()
                     ],
                     [ new freqSlider()
-                    , new numHarmSlider()
-                    , new sampleRateDeltaSlider()
-                    , new deltaStepSlider()
                     , new timeZoomSlider()
                     ]
-                    , ["original","recon","quant","adaptive"]
+                    , ["original"]
                     ,"Question"
                     ,"qs"
                     , 120
@@ -81,6 +78,12 @@
         
         // Get the element with id="defaultOpen" and click on it
         document.getElementById("defaultOpen").click();
+        var paragraph = document.getElementById("main page");
+        var pageNum = 0;
+
+        // Add event listener to the Next/Previous button
+        document.getElementById("nextButton").addEventListener("click", nextPage);
+        document.getElementById("prevButton").addEventListener("click", prevPage);
     
         function questionlist(evt, questions) {
           var i, tabcontent, tablinks;

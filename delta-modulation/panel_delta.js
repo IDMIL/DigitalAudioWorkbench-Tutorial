@@ -132,12 +132,12 @@ function drawDeltaModulation(panel, signal) {
 	panel.buffer.noFill();
 	panel.buffer.beginShape();
 	panel.buffer.curveTightness(1.0);
-	let visibleSamples = Math.floor(panel.plotWidth / panel.settings.downsamplingFactor/panel.settings.timeZoom+1);
+	let visibleSamples = Math.floor(panel.plotWidth / panel.settings.downsamplingFactorDelta/panel.settings.timeZoom+1);
 	let ypos = panel.halfh;
 	let counter = 0; //Consecutive similar bits counter for adaptive modulation
 	let lastBit = 0;
 	for (let x = 0; x < visibleSamples; x++) {
-		let xpos = Math.round(panel.plotLeft + x * panel.settings.downsamplingFactor*panel.settings.timeZoom);
+		let xpos = Math.round(panel.plotLeft + x * panel.settings.downsamplingFactorDelta*panel.settings.timeZoom);
 		panel.buffer.curveVertex(xpos, ypos);
 		if (pixel_max * signal[Math.floor((x/visibleSamples)*panel.plotWidth/panel.settings.timeZoom)]*panel.settings.ampZoom < panel.halfh - ypos) {
 			if (panel.settings.deltaType == "adaptive") {
@@ -369,6 +369,25 @@ class reconstructedSigPanel extends Panel {
   }
 }
 
+class reconstructedDeltaModSigPanel extends Panel {
+	constructor(){
+	  super(); 
+	  this.name="Reconstructed Signal Time Domain using Delta Modulation";
+	  this.description='This is a straightforward time domain plot of the signal output from the simulated digital-to-analog conversion process using delta modulation. '
+		+ time_signal_doc + time_ticks_doc + amp_ticks_doc + midline_doc;
+	}
+  
+	drawPanel(){
+	  this.buffer.background(this.background);
+	  drawSignal(this, this.settings.reconstructedDelta);
+	  drawMidLine(this);
+	  drawName(this);
+	  drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+	  drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+	  this.drawBorder();
+	}
+  }
+
 const analytic_frequency_doc='Spikes are drawn at the appropriate frequency and amplitude based on the analytic definition of the signal determined by the frequency, number of harmonics, and harmonic amplitude scaling settings. As such, this plot should accurately reflect the frequency content of the signal without any influence of windowing or other considerations that would affect a discrete time fourier transform. Unfortunately, this approach does not reflect non-linear effects such as quantization and clipping, where applicable. ';
 class inputSigFreqPanel extends freqPanel {
   constructor(){
@@ -479,6 +498,17 @@ class reconstructedSigFFTPanel extends freqPanel {
 	drawFFT(this, this.settings.reconstructedFreq);
   }
 }
+
+class reconstructedDeltaModSigFFTPanel extends freqPanel {
+	constructor(){
+	  super();
+	  this.name="Reconstructed Signal using Delta Modulation FFT";
+	  this.description='This plot shows the FFT of the signal output by the simulated digital-to-analog conversion using delta modulation. ' + fft_doc + 'This plot clearly reveals one of the compromises inherent in the simulation; since everything must be represented by the computer, the ideal continuous time output signal must be approximated by a discrete time signal with a sufficiently high sampling rate. ';
+	}
+	drawPanel() {
+	  drawFFT(this, this.settings.reconstructedDeltaFreq);
+	}
+  }
 
 class impulsePanel extends Panel {
   constructor(){
