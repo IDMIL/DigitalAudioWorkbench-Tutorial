@@ -91,7 +91,7 @@ class slider{
     setup(p,settings){
       this.settings = settings;
       this.name ="Num. of harmonics";
-      this.propName="numHarm"
+      this.propName="numHarm";
       this.min = 1;
       this.max = 100;
       this.initial = 1;

@@ -3,30 +3,427 @@ const WEBAUDIO_MAX_SAMPLERATE = 96000;
 const NUM_COLUMNS = 2;
 const MAX_HARMONICS = 100;
 function new_widget(panels, sliders, buttons, elem_id, elem_id2, margin_size, width_factor=1.0, height_factor=1.0) {sketch = p => {
-/* 
-new_widget - 
 
-inputs:
+//These define the different pages, which edit the text and panels/sliders whenever the next/prev buttons are pressed
+
+/*
+TO ADD A NEW PAGE:
+1. Add a new case to the switch statement. If adding a page between two existing pages, this unfortunately requires updating the case number for all subsequent pages.
+2. Set contentWrap.elt.innerHtml to the content displayed at the top of the page. Please use HTML script similar to existing pages (eg. header at the top, regular line breaks...)
+3. To add a new panel, call updatePanel(panels, "name_of_your_panel", true);
+  To remove a panel, call the same function with false instead of true.
+  Similarly, with sliders, you can call updateSlider(sliders, "propName_of_your_slider", true);
+  To show or hide various buttons, call yourButton.show() or yourButton.hide() respectively.
+  To set the parameter of the simulation, call settings.propName = your_new_value;  , replacing the propName with the desired setting.
+    Example: settings.fundFreq = 440; sets the fundamental frequency to 440 Hz
+  Note this only updates the panels/audio simulations, not the sliders
+
+  !! Whenever adding a new element, please remove that element from the preceding page! Otherwise, it will still be present when the user goes backwards.
+4. Call break; at the end of the case statement!
+
+Basic elements:
   panels:
-    list of panels to be used in the widget
-    []
+    List of panels used in the widget: refer by name
+    Available panels:
+      "Input Signal Time Domain"
+      "Input Signal Time Domain with Delta Modulation"
+      "Reconstructed Signal Time Domain"
+      "Reconstructed Signal Time Domain using Delta Modulation"
+      "Input Signal FFT"
+      "Reconstructed Signal FFT"
+      "Reconstructed Signal using Delta Modulation FFT"
+      "Sampling Signal Time Domain"
+      "Sampling Signal Frequency Domain"
+      "Sampled Signal Time Domain"
+      "Sampled Signal FFT"
+      "Quantization Noise Time Domain"
+      "Quantization Noise FFT"
+      "Input with Sampled Signal Time Domain"
+      "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain"
   sliders:
-    list of panels to be used in the widget, like 
-    []
+    List of sliders used in the widget: refer by propName
+    Available sliders:
+      "fundFreq"
+      "numHarm"
+      "downsamplingFactor" (sampling rate)
+      "downsamplingFactorDelta"
+      "deltaStep"
+      "dither"
+      "bitDepth"
+      "amplitude"
+      "antialiasing"
+      "phase"
+      "ampZoom"
+      "timeZoom"
+      "freqZoom"
   buttons:
-    Tells the widget which button to have appear in the widget (play original, play reconstructed, play quantization noise)
+    The buttons that appear in the widget
+    Available buttons:
+      originalButton (plays original sound)
+      reconstructedButton (plays reconstructed sound)
+      reconstructedDeltaButton (plays reconstructed sound using delta modulation)
+      quantNoiseButton (plays quantization noise)
+      quantNoiseDeltaButton (plays quantization noise using delta modulation)
+      adaptiveSwitchButton (switches between adaptive and non-adaptive delta modulation)
+  settings:
+    The simulation parameters currently loaded. Same as the slider's propName.
+*/
+function updatePage(pageNum) {
+  switch(pageNum) {
+    //Chapter 1: Waveform Building
+    case 0:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 1: Waveform Building
+      </H1>
+      <hr> 
+      Let's start with the basics. A sound is created by a <i>variation of pressure</i> through the air (or some other medium).<br>
+      The characteristics of this sound depend on the characteristics of the variation. <br>
+      If the variation of pressure (i.e. the <i>amplitude</i>) is very large, the sound will be loud. <br>
+      If the pressure changes rapidly, we say that the sound signal has a high <i>frequency</i>, and the pitch will be high.<br><br>
+      In order to visualize a sound, we usually plot its amplitude as a function of time. The simplest such sound is a <i>sine wave</i>, which looks like the function in the panel below.<br>
+      A sine wave only has one frequency at a certain amplitude, and can be written as: (amplitude)*sin(frequency*time)<br>
+      Try playing around with the frequency slider below and press the "Play original" button to see what it sounds like.<br>
+      <b>Careful not to hurt your ears!</b>`;
+      updatePanel(panels, "Input Signal Frequency Domain", false);
+      break;
+    case 1:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 1: Waveform Building
+      </H1>
+      <hr> 
+      In the right panel, a vertical line at 440 Hz represents the sine wave frequency component.<br> 
+      Remember that a sine (or a cosine) wave has only one frequency component.<br>
+      In other words, it represents a <i>simple harmonic motion</i> such as the motion of an ideal pendulum or a tuning fork.`;
+      settings.fundFreq = 440;
+      updatePanel(panels, "Input Signal Frequency Domain", true);
+      updateSlider(sliders, "numHarm", false);
+      break;
+    case 2:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 1: Waveform Building
+      </H1>
+      <hr>
+      However, in the real world, sounds aren't just composed of a single frequency component. Usually, on top of the main frequency, sounds will also have a multitude of smaller<br> frequency components called <i>harmonics</i>, situated at integer multiples of the original frequency.<br>
+      You may now add harmonics to the generated waveforms. You may choose to have only even or odd-integer harmonics, as well as different harmonic schemes.<br>
+      Try playing around with the parameters. Can you build a waveform with:
+      <ul>
+      <li>Square Waves?</li>
+      <li>Triangular Waves?</li>
+      <li>Sawtooth Waves?</li>
+      </ul>
+      What do each of these sound like?
+      `;
+      updateSlider(sliders, "numHarm", true);
+      updatePanel(panels, "Sampling Signal Time Domain", false);
+      updateSlider(sliders, "downsamplingFactor", false);
+      updatePanel(panels, "Input with Sampled Signal Time Domain", false);
+      break;
+
+    //Chapter 2: Sampling a Waveform in the Time Domain
+    case 3:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      We're now interested in what happens when trying to record a signal in the real world. For sound, an input signal would be some kind of continuous signal, whether analogue<br>
+      or acoustic and would be captured either directly or by a microphone. In this case, we have a sinusoidal waveform.<br> 
+      Before the continuous signal can be converted into a set of 0's and 1's, it must be sampled. A simple one-dimensional sampling system would be represented by: y[n] = x(nT<sub>s</sub>)<br>
+      This means that we simply measure the amplitude of the signal every T<sub>s</sub> seconds.
+      The bottom right panel represents said sampling method (the <i>impulse train</i>) that will poll the input x at time [n].<br>
+      The bottom left panel shows the resulting samples with amplitudes corresponding to the polled input signal.
+      `;
+      settings.numHarm = 1;
+      updateSlider(sliders, "numHarm", false);
+      updateSlider(sliders, "downsamplingFactor", true);
+      updatePanel(panels, "Input with Sampled Signal Time Domain", true);
+      updatePanel(panels, "Sampling Signal Time Domain", true);
+      reconstructedButton.hide();
+      break;
+    case 4:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      After having measured the amplitude at each point shown, we will end up with a sequence of numbers representing our sound. Once converted to binary, this will be our sound file.<br>
+      From there, we can reconstruct what we think the input sound is. You may now listen to the reconstruction using the button below the page.
+      `;
+      reconstructedButton.show();
+      break;
+    case 5:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      Try putting the sample rate to its minimum value. What do you see happening in the polled input signal?
+      `;
+      break;
+    case 6:
+      contentWrap.elt.innerHTML = `
+      <H1>
+        Chapter 2: Sampling a Waveform in the Time Domain
+      </H1>
+      <hr>
+      From now on, we will also show you the frequency domain of the reconstructed waveform. This is what we think the input signal's frequency is, based off the information we measure.<br>
+      Now, set the input signal frequency to 150 Hz. You may do this using the textboxes and "Update" buttons. How many samples do you get in each period?
+      `;
+      updatePanel(panels, "Sampling Signal Time Domain", false);
+      updatePanel(panels, "Reconstructed Signal FFT", true);
+      break;
+      case 7:
+        contentWrap.elt.innerHTML = `
+        <H1>
+          Chapter 2: Sampling a Waveform in the Time Domain
+        </H1>
+        <hr>
+        Now, what happens when you increase the input frequency?<br> 
+        In particular, try making it so that the input frequency is exactly half the sampling frequency.<br>
+        What happens to the location of the samples? What should the resulting waveform sound like?
+        `;
+        break;
+    case 8:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    You should've seen that when the sampling frequency is exactly twice that of the input frequency, <i>no variation</i> is detected by the sampling process. This would mean our recording has no sound!<br> 
+    This is called the "<i>Nyquist frequency</i>", represented by the edge of the gray area in the frequency domain. We will now explore methods to deal with sounds whose frequency approaches the Nyquist.<br>
+    To start with, you may now control the phase of the input signal relative to the samples. What do you notice when you shift the phase of the input by a little bit?<br>
+    `;
+    updateSlider(sliders, "phase", true);
+    break;
+    case 9:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    You may have seen that by shifting the phase, we are able to gain more information about the input signal than was previously available.<br>
+    Now, setting the phase back to zero, try decreasing the input frequency slightly below Nyquist.<br>
+    What do you notice? Can you tell what the resulting frequency would be? What happens if the input is slightly above Nyquist?<br>
+    `;
+    settings.phase = 0;
+    updateSlider(sliders, "phase", false);
+    updateSlider(sliders, "numHarm", false);
+    break;
+    case 10:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    Near the Nyquist frequency, we see that the input frequency gets "duplicated" on either side of the Nyquist.<br> 
+    This is an example of "<i>signal folding</i>", which happens due to the samples getting chosen at inconvenient spots in the input signal.<br>
+    As an extreme case, with the sampling rate at 3000 Hz, what happens when the input signal is at 2900? What happens if the input signal is way higher than 3000 Hz?<br>
+    `;
+    break;
+    case 11:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    When the input signal is only 100 Hz below the sampling frequency, the reconstruction thinks that we're measuring a 100 Hz signal! This is, once again, an example of signal folding.<br>
+    In general, the reconstructed signal is unable to distinguish sounds above the Nyquist frequency. This means the frequency range of our recordings is limited by the Nyquist.<br>
+    Now, set the input signal frequency to 750 and the number of odd 1/x harmonics to 2.<br>
+    With the sampling rate at 3000 Hz, do you notice something in how the input signal is being sampled?
+    `;
+    updateSlider(sliders, "numHarm", true);
+    settings.phase = 0;
+    break;
+    case 12:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    You may have noticed that the samples fell on the same spots whether or not you had 1 or 2 harmonics. This is because the second harmonic fell exactly on the Nyquist frequency (1500 Hz).<br> 
+    Thus both the measurement of the fundamental frequency and its harmonics can be affected by our sampling process.<br>
+    This is something that must be taken into account as many sounds contain frequencies above the sampling range and this must be filtered out to prevent ghosting.
+    `;
+    break;
+    case 13:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 2: Sampling a Waveform in the Time Domain
+    </H1>
+    <hr>
+    The hearing range of the average human goes from 20 Hz to around 20,000 Hz.<br> 
+    Using the information presented so far, can you explain why most recording devices use sampling rates of 48,000 Hz?
+    `;
+    updateSlider(sliders, "fundFreq", true);
+    updateSlider(sliders, "numHarm", true);
+    updateSlider(sliders, "downsamplingFactor", true);
+    updateSlider(sliders, "phase", true);
+    updatePanel(panels, "Input Signal Frequency Domain", true);
+    updatePanel(panels, "Input with Sampled Signal Time Domain", true);
+    updatePanel(panels, "Reconstructed Signal FFT", true);
+    updatePanel(panels, "Input Signal Time Domain with Delta Modulation", false);
+    reconstructedButton.show();
+    break;
+
+    //Add more pages here
+
+    //Chapter 5: Delta Modulation
+    case 14:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    So far, we've only looked at one sampling method, which is the simplest and most standard approach to recording sound. However, there exist many other methods, and each<br>
+    comes with its own advantages and limitations.<br>
+    For example, 
+    
+    In this chapter, we will cover a method called "<i>Delta Modulation</i>" sampling. The idea is that, instead of measuring the amplitude of the signal at one point, we will<br> 
+    just compare the current amplitude with the previous one.<br> 
+    Here's how we would implement this: Start the recording by measuring the current amplitude of the signal.<br>
+    At some time T<sub>s</sub> afterwards, if the amplitude is greater than the previous, assign the bit "1". If it is smaller, assign the bit "0".<br>
+    Update the current amplitude by adding or subtracting a "delta step". This is a fixed amplitude that must be decided on beforehand.<br>
+    As T<sub>s</sub> becomes very small, we will be able to reconstruct the shape of the waveform!
+    `;
+    settings.fundFreq = 440;
+    settings.numHarm = 1;
+    settings.phase = 0;
+    settings.timeZoom = 2;
+    updateSlider(sliders, "fundFreq", false);
+    updateSlider(sliders, "phase", false);
+    updateSlider(sliders, "numHarm", false);
+    updateSlider(sliders, "downsamplingFactor", false);
+    updatePanel(panels, "Input with Sampled Signal Time Domain", false);
+    updatePanel(panels, "Reconstructed Signal FFT", false);
+    updatePanel(panels, "Input Signal Time Domain with Delta Modulation", true);
+    reconstructedButton.hide();
+
+    updatePanel(panels, "Input Signal Time Domain", true);
+    updatePanel(panels, "Input Signal Frequency Domain", false);
+    updatePanel(panels, "Reconstructed Signal Time Domain using Delta Modulation", false);
+    updatePanel(panels, "Reconstructed Signal using Delta Modulation FFT", false);
+    reconstructedDeltaButton.hide();
+    break;
+    case 15:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    From now on, we will show you the input signal overlaid with the delta modulation steps, along with the reconstruction using the same algorithm.<br>
+    You also have access to the frequency domain of the input and reconstructed signal.<br>
+    Try playing around with the input signal and listening to the reconstructed sound. In what situations does the delta modulation algorithm fail to reproduce the input signal? Why?
+    `;
+    updateSlider(sliders, "fundFreq", true);
+    updateSlider(sliders, "numHarm", true);
+    updatePanel(panels, "Input Signal Time Domain", false);
+    updatePanel(panels, "Input Signal Frequency Domain", true);
+    updatePanel(panels, "Reconstructed Signal Time Domain using Delta Modulation", true);
+    updatePanel(panels, "Reconstructed Signal using Delta Modulation FFT", true);
+    reconstructedDeltaButton.show();
+
+    updateSlider(sliders, "downsamplingFactorDelta", false);
+    break;
+    case 16:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    You might have noticed that, at high input frequencies, the reconstruction is unable to "keep up" with the rapid change in amplitude. This leads to the creation of small triangular waves in the reconstruction.<br>
+    This is known as <i>waveform overloading</i>, and it causes the amplitude of the high frequency components to be attenuated (notice the spike in the frequency domain is much smaller).<br>
+    There are a few ways to fix this problem. For instance, try increasing the sampling frequency and see how the reconstruction is affected.<br>
+    Does the reconstruction sound better for high frequency inputs?
+    `;
+    updateSlider(sliders, "downsamplingFactorDelta", true);
+    break;
+    case 17:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    When the sampling frequency is sufficiently high, the algorithm is now able to follow rapid changes in the amplitude.<br>
+    Notice that since we are only assigning a single bit at each step, we are able to sample the signal much more frequently than in our previous sampling method.<br>
+    For a typical delta modulation algorithm, the sampling frequency can go to 4MHz or higher.<br>
+    However, this introduces an additional problem. At the maximum sampling frequency, try sending a low-frequency input signal with no harmonics. Do you notice anything abnormal in the reconstruction?<br>
+    `;
+
+    updateSlider(sliders, "deltaStep", false);
+    break;
+    case 18:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    When the input signal stays stable for a certain amount of time, the delta modulation rapidly oscillates around that value, as it is only able to increase or decrease by a fixed step.<br>
+    This creates a distinctive "buzzing" noise in the reconstruction, which you may have noticed by playing around with the parameters.<br> 
+    In many ways, this is similar to the quantization phenomenon we saw previously.<br>
+    In order to reduce this, we can decrease the delta step. So far the delta step has increased or decreased by 5% of the amplitude range each time.<br>
+    Try playing around with this now. Are you able to get rid of the buzzing?
+    `;
+    updateSlider(sliders, "deltaStep", true);
+    break;
+    case 19:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    At very low delta steps, the reconstruction is much more sensitive to the details of the input signal, which gets rid of the buzzing sound from earlier.<br>
+    However, you might have noticed a new problem. Whenever there are large changes in the input, the reconstruction needs many more steps to catch up to it.<br>
+    So, if the step is too <i>low</i>, waveform overloading becomes a problem again, and high-frequency sounds get attenuated.<br>
+    If the step is too <i>high</i>, quantization becomes an issue, and low-frequency sounds will contain buzzing.<br> 
+    In other words, it seems we need to adjust the delta step according to the behaviour of the input signal... 
+    `;
+    adaptiveSwitchButton.hide();
+    break;
+    case 20:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    Here's how we can change the algorithm to do this. If the input signal is higher than our current amplitude, add the delta step as usual.<br>
+    If the input signal is higher twice in a row, add twice the delta step. If this happens three times in a row, add three times the delta step and so on.<br>
+    Once the input signal is lower than our current amplitude, reset the multiplier back to 1.<br> 
+    In other words, consecutive changes in the delta modulation increase the delta step.<br> 
+    This means that the reconstruction can react to abrupt changes in the input, while still capturing the details of the sections where the input is stable.<br>
+    `;
+    break;
+    case 21:
+    contentWrap.elt.innerHTML = `
+    <H1>
+      Chapter 5: Delta Modulation
+    </H1>
+    <hr>
+    This algorithm is known as "<i>adaptive delta modulation</i>". You may now switch between the adaptive and non-adaptive version using the button at the bottom.<br>
+    Try playing around with different situations where the non-adaptive version had problems. Does the adaptive version improve?  
+    `;
+    adaptiveSwitchButton.show();
+    break;
+  }
+  reorderPanels();
+  reorderSliders();
+}
+
+/*
   elem_id:
     Tells the widget in which Div class to place the buttons in (Questions or answers etc)
   elem_id2:
     Tells the widget which div with the according class name to take into account for placing the widget in height terms/
   margin_size:
-    Used to place the uplaod buttons on a specific place.
+    Used to place the upload buttons on a specific place.
   width_factor:
     By default is 1 and determines the width of the widget
   height_factor:
     By default is 1 and determines the height of the widget
-
 */
+
 var element = undefined;
 console.log(elem_id);
 if (elem_id) {
@@ -587,351 +984,6 @@ function playWave(wave, sampleRate, audioctx) {
 function downloadWave(wave, sampleRate, audioctx) {
 
 }
-
-//These define the different pages, which edit the text and panels/sliders whenever the next/prev buttons are pressed
-function updatePage(pageNum) {
-  switch(pageNum) {
-    //Chapter 1: Waveform Building
-    case 0:
-      contentWrap.elt.innerHTML = `
-      <H1>
-        Chapter 1: Waveform Building
-      </H1>
-      <hr> 
-      Let's start with the basics. A sound is created by a <i>variation of pressure</i> through the air (or some other medium).<br>
-      The characteristics of this sound depend on the characteristics of the variation. <br>
-      If the variation of pressure (i.e. the <i>amplitude</i>) is very large, the sound will be loud. <br>
-      If the pressure changes rapidly, we say that the sound signal has a high <i>frequency</i>, and the pitch will be high.<br><br>
-      In order to visualize a sound, we usually plot its amplitude as a function of time. The simplest such sound is a <i>sine wave</i>, which looks like the function in the panel below.<br>
-      A sine wave only has one frequency at a certain amplitude, and can be written as: (amplitude)*sin(frequency*time)<br>
-      Try playing around with the frequency slider below and press the "Play original" button to see what it sounds like.<br>
-      <b>Careful not to hurt your ears!</b>`;
-      updatePanel(panels, "Input Signal Frequency Domain", false);
-      break;
-    case 1:
-      contentWrap.elt.innerHTML = `
-      <H1>
-        Chapter 1: Waveform Building
-      </H1>
-      <hr> 
-      In the right panel, a vertical line at 440 Hz represents the sine wave frequency component.<br> 
-      Remember that a sine (or a cosine) wave has only one frequency component.<br>
-      In other words, it represents a <i>simple harmonic motion</i> such as the motion of an ideal pendulum or a tuning fork.`;
-      settings.fundFreq = 440;
-      updatePanel(panels, "Input Signal Frequency Domain", true);
-      updateSlider(sliders, "numHarm", false);
-      break;
-    case 2:
-      contentWrap.elt.innerHTML = `
-      <H1>
-        Chapter 1: Waveform Building
-      </H1>
-      <hr>
-      However, in the real world, sounds aren't just composed of a single frequency component. Usually, on top of the main frequency, sounds will also have a multitude of smaller<br> frequency components called <i>harmonics</i>, situated at integer multiples of the original frequency.<br>
-      You may now add harmonics to the generated waveforms. You may choose to have only even or odd-integer harmonics, as well as different harmonic schemes.<br>
-      Try playing around with the parameters. Can you build a waveform with:
-      <ul>
-      <li>Square Waves?</li>
-      <li>Triangular Waves?</li>
-      <li>Sawtooth Waves?</li>
-      </ul>
-      What do each of these sound like?
-      `;
-      updateSlider(sliders, "numHarm", true);
-      updatePanel(panels, "Sampling Signal Time Domain", false);
-      updateSlider(sliders, "downsamplingFactor", false);
-      updatePanel(panels, "Input with Sampled Signal Time Domain", false);
-      break;
-
-    //Chapter 2: Sampling a Waveform in the Time Domain
-    case 3:
-      contentWrap.elt.innerHTML = `
-      <H1>
-        Chapter 2: Sampling a Waveform in the Time Domain
-      </H1>
-      <hr>
-      We're now interested in what happens when trying to record a signal in the real world. For sound, an input signal would be some kind of continuous signal, whether analogue<br>
-      or acoustic and would be captured either directly or by a microphone. In this case, we have a sinusoidal waveform.<br> 
-      Before the continuous signal can be converted into a set of 0's and 1's, it must be sampled. A simple one-dimensional sampling system would be represented by: y[n] = x(nT<sub>s</sub>)<br>
-      This means that we simply measure the amplitude of the signal every T<sub>s</sub> seconds.
-      The bottom right panel represents said sampling method (the <i>impulse train</i>) that will poll the input x at time [n].<br>
-      The bottom left panel shows the resulting samples with amplitudes corresponding to the polled input signal.
-      `;
-      settings.numHarm = 1;
-      updateSlider(sliders, "numHarm", false);
-      updateSlider(sliders, "downsamplingFactor", true);
-      updatePanel(panels, "Input with Sampled Signal Time Domain", true);
-      updatePanel(panels, "Sampling Signal Time Domain", true);
-      reconstructedButton.hide();
-      break;
-    case 4:
-      contentWrap.elt.innerHTML = `
-      <H1>
-        Chapter 2: Sampling a Waveform in the Time Domain
-      </H1>
-      <hr>
-      After having measured the amplitude at each point shown, we will end up with a sequence of numbers representing our sound. Once converted to binary, this will be our sound file.<br>
-      From there, we can reconstruct what we think the input sound is. You may now listen to the reconstruction using the button below the page.
-      `;
-      reconstructedButton.show();
-      break;
-    case 5:
-      contentWrap.elt.innerHTML = `
-      <H1>
-        Chapter 2: Sampling a Waveform in the Time Domain
-      </H1>
-      <hr>
-      Try putting the sample rate to its minimum value. What do you see happening in the polled input signal?
-      `;
-      break;
-    case 6:
-      contentWrap.elt.innerHTML = `
-      <H1>
-        Chapter 2: Sampling a Waveform in the Time Domain
-      </H1>
-      <hr>
-      From now on, we will also show you the frequency domain of the reconstructed waveform. This is what we think the input signal's frequency is, based off the information we measure.<br>
-      Now, set the input signal frequency to 150 Hz. You may do this using the textboxes and "Update" buttons. How many samples do you get in each period?
-      `;
-      updatePanel(panels, "Sampling Signal Time Domain", false);
-      updatePanel(panels, "Reconstructed Signal FFT", true);
-      break;
-      case 7:
-        contentWrap.elt.innerHTML = `
-        <H1>
-          Chapter 2: Sampling a Waveform in the Time Domain
-        </H1>
-        <hr>
-        Now, what happens when you increase the input frequency?<br> 
-        In particular, try making it so that the input frequency is exactly half the sampling frequency.<br>
-        What happens to the location of the samples? What should the resulting waveform sound like?
-        `;
-        break;
-    case 8:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 2: Sampling a Waveform in the Time Domain
-    </H1>
-    <hr>
-    You should've seen that when the sampling frequency is exactly twice that of the input frequency, <i>no variation</i> is detected by the sampling process. This would mean our recording has no sound!<br> 
-    This is called the "<i>Nyquist frequency</i>", represented by the edge of the gray area in the frequency domain. We will now explore methods to deal with sounds whose frequency approaches the Nyquist.<br>
-    To start with, you may now control the phase of the input signal relative to the samples. What do you notice when you shift the phase of the input by a little bit?<br>
-    `;
-    updateSlider(sliders, "phase", true);
-    break;
-    case 9:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 2: Sampling a Waveform in the Time Domain
-    </H1>
-    <hr>
-    You may have seen that by shifting the phase, we are able to gain more information about the input signal than was previously available.<br>
-    Now, setting the phase back to zero, try decreasing the input frequency slightly below Nyquist.<br>
-    What do you notice? Can you tell what the resulting frequency would be? What happens if the input is slightly above Nyquist?<br>
-    `;
-    settings.phase = 0;
-    updateSlider(sliders, "phase", false);
-    updateSlider(sliders, "numHarm", false);
-    break;
-    case 10:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 2: Sampling a Waveform in the Time Domain
-    </H1>
-    <hr>
-    Near the Nyquist frequency, we see that the input frequency gets "duplicated" on either side of the Nyquist.<br> 
-    This is an example of "<i>signal folding</i>", which happens due to the samples getting chosen at inconvenient spots in the input signal.<br>
-    As an extreme case, with the sampling rate at 3000 Hz, what happens when the input signal is at 2900? What happens if the input signal is way higher than 3000 Hz?<br>
-    `;
-    break;
-    case 11:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 2: Sampling a Waveform in the Time Domain
-    </H1>
-    <hr>
-    When the input signal is only 100 Hz below the sampling frequency, the reconstruction thinks that we're measuring a 100 Hz signal! This is, once again, an example of signal folding.<br>
-    In general, the reconstructed signal is unable to distinguish sounds above the Nyquist frequency. This means the frequency range of our recordings is limited by the Nyquist.<br>
-    Now, set the input signal frequency to 750 and the number of odd 1/x harmonics to 2.<br>
-    With the sampling rate at 3000 Hz, do you notice something in how the input signal is being sampled?
-    `;
-    updateSlider(sliders, "numHarm", true);
-    settings.phase = 0;
-    break;
-    case 12:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 2: Sampling a Waveform in the Time Domain
-    </H1>
-    <hr>
-    You may have noticed that the samples fell on the same spots whether or not you had 1 or 2 harmonics. This is because the second harmonic fell exactly on the Nyquist frequency (1500 Hz).<br> 
-    Thus both the measurement of the fundamental frequency and its harmonics can be affected by our sampling process.<br>
-    This is something that must be taken into account as many sounds contain frequencies above the sampling range and this must be filtered out to prevent ghosting.
-    `;
-    break;
-    case 13:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 2: Sampling a Waveform in the Time Domain
-    </H1>
-    <hr>
-    The hearing range of the average human goes from 20 Hz to around 20,000 Hz.<br> 
-    Using the information presented so far, can you explain why most recording devices use sampling rates of 48,000 Hz?
-    `;
-    updateSlider(sliders, "fundFreq", true);
-    updateSlider(sliders, "numHarm", true);
-    updateSlider(sliders, "downsamplingFactor", true);
-    updateSlider(sliders, "phase", true);
-    updatePanel(panels, "Input Signal Frequency Domain", true);
-    updatePanel(panels, "Input with Sampled Signal Time Domain", true);
-    updatePanel(panels, "Reconstructed Signal FFT", true);
-    updatePanel(panels, "Input Signal Time Domain with Delta Modulation", false);
-    reconstructedButton.show();
-    break;
-
-    //Add more pages here
-
-    //Chapter ??: Delta Modulation
-    case 14:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    So far, we've only looked at one sampling method, which is the simplest and most standard approach to recording sound. However, there exist many other methods, and each<br>
-    comes with its own advantages and limitations.<br>
-    For example, 
-    
-    In this chapter, we will cover a method called "<i>Delta Modulation</i>" sampling. The idea is that, instead of measuring the amplitude of the signal at one point, we will<br> 
-    just compare the current amplitude with the previous one.<br> 
-    Here's how we would implement this: Start the recording by measuring the current amplitude of the signal.<br>
-    At some time T<sub>s</sub> afterwards, if the amplitude is greater than the previous, assign the bit "1". If it is smaller, assign the bit "0".<br>
-    Update the current amplitude by adding or subtracting a "delta step". This is a fixed amplitude that must be decided on beforehand.<br>
-    As T<sub>s</sub> becomes very small, we will be able to reconstruct the shape of the waveform!
-    `;
-    settings.fundFreq = 440;
-    settings.numHarm = 1;
-    settings.phase = 0;
-    settings.timeZoom = 2;
-    updateSlider(sliders, "fundFreq", false);
-    updateSlider(sliders, "phase", false);
-    updateSlider(sliders, "numHarm", false);
-    updateSlider(sliders, "downsamplingFactor", false);
-    updatePanel(panels, "Input with Sampled Signal Time Domain", false);
-    updatePanel(panels, "Reconstructed Signal FFT", false);
-    updatePanel(panels, "Input Signal Time Domain with Delta Modulation", true);
-    reconstructedButton.hide();
-
-    updatePanel(panels, "Input Signal Time Domain", true);
-    updatePanel(panels, "Input Signal Frequency Domain", false);
-    updatePanel(panels, "Reconstructed Signal Time Domain using Delta Modulation", false);
-    updatePanel(panels, "Reconstructed Signal using Delta Modulation FFT", false);
-    reconstructedDeltaButton.hide();
-    break;
-    case 15:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    From now on, we will show you the input signal overlaid with the delta modulation steps, along with the reconstruction using the same algorithm.<br>
-    You also have access to the frequency domain of the input and reconstructed signal.<br>
-    Try playing around with the input signal and listening to the reconstructed sound. In what situations does the delta modulation algorithm fail to reproduce the input signal? Why?
-    `;
-    updateSlider(sliders, "fundFreq", true);
-    updateSlider(sliders, "numHarm", true);
-    updatePanel(panels, "Input Signal Time Domain", false);
-    updatePanel(panels, "Input Signal Frequency Domain", true);
-    updatePanel(panels, "Reconstructed Signal Time Domain using Delta Modulation", true);
-    updatePanel(panels, "Reconstructed Signal using Delta Modulation FFT", true);
-    reconstructedDeltaButton.show();
-
-    updateSlider(sliders, "downsamplingFactorDelta", false);
-    break;
-    case 16:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    You might have noticed that, at high input frequencies, the reconstruction is unable to "keep up" with the rapid change in amplitude. This leads to the creation of small triangular waves in the reconstruction.<br>
-    This is known as <i>waveform overloading</i>, and it causes the amplitude of the high frequency components to be attenuated (notice the spike in the frequency domain is much smaller).<br>
-    There are a few ways to fix this problem. For instance, try increasing the sampling frequency and see how the reconstruction is affected.<br>
-    Does the reconstruction sound better for high frequency inputs?
-    `;
-    updateSlider(sliders, "downsamplingFactorDelta", true);
-    break;
-    case 17:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    When the sampling frequency is sufficiently high, the algorithm is now able to follow rapid changes in the amplitude.<br>
-    Notice that since we are only assigning a single bit at each step, we are able to sample the signal much more frequently than in our previous sampling method.<br>
-    For a typical delta modulation algorithm, the sampling frequency can go to 4MHz or higher.<br>
-    However, this introduces an additional problem. At the maximum sampling frequency, try sending a low-frequency input signal with no harmonics. Do you notice anything abnormal in the reconstruction?<br>
-    `;
-
-    updateSlider(sliders, "deltaStep", false);
-    break;
-    case 18:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    When the input signal stays stable for a certain amount of time, the delta modulation rapidly oscillates around that value, as it is only able to increase or decrease by a fixed step.<br>
-    This creates a distinctive "buzzing" noise in the reconstruction, which you may have noticed by playing around with the parameters.<br> 
-    In many ways, this is similar to the quantization phenomenon we saw previously.<br>
-    In order to reduce this, we can decrease the delta step. So far the delta step has increased or decreased by 5% of the amplitude range each time.<br>
-    Try playing around with this now. Are you able to get rid of the buzzing?
-    `;
-    updateSlider(sliders, "deltaStep", true);
-    break;
-    case 19:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    At very low delta steps, the reconstruction is much more sensitive to the details of the input signal, which gets rid of the buzzing sound from earlier.<br>
-    However, you might have noticed a new problem. Whenever there are large changes in the input, the reconstruction needs many more steps to catch up to it.<br>
-    So, if the step is too <i>low</i>, waveform overloading becomes a problem again, and high-frequency sounds get attenuated.<br>
-    If the step is too <i>high</i>, quantization becomes an issue, and low-frequency sounds will contain buzzing.<br> 
-    In other words, it seems we need to adjust the delta step according to the behaviour of the input signal... 
-    `;
-    adaptiveSwitchButton.hide();
-    break;
-    case 20:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    Here's how we can change the algorithm to do this. If the input signal is higher than our current amplitude, add the delta step as usual.<br>
-    If the input signal is higher twice in a row, add twice the delta step. If this happens three times in a row, add three times the delta step and so on.<br>
-    Once the input signal is lower than our current amplitude, reset the multiplier back to 1.<br> 
-    In other words, consecutive changes in the delta modulation increase the delta step.<br> 
-    This means that the reconstruction can react to abrupt changes in the input, while still capturing the details of the sections where the input is stable.<br>
-    `;
-    break;
-    case 21:
-    contentWrap.elt.innerHTML = `
-    <H1>
-      Chapter 5: Delta Modulation
-    </H1>
-    <hr>
-    This algorithm is known as "<i>adaptive delta modulation</i>". You may now switch between the adaptive and non-adaptive version using the button at the bottom.<br>
-    Try playing around with different situations where the non-adaptive version had problems. Does the adaptive version improve?  
-    `;
-    adaptiveSwitchButton.show();
-    break;
-  }
-  reorderPanels();
-  reorderSliders();
-}
-
 
 };
 return new p5(sketch); } // end function new_widget() { var sketch = p => {
