@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="styles_delta.css" media="screen" />
+    <!-- p5.js begin -->
+    <!-- 1) use p5.min.js for optimizing size/transfer -->
+    <script src="../p5.min.js"></script>
+    <!-- 2) use p5.js for debugging -->
+    <!-- <script src="../p5.js"></script> -->
+    <!-- p5.js end-->
+    <script src="../fili.min.js"></script>
+    <script src="panel_delta.js"></script>
+    <script src="slider_delta.js"></script>
+    <script src="../fft.js"></script>
+    <script src="waves_delta.js"></script>
+    <script src="widget_delta.js"></script>
+    <script src="pages.js"></script>
+    
+  </head>
+  <body>
+    <div id="page-container">
+      <center>
+        <div  class="tab">
+          <!--<a id="prevButton" class="button_round">&laquo; Prev </a>-->
+          <a href="../index.html" class="button_round">Home </a>
+          <!--<a id="nextButton" class="button_round">Next &raquo;</a>-->
+        </div>
+        <div  class="tabs">
+            <button class="button_round" onclick="samplingSection(event, 'Question')" id="defaultOpen">Question</button>
+
+        </div>
+        </center>
+    <!--<div id = "content-wrap" class="title qs">
+      <H1>
+        Waveforms
+      </H1>
+      <hr> 
+      <p id = "main page">
+        Leave blank
+      </p>
+    </div>-->
+    <div id="Question" class="tabcontent active">
+        <main>
+          <script>
+            widgetset = new_widget(
+                    [ new inputSigPanel()
+                    ],
+                    [ new freqSlider()
+                    , new timeZoomSlider()
+                    ]
+                    , ["original"]
+                    ,"Question"
+                    ,"qs"
+                    , 120
+                    )
+          </script>
+          <br>
+        </main>
+      </div>
+      <div id="Answer" class="tabcontent">
+      </div>
+    
+
+      <script>
+        function samplingSection(evt, cityName) {
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+          }
+          tablinks = document.getElementsByClassName("button_round");
+          for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+          }
+          document.getElementById(cityName).style.display = "block";
+          evt.currentTarget.className += " active";
+        }
+        
+        // Get the element with id="defaultOpen" and click on it
+        document.getElementById("defaultOpen").click();
+        var paragraph = document.getElementById("main page");
+        var initialPageNum = 0;
+        var pageNum = 0;
+
+        // Add event listener to the Next/Previous button
+        document.getElementById("nextButton").addEventListener("click", nextPage);
+        document.getElementById("prevButton").addEventListener("click", prevPage);
+    
+        function questionlist(evt, questions) {
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tab_questions_content");
+          for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+          }
+          tablinks = document.getElementsByClassName("ques");
+          for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+          }
+          document.getElementById(questions).style.display = "block";
+          evt.currentTarget.className += " active";
+        }
+        // document.getElementById("defaulthover").click();
+      </script>
+  </body>
+</html>
