@@ -88,9 +88,9 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     let simulation = !playback;
 
     // select the buffer to render to; playback buffer, or simulation buffer
-    var original = playback ? settings.original_pb : settings.original;
-    var reconstructed = playback ? settings.reconstructed_pb : settings.reconstructed;
-    var stuffed = settings.stuffed;
+    let original = playback ? settings.original_pb : settings.original;
+    let reconstructed = playback ? settings.reconstructed_pb : settings.reconstructed;
+    let stuffed = settings.stuffed;
 
     // calculate harmonics ------------------------------------------------------
 
@@ -230,9 +230,9 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
         settings.downsampled = new Float32Array(p.round(original.length / settings.downsamplingFactor));
         settings.quantNoise = new Float32Array(p.round(original.length / settings.downsamplingFactor));
     }
-    var downsampled = playback ? settings.downsampled_pb : settings.downsampled;
-    var quantNoise  = playback ? settings.quantNoise_pb  : settings.quantNoise;
-    var quantNoiseStuffed = settings.quantNoiseStuffed;
+    let downsampled = playback ? settings.downsampled_pb : settings.downsampled;
+    let quantNoise  = playback ? settings.quantNoise_pb  : settings.quantNoise;
+    let quantNoiseStuffed = settings.quantNoiseStuffed;
     quantNoiseStuffed.fill(0);
 
     // calculate the maximum integer value representable with the given bit depth
@@ -265,10 +265,21 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
         }
 
         // generate dither noise
-        let dither = (2 * Math.random() - 1) * settings.dither;
+        let dither;
+        switch (settings.ditherType) {
+            case "Rectangluar" :
+                dither = (2 * Math.random() - 1) * settings.dither;
+                break;
+            case "Triangular" :
+                dither = (Math.random() - Math.random()) * settings.dither;
+                break;
+            case "Gaussian" :
+                dither = p.randomGaussian();
+                break;
+        }
 
         let quantized;
-        // Add dither signal and quantize. Constrain so we dont clip after dither
+        // Add dither signal and quantize. Constrain so we don't clip after dither
         switch(settings.quantType) {
             case "midTread" :
                 quantized = stepSize*p.floor(p.constrain((y+dither),-1,0.99)/stepSize + 0.5);

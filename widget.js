@@ -26,6 +26,9 @@ var settings =
     , phase : 0.0 // phase offset for input signal
     , fftSize : fftSize
     , bitDepth : BIT_DEPTH_MAX //quantization bit depth
+    , ditherType : "Rectangluar"
+        // Rectangluar, Triangular, or Gaussian. distribution from which dither noise is selected.
+        // See Principles of Digital Audio, Pohlmann, p. 41
     , quantType : "midRise" // type of quantization
     , dither : 0.0 // amplitude of white noise added to signal before quantization
     , antialiasing : 0 // antialiasing filter order
