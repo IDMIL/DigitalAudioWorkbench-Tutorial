@@ -33,6 +33,7 @@ var settings =
     , dither : 0.0 // amplitude of white noise added to signal before quantization
     , antialiasing : 0 // antialiasing filter order
     , original: new Float32Array(displaySignalSize)
+    , originalUnfiltered : new Float32Array(displaySignalSize)
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
     , reconstructed: new Float32Array(displaySignalSize)
     , stuffed: new Float32Array(displaySignalSize)

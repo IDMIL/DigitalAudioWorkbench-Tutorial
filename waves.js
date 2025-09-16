@@ -189,6 +189,11 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     // simulation are not ideal brick wall filters, but approximations.
 
     // apply antialiasing only if the filter order is set
+
+    if (simulation) {
+        settings.originalUnfiltered.set(settings.original);
+    }
+
     if (settings.antialiasing > 1) {
 
         // specify the filter parameters; Fs = sampling rate, Fc = cutoff frequency
@@ -266,6 +271,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
 
         // generate dither noise
         let dither;
+        console.log(settings.ditherType);
         switch (settings.ditherType) {
             case "Rectangluar" :
                 dither = (2 * Math.random() - 1) * settings.dither;
@@ -274,7 +280,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
                 dither = (Math.random() - Math.random()) * settings.dither;
                 break;
             case "Gaussian" :
-                dither = p.randomGaussian();
+                dither = p.randomGaussian(0, 0.5);
                 break;
         }
 

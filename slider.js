@@ -177,32 +177,32 @@ class ditherSlider extends slider {
     this.ditherTypeSel.option("Triangular");
     this.ditherTypeSel.option("Gaussian");
 
-      this.ditherTypeSel.selected(this.settings.ditherType);
-      this.ditherTypeSel.changed(()=>this.settings.ditherType = this.oddEvenSel.value());
+    this.ditherTypeSel.selected(this.settings.ditherType);
+    this.ditherTypeSel.changed(()=>this.settings.ditherType = this.ditherTypeSel.value());
 
-      this.makeSlider(p);
+    this.makeSlider(p);
   }
 
   resize(x, y, w, p) {
-      let width = w - 20;
-      let labelWidth = 250;
-      width -= labelWidth;
-      let sliderWidth = width * 0.5; // slider + dropdowns
-      width -= sliderWidth;
-      let dropDownWidth = sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
-      sliderWidth = sliderWidth * .75; // Slider
-      let textboxWidth = width * 0.42;
-      let buttonWidth = width*.4;
+    let width = w - 20;
+    let labelWidth = 250;
+    width -= labelWidth;
+    let sliderWidth = width * 0.5; // slider + dropdowns
+    width -= sliderWidth;
+    let dropDownWidth = sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
+    sliderWidth = sliderWidth * .75; // Slider
+    let textboxWidth = width * 0.42;
+    let buttonWidth = width*.4;
 
-      this.slider.style('width', Math.round(sliderWidth).toString() + "px");
-      this.slider.position(x, y);
-      this.ditherTypeSel.style('width', Math.round(2*dropDownWidth).toString() + "px");
-      this.ditherTypeSel.position(x+this.slider.width+10,y);
-      this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 20, y - 15);
-      this.textBox.position(x + this.slider.width + 2*dropDownWidth+ labelWidth+10,y);
-      this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
-      this.button.position(this.textBox.x + this.textBox.width,y);
-      this.button.style('width', Math.round(buttonWidth).toString() + "px");
+    this.slider.style('width', Math.round(sliderWidth).toString() + "px");
+    this.slider.position(x, y);
+    this.ditherTypeSel.style('width', Math.round(2*dropDownWidth).toString() + "px");
+    this.ditherTypeSel.position(x+this.slider.width+10,y);
+    this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 20, y - 15);
+    this.textBox.position(x + this.slider.width + 2*dropDownWidth+ labelWidth+10,y);
+    this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
+    this.button.position(this.textBox.x + this.textBox.width,y);
+    this.button.style('width', Math.round(buttonWidth).toString() + "px");
 
   }
 }
