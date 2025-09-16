@@ -273,7 +273,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
         let dither;
         console.log(settings.ditherType);
         switch (settings.ditherType) {
-            case "Rectangluar" :
+            case "Rectangular" :
                 dither = (2 * Math.random() - 1) * settings.dither;
                 break;
             case "Triangular" :
