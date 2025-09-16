@@ -71,7 +71,7 @@ class Panel {
   drawPanel(){}
 }
 
-class freqPanel extends Panel{
+class FreqPanel extends Panel{
   constructor(){ super(); this.xAxis = "Frequency";
   }
 
@@ -276,7 +276,7 @@ function getColor(num){
   return [num*666%255,num*69%255,num*420%255]
 }
 
-class inputSigUnfilteredPanel extends Panel {
+class InputSigUnfilteredPanel extends Panel {
     constructor(){
         super();
         this.name="Input Signal Time Domain (Pre-Filter)";
@@ -295,7 +295,7 @@ class inputSigUnfilteredPanel extends Panel {
     }
 }
 
-class inputSigPanel extends Panel {
+class InputSigPanel extends Panel {
   constructor(){
     super(); 
     this.name="Input Signal Time Domain (Post-Filter)";
@@ -314,7 +314,7 @@ class inputSigPanel extends Panel {
   }
 }
 
-class reconstructedSigPanel extends Panel {
+class ReconstructedSigPanel extends Panel {
   constructor(){
     super(); 
     this.name="Reconstructed Signal Time Domain";
@@ -334,7 +334,7 @@ class reconstructedSigPanel extends Panel {
 }
 
 const analytic_frequency_doc='Spikes are drawn at the appropriate frequency and amplitude based on the analytic definition of the signal determined by the frequency, number of harmonics, and harmonic amplitude scaling settings. As such, this plot should accurately reflect the frequency content of the signal without any influence of windowing or other considerations that would affect a discrete time fourier transform. Unfortunately, this approach does not reflect non-linear effects such as quantization and clipping, where applicable. ';
-class inputSigFreqPanel extends freqPanel {
+class InputSigFreqPanel extends FreqPanel {
   constructor(){
     super(); 
     this.name="Input Signal Frequency Domain";
@@ -410,7 +410,7 @@ function drawFFT(panel, fft, tick='freq') {
   drawFreqAmplitudeTicks(panel, panel.plotHeight, 9);
 }
 
-class inputSigFFTPanel extends freqPanel {
+class InputSigFFTPanel extends FreqPanel {
   constructor(){
     super(); 
     this.name = "Input Signal FFT";
@@ -422,7 +422,7 @@ class inputSigFFTPanel extends freqPanel {
   }
 }
 
-class sampledInputFFTPanel extends freqPanel {
+class SampledInputFFTPanel extends FreqPanel {
   constructor(){
     super();
     this.name="Sampled Signal FFT";
@@ -433,7 +433,7 @@ class sampledInputFFTPanel extends freqPanel {
   }
 }
 
-class reconstructedSigFFTPanel extends freqPanel {
+class ReconstructedSigFFTPanel extends FreqPanel {
   constructor(){
     super();
     this.name="Reconstructed Signal FFT";
@@ -444,7 +444,7 @@ class reconstructedSigFFTPanel extends freqPanel {
   }
 }
 
-class impulsePanel extends Panel {
+class ImpulsePanel extends Panel {
   constructor(){
     super()
     this.strokeWeight=1;
@@ -475,7 +475,7 @@ class impulsePanel extends Panel {
   }
 }
 
-class impulseFreqPanel extends freqPanel {
+class ImpulseFreqPanel extends FreqPanel {
   constructor(){
     super();
     this.name="Sampling Signal Frequency Domain";
@@ -503,7 +503,7 @@ class impulseFreqPanel extends freqPanel {
   }
 }
 
-class sampledInputPanel extends Panel{
+class SampledInputPanel extends Panel{
   constructor(){
     super()
     this.strokeWeight=1;
@@ -571,7 +571,7 @@ function drawDiracDashes(panel) {
   }
 }
 
-class sampledInputFreqPanel extends freqPanel{
+class SampledInputFreqPanel extends FreqPanel{
   constructor(){ 
     super(); 
     this.name = "Sampled Signal Frequency Domain";
@@ -618,7 +618,7 @@ class sampledInputFreqPanel extends freqPanel{
   }
 }
 
-class quantNoisePanel extends Panel{
+class QuantNoisePanel extends Panel{
   constructor(){
     super()
     this.strokeWeight=1;
@@ -638,7 +638,7 @@ class quantNoisePanel extends Panel{
   }
 }
 
-class quantNoiseFFTPanel extends Panel{
+class QuantNoiseFFTPanel extends Panel{
   constructor(){
     super();
     this.name ="Quantization Noise FFT";
@@ -652,7 +652,7 @@ class quantNoiseFFTPanel extends Panel{
   }
 }
 
-class inputPlusSampledPanel extends Panel {
+class InputPlusSampledPanel extends Panel {
   constructor() {
     super();
     this.name = "Input with Sampled Signal Time Domain";
@@ -674,7 +674,7 @@ class inputPlusSampledPanel extends Panel {
   }
 }
 
-class allSignalsPanel extends Panel {
+class AllSignalsPanel extends Panel {
   constructor() {
     super();
     this.name = "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain";

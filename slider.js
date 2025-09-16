@@ -1,4 +1,4 @@
-class slider{
+class Slider{
   button;
   slider;
   constructor(){
@@ -67,7 +67,7 @@ class slider{
 }
 
 
-class freqSlider extends slider{
+class FreqSlider extends Slider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Frequency (Hz)";
@@ -82,7 +82,7 @@ class freqSlider extends slider{
 
 }
 
-class numHarmSlider extends slider{
+class NumHarmSlider extends Slider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Number of harmonics";
@@ -136,7 +136,7 @@ class numHarmSlider extends slider{
 }
 
 
-class sampleRateSlider extends slider{
+class SampleRateSlider extends Slider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Sample Rate(Hz):";
@@ -162,7 +162,7 @@ class sampleRateSlider extends slider{
   }
 }
 
-class ditherSlider extends slider {
+class DitherSlider extends Slider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Dither";
@@ -207,7 +207,7 @@ class ditherSlider extends slider {
   }
 }
 
-class bitDepthSlider extends slider {
+class BitDepthSlider extends Slider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Bit Depth";
@@ -221,7 +221,7 @@ class bitDepthSlider extends slider {
 
 }
 
-class amplitudeSlider extends slider {
+class AmplitudeSlider extends Slider {
   setup(p,settings){
     this.settings = settings;
     this.propName ="amplitude";
@@ -235,7 +235,7 @@ class amplitudeSlider extends slider {
 
 }
 
-class antialiasingSlider extends slider {
+class AntialiasingSlider extends Slider {
   setup(p, settings){
     this.settings = settings;
     this.propName ="antialiasing";
@@ -248,7 +248,7 @@ class antialiasingSlider extends slider {
   }
 }
 
-class phaseSlider extends slider{
+class PhaseSlider extends Slider{
   setup(p,settings){
     this.settings = settings;
     this.propName ="phase";
@@ -262,7 +262,7 @@ class phaseSlider extends slider{
 
   calcDisplayVal(){return this.settings[this.propName];}
 }
-class zoomSlider extends slider{
+class ZoomSlider extends Slider{
   calcDisplayVal(){return this.settings[this.propName]*100;}
   calcSliderVal(){
     if (isNaN(this.textBox.value())){
@@ -273,7 +273,7 @@ class zoomSlider extends slider{
     }
   }
 }
-class ampZoomSlider extends zoomSlider{
+class AmpZoomSlider extends ZoomSlider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Amp. Zoom (%)";
@@ -287,7 +287,7 @@ class ampZoomSlider extends zoomSlider{
 }
 
 const minTimeZoom = .25;
-class timeZoomSlider extends zoomSlider{
+class TimeZoomSlider extends ZoomSlider{
   setup(p,settings){
     this.settings = settings;
     this.propName ="timeZoom";
@@ -302,7 +302,7 @@ class timeZoomSlider extends zoomSlider{
 }
 
 const minFreqZoom = 0.5;
-class freqZoomSlider extends zoomSlider{
+class FreqZoomSlider extends ZoomSlider{
   setup(p,settings){
     this.settings = settings;
     this.propName ="freqZoom";
