@@ -250,6 +250,10 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     // also load the buffer for the reconstructed signal with the sampled values;
     // this allows us to skip an explicit zero-stuffing step later
 
+    if (simulation) {
+        settings.ditherHistogram = {};
+    }
+
     downsampled.forEach( (_, n, arr) => {
 
         // keep only every kth sample where k is the integer downsampling factor
@@ -271,7 +275,6 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
 
         // generate dither noise
         let dither;
-        console.log(settings.ditherType);
         switch (settings.ditherType) {
             case "Rectangular" :
                 dither = (2 * Math.random() - 1) * settings.dither;
@@ -280,8 +283,18 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
                 dither = (Math.random() - Math.random()) * settings.dither;
                 break;
             case "Gaussian" :
-                dither = p.randomGaussian(0, 0.5);
+                dither = p.randomGaussian(0, 0.5) * settings.dither;
                 break;
+        }
+
+        if (simulation) {
+            const bin = Math.floor(dither / settings.ditherHistogramBinSize) * settings.ditherHistogramBinSize;
+            if (bin in settings.ditherHistogram) {
+                settings.ditherHistogram[bin]++;
+            } else {
+                settings.ditherHistogram[bin] = 1;
+            }
+
         }
 
         let quantized;

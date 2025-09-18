@@ -652,6 +652,42 @@ class QuantNoiseFFTPanel extends Panel{
   }
 }
 
+class DitherDistributionHistogramPanel extends Panel{
+        constructor(){
+            super();
+            this.name = "Dither Distribution Histogram";
+            this.description = 'This plot shows a histogram of the dither signal.';
+            this.ellipseSize=2;
+            this.xAxis = "Error";
+        }
+
+        drawPanel() {
+            this.buffer.background(this.background);
+            this.drawBorder();
+            drawName(this);
+            const x_axis_low = -1.2;
+            const x_axis_high = 1.2;
+            for (let i = x_axis_low; i <= x_axis_high; i += 0.2) {
+                let x = Math.floor(this.plotWidth * (i - x_axis_low) / (x_axis_high - x_axis_low));
+                let text = i.toFixed(1);
+                drawVerticalTick(this, text, x + this.plotLeft);
+            }
+
+            let max_value = 0;
+            for (const [key, value] of Object.entries(this.settings.ditherHistogram)) {
+                max_value = Math.max(value, max_value)
+            }
+            let w = this.plotWidth / ((x_axis_high - x_axis_low) / this.settings.ditherHistogramBinSize);
+            for (const [key, value] of Object.entries(this.settings.ditherHistogram)) {
+                if (key >= x_axis_low && key <= x_axis_high - this.settings.ditherHistogramBinSize) {
+                    let x = (key - x_axis_low) * this.plotWidth / (x_axis_high - x_axis_low) + this.plotLeft;
+                    let h = value * this.plotHeight / max_value;
+                    this.buffer.rect(x, this.plotBottom - h, w, h);
+                }
+            }
+        }
+}
+
 class InputPlusSampledPanel extends Panel {
   constructor() {
     super();

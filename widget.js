@@ -35,6 +35,8 @@ var settings =
     , original: new Float32Array(displaySignalSize)
     , originalUnfiltered : new Float32Array(displaySignalSize)
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
+    , ditherHistogram: {}
+    , ditherHistogramBinSize: 0.01
     , reconstructed: new Float32Array(displaySignalSize)
     , stuffed: new Float32Array(displaySignalSize)
     , quantNoiseStuffed: new Float32Array(displaySignalSize)
