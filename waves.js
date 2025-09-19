@@ -344,7 +344,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
 
     // time shift the signal by half the filter order to compensate for the delay
     // introduced by the FIR filter
-    reconstructed.forEach( (x, n, arr) => arr[n - 100] = x );
+    reconstructed.forEach( (x, n, arr) => arr[n - 750] = x ); // TODO: magic number - figure out why
 
     // render FFTs --------------------------------------------------------------
     // TODO: apply windows?
