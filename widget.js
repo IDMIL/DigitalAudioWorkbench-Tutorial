@@ -11,7 +11,7 @@ resize(1080, 1920);
 
 // set display and fftSize to ensure there is enough data to fill the panels when zoomed all the way out
 let fftSize = p.pow(2, p.round(p.log(panelWidth/minFreqZoom) / p.log(2)));
-let displaySignalSize = p.max(fftSize, panelWidth/minTimeZoom) * 1.1; // 1.1 for 10% extra safety margin
+let displaySignalSize = p.max(fftSize, panelWidth/minTimeZoom) * 2.0; // 1.1 for 10% extra safety margin
 let fft = new FFTJS(fftSize);
 var settings =
     { amplitude : 1.0
