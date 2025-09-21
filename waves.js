@@ -83,6 +83,26 @@ maintainers if you have any questions.
 const soundTimeSeconds = 1.5;
 const fadeTimeSeconds = 0.125;
 
+let audioSources = {}
+
+async function loadAudioSources() {
+  let audioCtx = new AudioContext({sampleRate: 96000});
+  sourceFiles = [
+        ["/wav-samples/bach_cello.wav", "cello"],
+        ["/wav-samples/drums.wav", "drums"],
+        ["/wav-samples/sweep_20_4000hz.wav", "sweep"]
+    ]
+
+    for (let i = 0; i < sourceFiles.length; i++) {
+        try {
+            const response = await fetch(sourceFiles[i][0]);
+            audioSources[sourceFiles[i][1]] = await audioCtx.decodeAudioData(await response.arrayBuffer());
+        } catch (e) {
+            console.error("tried to fetch " + sourceFiles[i][0], e);
+        }
+    }
+}
+
 function calculateHarmonics(settings) {
     let harmonic_number = 1;
     let harmonic_amplitude = 1;
@@ -122,28 +142,43 @@ function calculateHarmonics(settings) {
     }
 }
 
-function getSample(settings, n) {
+function getAdditiveSynthSample(settings, n) {
+  sample = 0;
+  for (let harmonic = 0; harmonic < settings.numHarm; harmonic++) {
+
+    let fundamental_frequency = settings.harmonicFreqs[0];
+    let frequency = settings.harmonicFreqs[harmonic];
+    let amplitude = settings.harmonicAmps[harmonic];
+
+    // convert phase offset specified in degrees to radians
+    let phase_offset = Math.PI / 180 * settings.phase;
+
+    // adjust phase offset so that harmonics are shifted appropriately
+    let phase_offset_adjusted = phase_offset * frequency / fundamental_frequency;
+
+    let radian_frequency = 2 * Math.PI * frequency;
+    let phase_increment = radian_frequency / WEBAUDIO_MAX_SAMPLERATE;
+    let phase = phase_increment * n + phase_offset_adjusted;
+
+    // accumulate the amplitude contribution from the current harmonic
+    sample += amplitude * Math.sin( phase );
+  }
+  return sample;
+}
+
+function getSamples(settings, destination) {
     let sample = 0;
-    for (let harmonic = 0; harmonic < settings.numHarm; harmonic++) {
-
-        let fundamental_frequency = settings.harmonicFreqs[0];
-        let frequency = settings.harmonicFreqs[harmonic];
-        let amplitude = settings.harmonicAmps[harmonic];
-
-        // convert phase offset specified in degrees to radians
-        let phase_offset = Math.PI / 180 * settings.phase;
-
-        // adjust phase offset so that harmonics are shifted appropriately
-        let phase_offset_adjusted = phase_offset * frequency / fundamental_frequency;
-
-        let radian_frequency = 2 * Math.PI * frequency;
-        let phase_increment = radian_frequency / WEBAUDIO_MAX_SAMPLERATE;
-        let phase = phase_increment * n + phase_offset_adjusted;
-
-        // accumulate the amplitude contribution from the current harmonic
-        sample += amplitude * Math.sin( phase );
+    if (settings.inputType === "Additive Synth") {
+      destination.forEach( (_, n, arr) => {
+        arr[n] = getAdditiveSynthSample(settings, n);
+      });
+    } else {
+      for (const [name, buffer] of Object.entries(audioSources)) {
+        if (settings.inputType === name) {
+          buffer.copyFromChannel(destination, 0, 0);
+        }
+      }
     }
-    return sample;
 }
 
 function normalize(arr, targetAmplitude) {
@@ -263,9 +298,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     // For the sample at time `n` in the signal buffer `original`,
     // generate the sum of all the partials based on the previously calculated
     // frequency and amplitude values.
-    original.forEach( (_, n, arr) => {
-        arr[n] = getSample(settings, n);
-    });
+    getSamples(settings, original);
 
     normalize(original, settings.amplitude);
 
@@ -355,7 +388,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     // To retain the correct amplitude, we must multiply the output of the
     // filter by the downsampling factor.
     reconstructed.forEach( (x, n, arr) => arr[n] = x * settings.downsamplingFactor);
-    filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, 200);
+        filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, 200); // TODO: slider for order, start at 200
 
     // render FFTs --------------------------------------------------------------
     // TODO: apply windows?

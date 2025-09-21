@@ -1,8 +1,27 @@
-class Slider{
+class Slider {
+  constructor() {
+  }
+
+  setup(p, settings) {
+    this.settings = settings;
+  }
+
+  updateValue(p) {
+  }
+
+  onEdit() {
+    this.updateValue();
+    this.settings.render();
+    this.settings.p5.draw();
+  }
+
+  resize(x, y, w, p) {
+  }
+}
+
+class RangedSlider extends Slider {
   button;
   slider;
-  constructor(){
-  }
 
   setup(p, settings){
     // should be overridden to set up the slider
@@ -13,12 +32,6 @@ class Slider{
     this.displayVal = this.calcDisplayVal();
     this.textBox.value(this.displayVal);
     this.textLabel.html(this.name+': ');
-  }
-
-  onEdit(){
-    this.updateValue();
-    this.settings.render();
-    this.settings.p5.draw();
   }
 
   makeSlider(p){
@@ -54,7 +67,8 @@ class Slider{
     this.button.style('width', Math.round(buttonWidth).toString() + "px");
   }
   buttonPressed(){
-    this.slider.value(this.calcSliderVal());  }
+    this.slider.value(this.calcSliderVal());
+  }
 
   calcSliderVal(){
     // override this with any calculations needed to convert textbox val to slider val (%, etc)
@@ -66,8 +80,27 @@ class Slider{
   }
 }
 
+class AudioInputTypeSlider extends Slider{
+  setup(p, settings) {
+    this.settings = settings;
+    this.name = "Input Type";
+    this.propName = "inputType";
+    this.inputSelect = p.createSelect();
+    this.inputSelect.option("Additive Synth");
+    this.inputSelect.changed(()=>this.settings.inputType = this.inputSelect.value());
+  }
 
-class FreqSlider extends Slider{
+  resize(x, y, w, p) {
+    this.inputSelect.position(x, y);
+  }
+
+  addOption(option) {
+    this.inputSelect.option(option);
+    this.onEdit();
+  }
+}
+
+class FreqSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Frequency (Hz)";
@@ -79,10 +112,9 @@ class FreqSlider extends Slider{
     this.displayVal = this.initial;
     this.makeSlider(p);
   }
-
 }
 
-class NumHarmSlider extends Slider{
+class NumHarmSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Number of harmonics";
@@ -110,7 +142,6 @@ class NumHarmSlider extends Slider{
     this.makeSlider(p);
   }
   resize(x, y, w, p){
-
     let width = w - 20;
     let labelWidth = 250;
     width -= labelWidth;
@@ -136,7 +167,7 @@ class NumHarmSlider extends Slider{
 }
 
 
-class SampleRateSlider extends Slider{
+class SampleRateSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Sample Rate(Hz):";
@@ -162,7 +193,7 @@ class SampleRateSlider extends Slider{
   }
 }
 
-class DitherSlider extends Slider {
+class DitherSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Dither";
@@ -207,7 +238,7 @@ class DitherSlider extends Slider {
   }
 }
 
-class BitDepthSlider extends Slider {
+class BitDepthSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Bit Depth";
@@ -221,7 +252,7 @@ class BitDepthSlider extends Slider {
 
 }
 
-class AmplitudeSlider extends Slider {
+class AmplitudeSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.propName ="amplitude";
@@ -235,7 +266,7 @@ class AmplitudeSlider extends Slider {
 
 }
 
-class AntialiasingSlider extends Slider {
+class AntialiasingSlider extends RangedSlider {
   setup(p, settings){
     this.settings = settings;
     this.propName ="antialiasing";
@@ -248,7 +279,7 @@ class AntialiasingSlider extends Slider {
   }
 }
 
-class PhaseSlider extends Slider{
+class PhaseSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;
     this.propName ="phase";
@@ -262,7 +293,7 @@ class PhaseSlider extends Slider{
 
   calcDisplayVal(){return this.settings[this.propName];}
 }
-class ZoomSlider extends Slider{
+class ZoomSlider extends RangedSlider{
   calcDisplayVal(){return this.settings[this.propName]*100;}
   calcSliderVal(){
     if (isNaN(this.textBox.value())){

@@ -11,10 +11,12 @@ resize(1080, 1920);
 
 // set display and fftSize to ensure there is enough data to fill the panels when zoomed all the way out
 let fftSize = p.pow(2, p.round(p.log(panelWidth/minFreqZoom) / p.log(2)));
-let displaySignalSize = p.max(fftSize, panelWidth/minTimeZoom) * 2.0; // 1.1 for 10% extra safety margin
+let displaySignalSize = p.max(fftSize, panelWidth/minTimeZoom) * 2.0;
+// 2.0 for extra safety margin, and to give more samples for dither histogram
 let fft = new FFTJS(fftSize);
 var settings =
     { amplitude : 1.0
+    , inputType : "Additive Synth"
     , fundFreq : 1250 // input signal fundamental freq
     , sampleRate : WEBAUDIO_MAX_SAMPLERATE
     , downsamplingFactor : 2
@@ -78,6 +80,16 @@ p.setup = function () {
   p.windowResized();
   p.noLoop();
   setTimeout(p.draw, 250);
+  loadAudioSources().then(r => {
+    sliders.forEach(slider => {
+      if (slider.propName === "inputType") {
+        for (const [name, _] of Object.entries(audioSources)) {
+          slider.addOption(name);
+        }
+      }
+    });
+  });
+
 };
 
 p.draw = function() {
