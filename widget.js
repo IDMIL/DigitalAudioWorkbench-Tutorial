@@ -1,7 +1,7 @@
 const BIT_DEPTH_MAX = 16;
 const WEBAUDIO_MAX_SAMPLERATE = 96000;
 const NUM_COLUMNS = 2;
-const MAX_HARMONICS = 20;
+const MAX_HARMONICS = 40;
 function new_widget(panels, sliders) { const sketch = p => {
 
 var numPanels = panels.length;

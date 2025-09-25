@@ -120,7 +120,7 @@ class NumHarmSlider extends RangedSlider{
     this.name ="Number of harmonics";
     this.propName="numHarm"
     this.min = 1;
-    this.max = 20;
+    this.max = MAX_HARMONICS;
     this.initial = 1;
     this.step = 1;
     this.displayVal = this.initial;
@@ -136,6 +136,11 @@ class NumHarmSlider extends RangedSlider{
     this.slopeSel.option("1/x2");
     this.slopeSel.option("lin");
     this.slopeSel.option("flat");
+    this.slopeSel.option("vowel a");
+    this.slopeSel.option("vowel e");
+    this.slopeSel.option("vowel i");
+    this.slopeSel.option("vowel o");
+    this.slopeSel.option("vowel u");
     this.slopeSel.selected(this.settings.harmSlope);
     this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
 

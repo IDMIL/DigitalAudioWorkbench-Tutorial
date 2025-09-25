@@ -103,6 +103,17 @@ async function loadAudioSources() {
     }
 }
 
+function formantFrequencyStrength(freq, formant1, formant2, decayPerOctave) {
+  if (freq < 1) {
+    return 0;
+  }
+
+  f1Decay = (formant1 > 1) ? Math.pow(decayPerOctave, Math.abs(Math.log2(formant1) - Math.log2(freq))) : 0;
+  f2Decay = (formant2 > 1) ? Math.pow(decayPerOctave, Math.abs(Math.log2(formant2) - Math.log2(freq))) : 0;
+
+  return Math.max(f1Decay, f2Decay);
+}
+
 function calculateHarmonics(settings) {
     let harmonic_number = 1;
     let harmonic_amplitude = 1;
@@ -116,8 +127,24 @@ function calculateHarmonics(settings) {
         else if (settings.harmSlope === "1/x") harmonic_amplitude = 1/harmonic_number;
         else if (settings.harmSlope === "1/x2") harmonic_amplitude = 1/harmonic_number/harmonic_number;
         else if (settings.harmSlope === "flat") harmonic_amplitude = 1;
-        else if (settings.harmSlope === "log") {harmonic_amplitude = Math.exp(-0.1*(harmonic_number-1));
-            console.log(harmonic_amplitude)}
+        else if (settings.harmSlope === "log") {
+          harmonic_amplitude = Math.exp(-0.1*(harmonic_number-1));
+        } else if (settings.harmSlope === "vowel a") {
+          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+            850, 1610, 0.2);
+        } else if (settings.harmSlope === "vowel e") {
+          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+            390, 2300, 0.2);
+        } else if (settings.harmSlope === "vowel i") {
+          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+            240, 2400, 0.2);
+        } else if (settings.harmSlope === "vowel o") {
+          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+            360, 640, 0.2);
+        } else if (settings.harmSlope === "vowel u") {
+          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+            250, 595, 0.2);
+        }
 
         // In case the harmonic slope is 1/x^2 and the harmonic type is "odd",
         // by inverting every other harmonic we generate a nice triangle wave.
@@ -202,8 +229,6 @@ function filterSignal(signal, frequency, order) {
             , Fs: WEBAUDIO_MAX_SAMPLERATE
             , Fc: frequency
         });
-
-    console.log(order, frequency);
 
     // generate the filter
     let filter = new Fili.FirFilter(filterCoeffs);
