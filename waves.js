@@ -247,14 +247,15 @@ function filterSignal(signal, frequency, order) {
     }
 }
 
-function getDither(ditherType, p) {
+function getDither(ditherType) {
     switch (ditherType) {
         case "Rectangular" :
             return (2 * Math.random() - 1);
         case "Triangular" :
             return (Math.random() - Math.random());
         case "Gaussian" :
-            return p.randomGaussian(0, 0.5);
+            return 0; //TODO bring back
+            // return p.randomGaussian(0, 0.5);
     }
 }
 
@@ -290,7 +291,8 @@ function applyFade(arr, normalize) {
     arr.forEach(fade);
 }
 
-function renderWavesImpl(settings, fft, p) { return (playback = false) => {
+function renderWavesImpl(
+  settings, fft) { return (playback = false) => {
 
     // if we are not rendering for playback, we are rendering for simulation
     let simulation = !playback;
@@ -357,11 +359,11 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     // noise whose sizes are initialized according to the currently set
     // downsampling factor
     if (playback) {
-        settings.downsampled_pb = new Float32Array(p.round(original.length / settings.downsamplingFactor));
-        settings.quantNoise_pb = new Float32Array(p.round(original.length / settings.downsamplingFactor));
+        settings.downsampled_pb = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+        settings.quantNoise_pb = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     } else {
-        settings.downsampled = new Float32Array(p.round(original.length / settings.downsamplingFactor));
-        settings.quantNoise = new Float32Array(p.round(original.length / settings.downsamplingFactor));
+        settings.downsampled = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+        settings.quantNoise = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     }
     let downsampled = playback ? settings.downsampled_pb : settings.downsampled;
     let quantNoise  = playback ? settings.quantNoise_pb  : settings.quantNoise;
@@ -369,7 +371,7 @@ function renderWavesImpl(settings, fft, p) { return (playback = false) => {
     quantNoiseStuffed.fill(0);
 
     // calculate the maximum integer value representable with the given bit depth
-    let maxInt = p.pow(2, settings.bitDepth) - 1;
+    let maxInt = Math.pow(2, settings.bitDepth) - 1;
 
     let stepSize = (settings.quantType === "midTread") ? 2/(maxInt-1) : 2/(maxInt);
 

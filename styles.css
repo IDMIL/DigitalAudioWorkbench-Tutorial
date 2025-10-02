@@ -2,14 +2,6 @@ body {
   font-family: Cantarell, sans-serif;
 }
 
-canvas {
-  width: 100% !important;
-  height: 100% !important;
-  text-align: center;
-}
-
-sup { vertical-align: top; position: relative; top: -0.5em; }
-
 footer{
   font-family: Cantarell, sans-serif;
   padding: 5px 10px 0px;
@@ -17,4 +9,44 @@ footer{
   font-size: 9pt;
   color: grey;
   text-align: center;
+}
+
+main {
+    background-color: lightgrey;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+.timeline {
+    margin: auto;
+    max-width: 1000px;
+}
+.timeline .section {
+    background-color: white;
+    padding: 10px;
+    border: 1px solid grey;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.timeline .section .titlebar .sectionTitle {
+    margin: 3px;
+    display: inline;
+}
+
+.timeline .section .titlebar button.collapse-button {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+}
+
+.timeline .section .collapse .row {
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+}
+
+.timeline .section .collapse .panel {
+    border: 1px solid green;
+    padding: 3px;
+    width: 60%;
 }

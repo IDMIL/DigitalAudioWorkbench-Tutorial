@@ -277,22 +277,22 @@ function getColor(num){
 }
 
 class InputSigUnfilteredPanel extends Panel {
-    constructor(){
-        super();
-        this.name="Input Signal Time Domain (Pre-Filter)";
-        this.description='This is a straightforward time domain plot of the input signal before filtering, "sampling", quantization, and "reconstruction". This signal corresponds with the authentic "analog" input to the simulated analog-to-digital conversion process. '
-            + time_signal_doc + time_ticks_doc + amp_ticks_doc + midline_doc;
-    }
+  constructor(){
+    super();
+    this.name="Input Signal Time Domain (Pre-Filter)";
+    this.description='This is a straightforward time domain plot of the input signal before filtering, "sampling", quantization, and "reconstruction". This signal corresponds with the authentic "analog" input to the simulated analog-to-digital conversion process. '
+      + time_signal_doc + time_ticks_doc + amp_ticks_doc + midline_doc;
+  }
 
-    drawPanel(){
-        this.buffer.background(this.background);
-        drawSignal(this, this.settings.originalUnfiltered);
-        drawMidLine(this);
-        drawName(this);
-        drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-        drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-        this.drawBorder();
-    }
+  drawPanel(){
+    this.buffer.background(this.background);
+    drawSignal(this, this.settings.originalUnfiltered);
+    drawMidLine(this);
+    drawName(this);
+    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawBorder();
+  }
 }
 
 class InputSigPanel extends Panel {
