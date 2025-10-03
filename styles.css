@@ -40,13 +40,17 @@ main {
 }
 
 .timeline .section .collapse .row {
-    display: flex;
-    align-items: stretch;
-    gap: 5px;
+    /*display: flex;*/
+    /*align-items: stretch;*/
+    /*gap: 5px;*/
 }
 
 .timeline .section .collapse .panel {
     border: 1px solid green;
     padding: 3px;
     width: 60%;
+}
+
+.slider {
+    position: relative;
 }

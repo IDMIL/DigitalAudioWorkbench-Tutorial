@@ -12,7 +12,7 @@ class Slider {
   onEdit() {
     this.updateValue();
     this.settings.render();
-    this.settings.p5.draw();
+    // this.settings.p5.draw();
   }
 
   resize(x, y, w, p) {
@@ -49,8 +49,9 @@ class RangedSlider extends Slider {
   }
 
   resize(x, y, w, p){
+    console.log(w);
     let width = w - 20;
-    let labelWidth = 250;
+    let labelWidth = 100;
     width -= labelWidth;
     let sliderWidth = width * 0.6;
     width -= sliderWidth;
@@ -114,7 +115,7 @@ class FreqSlider extends RangedSlider{
   }
 }
 
-class NumHarmSlider extends RangedSlider{
+class NumHarmSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Number of harmonics";

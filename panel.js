@@ -16,16 +16,16 @@ class Panel {
     this.description = "This is the base class that other panels inherit from. If you  can see this and you are not reading the source code right now there is probably a problem. Please open an issue or otherwise contact the project maintainers."
   }
 
-  setup(p, height, width, settings) {
+  setup(p, width, height, settings) {
     this.settings = settings;
     this.buffer = p.createGraphics(1,1);
-    this.resize(height, width);
+    this.resize(width, height);
     this.bufferInit();
     this.buffer.textFont('Helvetica',20);
     this.buffer.textAlign(p.CENTER);
   }
 
-  resize(h, w) {
+  resize(w, h) {
     this.buffer.resizeCanvas(w, h);
     this.xbezel = Math.max(70, w * 0.1);
     this.xbezelLeft  = 0.60 * this.xbezel;
