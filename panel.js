@@ -1,6 +1,31 @@
 // Canned documentation blurbs
 //Panel class. should be extended with a drawPanel method
 const log10 = Math.log(10);
+function linToDB(a, a_0 = 1)
+{
+  return 20 * Math.log(a / a_0) / log10;
+}
+
+function getColor(num){
+  return [num*666%255,num*69%255,num*420%255]
+}
+
+function magnitude(real, cplx) {
+  return Math.sqrt(real * real + cplx * cplx);
+}
+
+const midline_doc='The horizontal middle line represents an amplitude of zero. ';
+const time_signal_doc='Because this signal approximates a continuous analog signal in our simulation, the signal value is drawn with a simple interpolation scheme. There are currently bugs with this interpolation when zooming in (time zoom > 100%). In addition, visual aliasing may occur when viewing high frequency signals due to the limited number of pixels on the screen acting as a kind of spatial sampling process. This may appear as amplitude modulation in the plot that is not actually present in the signal. Finally, note that the amplitude of the signal is clipped to the size of the panel viewport. This visual clipping happens regardless of whether the signal itself actually exhibits clipping. ';
+const lollipop_doc='Because this signal represents the discrete time output of the analog-to-digital conversion process, it is drawn with a lollipop plot where each stem represents a single sample. ';
+const freq_amp_ticks_doc='Amplitude is plotted on the y-axis. Ticks on the left label the linear amplitude where 1.0 is equal to the maximum amplitude. ';
+const amp_ticks_doc='Amplitude is plotted on the y-axis. Ticks on the left label the linear amplitude where +/- 1.0 is equal to the maximum amplitude. ';
+const bin_amp_ticks_doc='Ticks on the right side of this plot label the numerical value assigned to a given amplitude by the simulated analog-to-digital conversion. The labels are written in hexadecimal unless the bit depth is 7 bits or lower, in which case the labels are in binary. ';
+const time_ticks_doc='Time is plotted on the x-axis. ';
+const freq_ticks_doc='Frequency is plotted on the x-axis. ';
+const fft_doc='Because the FFT is used here, there are visual artifacts introduced by the windowing process, and the frequency resolution of the plot is inherently limited by the size of the FFT. Note that the resolution is not increased when zooming in with the frequency zoom slider. ';
+const analytic_frequency_doc='Spikes are drawn at the appropriate frequency and amplitude based on the analytic definition of the signal determined by the frequency, number of harmonics, and harmonic amplitude scaling settings. As such, this plot should accurately reflect the frequency content of the signal without any influence of windowing or other considerations that would affect a discrete time fourier transform. Unfortunately, this approach does not reflect non-linear effects such as quantization and clipping, where applicable. ';
+
+
 class Panel {
   constructor(background = "white", stroke = "black", strokeWeight = 1, fill = "black") {
     this.background =  background;
@@ -69,10 +94,205 @@ class Panel {
   }
 
   drawPanel(){}
+
+  calculateNumImages() {
+    // calculate the number of spectral images to draw so that the highest frequency
+    // image's lowest negative harmonic is visible
+    let sampleRate = this.settings.sampleRate / this.settings.downsamplingFactor;
+    let max_harmonic = this.settings.harmonicFreqs[this.settings.harmonicFreqs.length - 1];
+    let numImages = 0;
+    while (numImages * sampleRate - max_harmonic < this.settings.maxVisibleFrequency)
+      numImages++;
+    return numImages;
+  }
+
+
+  drawName(){
+    this.buffer.fill(this.fill);
+    this.buffer.strokeWeight(0);
+    this.buffer.textAlign(this.buffer.CENTER);
+    this.buffer.textStyle(this.buffer.NORMAL);
+    this.buffer.textFont('Helvetica',15);
+    let textheight = this.buffer.textSize() + this.buffer.textDescent() + 1;
+    this.buffer.text (this.name, this.plotLeft, this.plotTop - textheight, this.plotWidth, this.ybezel);
+    this.buffer.strokeWeight(this.strokeWeight);
+  }
+
+  drawMidLine() {
+    // this.buffer.drawingContext.setLineDash([5,5]);
+    this.buffer.stroke("gray");
+    this.buffer.line(this.plotLeft, this.halfh, this.plotRight, this.halfh);
+    this.buffer.stroke(this.stroke);
+    // this.buffer.drawingContext.setLineDash([]);
+  }
+
+  drawSignal(signal, zoom = 1)
+  {
+    let pixel_max = this.plotHeight/2;
+    let pixel_per_fullscale = pixel_max * this.settings.ampZoom;
+    this.buffer.noFill();
+    //TODO: there are some artifacts here due to the way the signal is drawn, especially when zoomed in and/or large amplitude
+    this.buffer.beginShape();
+    this.buffer.curveTightness(1.0);
+    for (let x = 0; x < this.plotWidth; x++) {
+      let pixel_amp = pixel_per_fullscale * signal[Math.round(x/this.settings.timeZoom)];
+      let y = this.halfh - pixel_amp;
+      y = (y<this.plotTop)? y=this.plotTop : (y>this.plotBottom)? y= this.plotBottom : y=y; this.buffer.curveTightness(0.0);
+      this.buffer.curveVertex(x + this.plotLeft, y);
+    }
+    this.buffer.endShape();
+  }
+
+  drawDiscreteSignal(signal){
+    let gain = this.plotHeight/2;
+    let visibleSamples = Math.floor(this.plotWidth / this.settings.downsamplingFactor/this.settings.timeZoom+1);
+    for (let x = 0; x < visibleSamples; x++) {
+      let xpos = Math.round(this.plotLeft + x * this.settings.downsamplingFactor*this.settings.timeZoom);
+      let ypos = this.halfh - gain * signal[x]*this.settings.ampZoom;
+      this.drawStem(xpos,ypos,this.halfh);
+    }
+  }
+
+  drawHorizontalTick(text, height, tick_length = 5, side="left") {
+    this.buffer.fill(this.fill);
+    this.buffer.textFont('Helvetica', this.tickTextSize);
+    this.buffer.textStyle(this.buffer.ITALIC);
+    this.buffer.strokeWeight(0);
+    this.buffer.textAlign(this.buffer.RIGHT);
+    let tickStart = this.plotLeft - tick_length;
+    let tickEnd = this.plotLeft;
+    if (side === "right") {
+      this.buffer.textAlign(this.buffer.LEFT);
+      tickEnd = this.plotRight + tick_length;
+      tickStart = this.plotRight;
+      this.buffer.text(text, tickEnd + 2, height - this.tickTextSize / 2, this.buffer.width, height + this.tickTextSize / 2);
+    } else {
+      this.buffer.text(text, 0, height - this.tickTextSize / 2, tickStart, height + this.tickTextSize / 2);
+
+    }
+
+    this.buffer.strokeWeight(this.strokeWeight);
+    this.buffer.line(tickStart, height,
+      tickEnd, height);
+  }
+
+  drawVerticalTick(text, x, tick_length = 5) {
+    if (x<this.plotLeft || x>this.plotRight) {return}
+    this.buffer.fill(this.fill);
+    this.buffer.textFont('Helvetica', this.tickTextSize);
+    this.buffer.textAlign(this.buffer.CENTER);
+    this.buffer.textStyle(this.buffer.ITALIC);
+    this.buffer.strokeWeight(0);
+    // we draw the text in the center of an oversized box centered over the tick
+    // 20000 pixels should be more than enough for any reasonable tick text
+    this.buffer.text(text, x - 10000, this.plotBottom + tick_length, 20000, this.ybezel - tick_length);
+    this.buffer.strokeWeight(this.strokeWeight);
+    this.buffer.line(x, this.plotBottom, x, this.plotBottom + tick_length);
+  }
+
+  drawTimeTicks(num_ticks, seconds_per_pixel) {
+    let tick_jump = Math.floor((this.plotWidth) / num_ticks);
+    for (let i = 0; i < num_ticks; ++i) {
+      let x = i * tick_jump;
+      let text = (x * seconds_per_pixel * 1000).toFixed(1) + ' ms';
+      this.drawVerticalTick(text, x + this.plotLeft);
+    }
+  }
+
+  drawDiracDashes() {
+    let sampleRate = this.settings.sampleRate / this.settings.downsamplingFactor;
+    let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
+    let numImages = this.calculateNumImages();
+
+    for (let image = 0; image <= numImages; image++) {
+      let color = getColor(image);
+      let imagehz = image * sampleRate; // frequency of a dirac comb harmonic that the input spectrum is convolved with
+      let xpos = imagehz * pixels_per_hz + this.plotLeft;
+
+      // draw the dotted line associated with this dirac comb image
+      this.buffer.stroke(color);
+      this.buffer.drawingContext.setLineDash([5,5]);
+      this.buffer.line(xpos, this.plotTop, xpos, this.plotBottom);
+      this.buffer.drawingContext.setLineDash([]);
+
+      // label the dotted line associated with this dirac comb image
+      let fstext = imagehz.toFixed(0) + ' Hz';
+      this.drawVerticalTick(fstext, xpos);
+    }
+  }
+
+  drawSignalAmplitudeTicks(pixel_max, num_ticks) {
+    for (let i = 1; i <= num_ticks; ++i) {
+      let tick_amp_pixels = i * pixel_max / num_ticks / this.settings.ampZoom;
+      // let tick_amp_db = linToDB(tick_amp_pixels, pixel_max);
+      this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.halfh - tick_amp_pixels*this.settings.ampZoom,5,"right");
+      this.drawHorizontalTick((-tick_amp_pixels/pixel_max).toFixed(2), this.halfh + tick_amp_pixels*this.settings.ampZoom,5,"right");
+      // this.drawHorizontalTick(tick_amp_db.toFixed(1) + 'dBFS', this.halfh - tick_amp_pixels*this.settings.ampZoom,5, "right");
+      // this.drawHorizontalTick(tick_amp_db.toFixed(1) + 'dBFS', this.halfh + tick_amp_pixels*this.settings.ampZoom,5, "right");
+    }
+    // this.drawHorizontalTick('-inf dBFS', this.halfh, 5, "right");
+    this.drawHorizontalTick('0.00', this.halfh, 5, "right");
+  }
+
+  drawSignalBinaryScaling(pixel_max, num_ticks, settings) {
+    let maxInt = Math.pow(2, settings.bitDepth) - 1;
+    let stepSize = (settings.quantType === "midTread") ? 2 / (maxInt - 1) : 2 / (maxInt);
+    let numTicks = Math.min(num_ticks, maxInt + 1);
+    let tickScale = (maxInt + 1) / numTicks;
+    let pixel_per_fullscale = pixel_max * this.settings.ampZoom;
+    // let stepSize = (settings.quantType == "midRise")?  2/(numTicks-1) : 2/(numTicks);
+
+    let val = -1;
+    let tick;
+    let plotVal;
+    for (tick = 0; tick < numTicks; tick++) {
+      switch (settings.quantType) {
+        case "midTread" :
+          val = stepSize * Math.floor(val / stepSize + 0.5);
+          break;
+        case "midRise" :
+          val = stepSize * (Math.floor(val / stepSize) + 0.5);
+          break;
+      }
+      let tick_amp_pixels = val * pixel_max / num_ticks / this.settings.ampZoom;
+      let pixel_amp = pixel_per_fullscale * val;
+      let y = this.halfh - pixel_amp;
+
+      if (y >= this.plotTop - .1 && y <= this.plotBottom + .1) {
+        if (maxInt < 255) {
+          //if under 8 bits, we can write out binary values
+          this.drawHorizontalTick((Math.round(tick * tickScale)).toString(2).padStart(settings.bitDepth, "0"), y, 5, "left");
+        } else {
+          //draw axis labels in hex because of limited space
+          this.drawHorizontalTick("0x" + (tick * tickScale).toString(16).padStart(4, "0"), y, 5, "left");
+        }
+        this.buffer.stroke("gray");
+        this.buffer.drawingContext.setLineDash([5, 5]);
+        this.buffer.line(this.plotLeft, y, this.plotRight, y);
+        this.buffer.drawingContext.setLineDash([]);    // drawHorizontalTick(tick.toString(2), y,5,"left");
+      }
+      val = val + stepSize * tickScale;
+    }
+  }
+
 }
 
 class FreqPanel extends Panel{
-  constructor(){ super(); this.xAxis = "Frequency";
+  constructor(){
+    super();
+    this.xAxis = "Frequency";
+  }
+
+  drawPassBand() {
+    let sampleRate = this.settings.sampleRate/this.settings.downsamplingFactor;
+    let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
+    this.buffer.strokeWeight(0);
+    this.buffer.fill(235);
+    let passbandcutoff = sampleRate/2;
+    let passbandpixelwidth = passbandcutoff * pixels_per_hz;
+    this.buffer.rect(this.plotLeft, this.plotTop, passbandpixelwidth, this.plotHeight);
+    this.buffer.strokeWeight(this.strokeWeight);
+    this.buffer.fill(this.fill);
   }
 
   drawPeak(x,height,base,colour="black"){
@@ -91,189 +311,59 @@ class FreqPanel extends Panel{
     this.buffer.endShape();
     this.buffer.stroke(this.stroke); this.buffer.fill(this.fill);
   }
-}
 
-function linToDB(a, a_0 = 1)
-{
-  return 20 * Math.log(a / a_0) / log10;
-}
-
-const midline_doc='The horizontal middle line represents an amplitude of zero. ';
-function drawMidLine(panel) {
-  // panel.buffer.drawingContext.setLineDash([5,5]);
-  panel.buffer.stroke("gray");
-  panel.buffer.line(panel.plotLeft, panel.halfh, panel.plotRight, panel.halfh);
-  panel.buffer.stroke(panel.stroke);
-  // panel.buffer.drawingContext.setLineDash([]);
-}
-
-const time_signal_doc='Because this signal approximates a continuous analog signal in our simulation, the signal value is drawn with a simple interpolation scheme. There are currently bugs with this interpolation when zooming in (time zoom > 100%). In addition, visual aliasing may occur when viewing high frequency signals due to the limited number of pixels on the screen acting as a kind of spatial sampling process. This may appear as amplitude modulation in the plot that is not actually present in the signal. Finally, note that the amplitude of the signal is clipped to the size of the panel viewport. This visual clipping happens regardless of whether the signal itself actually exhibits clipping. ';
-function drawSignal(panel, signal, zoom = 1)
-{
-  let pixel_max = panel.plotHeight/2;
-  let pixel_per_fullscale = pixel_max * panel.settings.ampZoom;
-  panel.buffer.noFill();
-  //TODO: there are some artifacts here due to the way the signal is drawn, especially when zoomed in and/or large amplitude
-  panel.buffer.beginShape();
-  panel.buffer.curveTightness(1.0);
-  for (let x = 0; x < panel.plotWidth; x++) {
-    let pixel_amp = pixel_per_fullscale * signal[Math.round(x/panel.settings.timeZoom)];
-    let y = panel.halfh - pixel_amp;
-    y = (y<panel.plotTop)? y=panel.plotTop : (y>panel.plotBottom)? y= panel.plotBottom : y=y; panel.buffer.curveTightness(0.0);
-    panel.buffer.curveVertex(x + panel.plotLeft, y);
-  }
-  panel.buffer.endShape();
-}
-
-const lollipop_doc='Because this signal represents the discrete time output of the analog-to-digital conversion process, it is drawn with a lollipop plot where each stem represents a single sample. ';
-function drawDiscreteSignal(panel,signal){
-  let gain = panel.plotHeight/2;
-  let visibleSamples = Math.floor(panel.plotWidth / panel.settings.downsamplingFactor/panel.settings.timeZoom+1);
-  for (let x = 0; x < visibleSamples; x++) {
-    let xpos = Math.round(panel.plotLeft + x * panel.settings.downsamplingFactor*panel.settings.timeZoom);
-    let ypos = panel.halfh - gain * signal[x]*panel.settings.ampZoom;
-    panel.drawStem(xpos,ypos,panel.halfh);
-  }
-}
-
-function drawHorizontalTick(panel, text, height, tick_length = 5, side="left") {
-  panel.buffer.fill(panel.fill);
-  panel.buffer.textFont('Helvetica', panel.tickTextSize);
-  panel.buffer.textStyle(panel.buffer.ITALIC);
-  panel.buffer.strokeWeight(0);
-  panel.buffer.textAlign(panel.buffer.RIGHT);
-  let tickStart = panel.plotLeft-tick_length;
-  let tickEnd = panel.plotLeft;
-  if (side == "right"){
-    panel.buffer.textAlign(panel.buffer.LEFT);
-    tickEnd = panel.plotRight+tick_length;
-    tickStart = panel.plotRight;
-    panel.buffer.text(text, tickEnd+2, height - panel.tickTextSize/2, panel.buffer.width , height + panel.tickTextSize/2);
-  }
-  else{
-    panel.buffer.text(text, 0, height - panel.tickTextSize/2, tickStart , height + panel.tickTextSize/2);
-
-  }
-
-  panel.buffer.strokeWeight(panel.strokeWeight);
-  panel.buffer.line(tickStart , height,
-                    tickEnd,               height);
-}
-
-function drawVerticalTick(panel, text, x, tick_length = 5) {
-  if (x<panel.plotLeft || x>panel.plotRight){return};
-  panel.buffer.fill(panel.fill);
-  panel.buffer.textFont('Helvetica', panel.tickTextSize);
-  panel.buffer.textAlign(panel.buffer.CENTER);
-  panel.buffer.textStyle(panel.buffer.ITALIC);
-  panel.buffer.strokeWeight(0);
-  // we draw the text in the center of an oversized box centered over the tick
-  // 20000 pixels should be more than enough for any reasonable tick text
-  panel.buffer.text(text, x - 10000, panel.plotBottom + tick_length, 20000, panel.ybezel - tick_length);
-  panel.buffer.strokeWeight(panel.strokeWeight);
-  panel.buffer.line(x, panel.plotBottom, x, panel.plotBottom + tick_length);
-}
-
-const freq_amp_ticks_doc='Amplitude is plotted on the y-axis. Ticks on the left label the linear amplitude where 1.0 is equal to the maximum amplitude. ';
-function drawFreqAmplitudeTicks(panel, pixel_max, num_ticks) {
-  for (let i = 0; i <= num_ticks; ++i) {
-    let tick_amp_pixels = i * pixel_max / num_ticks / panel.settings.ampZoom;
-    drawHorizontalTick(panel, (tick_amp_pixels/pixel_max).toFixed(2), panel.plotBottom - tick_amp_pixels*panel.settings.ampZoom, 5, "right");
-  }
-}
-
-const amp_ticks_doc='Amplitude is plotted on the y-axis. Ticks on the left label the linear amplitude where +/- 1.0 is equal to the maximum amplitude. ';
-function drawSignalAmplitudeTicks(panel, pixel_max, num_ticks) {
-  for (let i = 1; i <= num_ticks; ++i) {
-    let tick_amp_pixels = i * pixel_max / num_ticks / panel.settings.ampZoom;
-    // let tick_amp_db = linToDB(tick_amp_pixels, pixel_max);
-    drawHorizontalTick(panel, (tick_amp_pixels/pixel_max).toFixed(2), panel.halfh - tick_amp_pixels*panel.settings.ampZoom,5,"right");
-    drawHorizontalTick(panel, (-tick_amp_pixels/pixel_max).toFixed(2), panel.halfh + tick_amp_pixels*panel.settings.ampZoom,5,"right");
-    // drawHorizontalTick(panel, tick_amp_db.toFixed(1) + 'dBFS', panel.halfh - tick_amp_pixels*panel.settings.ampZoom,5, "right");
-    // drawHorizontalTick(panel, tick_amp_db.toFixed(1) + 'dBFS', panel.halfh + tick_amp_pixels*panel.settings.ampZoom,5, "right");
-  }
-  // drawHorizontalTick(panel, '-inf dBFS', panel.halfh, 5, "right");
-  drawHorizontalTick(panel, '0.00', panel.halfh, 5, "right");
-}
-
-const bin_amp_ticks_doc='Ticks on the right side of this plot label the numerical value assigned to a given amplitude by the simulated analog-to-digital conversion. The labels are written in hexadecimal unless the bit depth is 7 bits or lower, in which case the labels are in binary. ';
-function drawSignalBinaryScaling(panel,pixel_max, num_ticks, settings){
-  let maxInt = Math.pow(2, settings.bitDepth)-1;
-  let stepSize = (settings.quantType == "midTread")?  2/(maxInt-1) : 2/(maxInt);
-  let numTicks = Math.min(num_ticks,maxInt+1);
-  let tickScale =(maxInt+1)/numTicks;
-  let pixel_per_fullscale = pixel_max * panel.settings.ampZoom;
-  // let stepSize = (settings.quantType == "midRise")?  2/(numTicks-1) : 2/(numTicks);
-
-  let val=-1; let tick; let plotVal;
-  for ( tick =0; tick<numTicks;tick++){
-    switch(settings.quantType){
-      case "midTread" :
-         val = stepSize*Math.floor(val/stepSize + 0.5);
-        break;
-        case "midRise" :
-           val = stepSize*(Math.floor(val/stepSize) + 0.5);
-          break;
-        }
-        let tick_amp_pixels = val * pixel_max / num_ticks/panel.settings.ampZoom;
-        let pixel_amp = pixel_per_fullscale * val;
-        let y = panel.halfh - pixel_amp;
-
-        if (y >= panel.plotTop-.1 && y <=panel.plotBottom+.1) {
-        if (maxInt<255){
-          //if under 8 bits, we can write out binary values
-          drawHorizontalTick(panel, (Math.round(tick*tickScale)).toString(2).padStart(settings.bitDepth,"0"), y,5,"left");
-        }
-        else {
-          //draw axis labels in hex because of limited space
-          drawHorizontalTick(panel, "0x" + (tick*tickScale).toString(16).padStart(4,"0"), y,5,"left");
-        }
-          panel.buffer.stroke("gray");
-          panel.buffer.drawingContext.setLineDash([5,5]);
-          panel.buffer.line(panel.plotLeft, y, panel.plotRight, y);
-          panel.buffer.drawingContext.setLineDash([]);    // drawHorizontalTick(panel, tick.toString(2), y,5,"left");
+  drawFreqAmplitudeTicks(pixel_max, num_ticks) {
+    for (let i = 0; i <= num_ticks; ++i) {
+      let tick_amp_pixels = i * pixel_max / num_ticks / this.settings.ampZoom;
+      this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.plotBottom - tick_amp_pixels*this.settings.ampZoom, 5, "right");
     }
-    val = val + stepSize*tickScale;
   }
 
-}
-
-const time_ticks_doc='Time is plotted on the x-axis. ';
-function drawTimeTicks(panel, num_ticks, seconds_per_pixel) {
-  let tick_jump = Math.floor((panel.plotWidth) / num_ticks);
-  for (let i = 0; i < num_ticks; ++i) {
-    let x = i * tick_jump;
-    let text = (x * seconds_per_pixel * 1000).toFixed(1) + ' ms';
-    drawVerticalTick(panel, text, x + panel.plotLeft);
+  drawFreqTicks(num_ticks, pixels_per_hz) {
+    let hz_per_pixel = 1/pixels_per_hz;
+    let tick_jump = Math.floor((this.plotWidth) / num_ticks);
+    tick_jump=this.plotWidth / num_ticks
+    for (let i = 0; i < num_ticks; ++i) {
+      let x = i * tick_jump;
+      if (x<this.plotLeft || x>this.plotRight) return;
+      let text = (x * hz_per_pixel).toFixed(0) + ' Hz';
+      this.drawVerticalTick(text, x + this.plotLeft);
+    }
   }
-}
 
-const freq_ticks_doc='Frequency is plotted on the x-axis. ';
-function drawFreqTicks(panel, num_ticks, pixels_per_hz) {
-  let hz_per_pixel = 1/pixels_per_hz;
-  let tick_jump = Math.floor((panel.plotWidth) / num_ticks);
-  tick_jump=panel.plotWidth / num_ticks
-  for (let i = 0; i < num_ticks; ++i) {
-    let x = i * tick_jump;
-    if (x<this.plotLeft || x>this.plotRight) return;
-    let text = (x * hz_per_pixel).toFixed(0) + ' Hz';
-    drawVerticalTick(panel, text, x + panel.plotLeft);
+  drawFFT(fft, tick='freq') {
+    let gain = this.plotHeight * this.settings.ampZoom;
+    let offset = 100;
+    let hz_per_bin = this.settings.sampleRate / (fft.length / 2);
+    // fft.length / 2 because it is an interleaved complex array
+    // with twice as many elements as it has (complex) numbers
+    let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
+    let pixels_per_bin = pixels_per_hz * hz_per_bin;
+    let num_bins = Math.round(this.plotWidth / pixels_per_bin);
+    let normalize = 4/fft.length;
+
+    this.buffer.background(this.background);
+    this.buffer.stroke(this.stroke);
+    this.drawPassBand();
+    this.buffer.beginShape();
+    this.buffer.vertex(this.plotLeft, this.plotBottom);
+    for (let bin = 0; bin <= num_bins; bin++) {
+      let xpos = pixels_per_bin * bin + this.plotLeft;
+      let ypos = this.plotBottom - gain * normalize * magnitude(fft[2*bin], fft[2*bin+1]);
+      this.buffer.vertex(xpos, ypos);
+    }
+    this.buffer.vertex(this.plotRight, this.plotBottom);
+    this.buffer.endShape(this.buffer.CLOSE);
+    this.buffer.strokeWeight(this.strokeWeight);
+    this.buffer.stroke(this.stroke);
+    this.drawBorder();
+    this.drawName();
+    if (tick === 'dirac')
+      this.drawDiracDashes();
+    else
+      this.drawFreqTicks(this.numFreqTicks, pixels_per_hz);
+    this.drawFreqAmplitudeTicks(this.plotHeight, 9);
   }
-}
-
-function drawName(panel){
-  panel.buffer.fill(panel.fill);
-  panel.buffer.strokeWeight(0);
-  panel.buffer.textAlign(panel.buffer.CENTER);
-  panel.buffer.textStyle(panel.buffer.NORMAL);
-  panel.buffer.textFont('Helvetica',15);
-  let textheight = panel.buffer.textSize() + panel.buffer.textDescent() + 1;
-  panel.buffer.text (panel.name, panel.plotLeft, panel.plotTop - textheight, panel.plotWidth, panel.ybezel);
-  panel.buffer.strokeWeight(panel.strokeWeight);
-}
-
-function getColor(num){
-  return [num*666%255,num*69%255,num*420%255]
 }
 
 class InputSigUnfilteredPanel extends Panel {
@@ -286,11 +376,11 @@ class InputSigUnfilteredPanel extends Panel {
 
   drawPanel(){
     this.buffer.background(this.background);
-    drawSignal(this, this.settings.originalUnfiltered);
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawSignal(this.settings.originalUnfiltered);
+    this.drawMidLine(this);
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
@@ -305,11 +395,11 @@ class FilterKernelPanel extends Panel {
 
   drawPanel() {
     this.buffer.background(this.background);
-    drawSignal(this, this.settings.filterKernel);
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawSignal(this.settings.filterKernel);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
@@ -324,11 +414,11 @@ class InputSigPanel extends Panel {
 
   drawPanel(){
     this.buffer.background(this.background);
-    drawSignal(this, this.settings.original);
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawSignal(this.settings.original);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
@@ -343,19 +433,18 @@ class ReconstructedSigPanel extends Panel {
 
   drawPanel(){
     this.buffer.background(this.background);
-    drawSignal(this, this.settings.reconstructed);
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawSignal(this.settings.reconstructed);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
 
-const analytic_frequency_doc='Spikes are drawn at the appropriate frequency and amplitude based on the analytic definition of the signal determined by the frequency, number of harmonics, and harmonic amplitude scaling settings. As such, this plot should accurately reflect the frequency content of the signal without any influence of windowing or other considerations that would affect a discrete time fourier transform. Unfortunately, this approach does not reflect non-linear effects such as quantization and clipping, where applicable. ';
 class InputSigFreqPanel extends FreqPanel {
   constructor(){
-    super(); 
+    super();
     this.name="Input Signal Frequency Domain";
     this.description='This is a frequency domain representation of the simulated "continuous time" input signal. '
         + analytic_frequency_doc + freq_ticks_doc + passband_doc;
@@ -364,7 +453,7 @@ class InputSigFreqPanel extends FreqPanel {
   drawPanel(){
     this.buffer.background(this.background);
     let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
-    drawPassBand(this);
+    this.drawPassBand();
     // let harmInc = 1;
     // if (this.settings.harmType =="Odd" || this.settings.harmType == "Even"){ harmInc=2;}
     // let harmPeak = 1, harm =1, ampScale = 1;
@@ -383,50 +472,11 @@ class InputSigFreqPanel extends FreqPanel {
 
 
     this.drawBorder();
-    drawFreqTicks(this, this.numFreqTicks, pixels_per_hz);
-    drawFreqAmplitudeTicks(this, this.plotHeight, 9);
-    drawName(this);
+    this.drawFreqTicks(this, this.numFreqTicks, pixels_per_hz);
+    this.drawFreqAmplitudeTicks(this, this.plotHeight, 9);
+    this.drawName();
   }
 
-}
-
-function magnitude(real, cplx) {
-  return Math.sqrt(real * real + cplx * cplx);
-}
-
-const fft_doc='Because the FFT is used here, there are visual artifacts introduced by the windowing process, and the frequency resolution of the plot is inherently limited by the size of the FFT. Note that the resolution is not increased when zooming in with the frequency zoom slider. ';
-function drawFFT(panel, fft, tick='freq') {
-  let gain = panel.plotHeight * panel.settings.ampZoom;
-  let offset = 100;
-  let hz_per_bin = panel.settings.sampleRate / (fft.length / 2);
-  // fft.length / 2 because it is an interleaved complex array
-  // with twice as many elements as it has (complex) numbers
-  let pixels_per_hz = panel.plotWidth / panel.settings.maxVisibleFrequency;
-  let pixels_per_bin = pixels_per_hz * hz_per_bin;
-  let num_bins = Math.round(panel.plotWidth / pixels_per_bin);
-  let normalize = 4/fft.length;
-
-  panel.buffer.background(panel.background);
-  panel.buffer.stroke(panel.stroke);
-  drawPassBand(panel);
-  panel.buffer.beginShape();
-  panel.buffer.vertex(panel.plotLeft, panel.plotBottom);
-  for (let bin = 0; bin <= num_bins; bin++) {
-    let xpos = pixels_per_bin * bin + panel.plotLeft;
-    let ypos = panel.plotBottom - gain * normalize * magnitude(fft[2*bin], fft[2*bin+1]);
-    panel.buffer.vertex(xpos, ypos);
-  }
-  panel.buffer.vertex(panel.plotRight, panel.plotBottom);
-  panel.buffer.endShape(panel.buffer.CLOSE);
-  panel.buffer.strokeWeight(panel.strokeWeight);
-  panel.buffer.stroke(panel.stroke);
-  panel.drawBorder();
-  drawName(panel);
-  if (tick === 'dirac')
-    drawDiracDashes(panel);
-  else
-    drawFreqTicks(panel, panel.numFreqTicks, pixels_per_hz);
-  drawFreqAmplitudeTicks(panel, panel.plotHeight, 9);
 }
 
 class InputSigFFTPanel extends FreqPanel {
@@ -437,7 +487,7 @@ class InputSigFFTPanel extends FreqPanel {
   }
 
   drawPanel() {
-    drawFFT(this, this.settings.originalFreq);
+    this.drawFFT(this.settings.originalFreq);
   }
 }
 
@@ -449,7 +499,7 @@ class FilterKernelFFTPanel extends FreqPanel {
   }
 
   drawPanel() {
-    drawFFT(this, this.settings.filterKernelFreq);
+    this.drawFFT(this.settings.filterKernelFreq);
   }
 }
 
@@ -460,7 +510,7 @@ class SampledInputFFTPanel extends FreqPanel {
     this.description='This plot shows the FFT of the signal output by the simulated analog-to-digital conversion. ' + fft_doc;
   }
   drawPanel() {
-    drawFFT(this, this.settings.stuffedFreq, 'dirac');
+    this.drawFFT(this.settings.stuffedFreq, 'dirac');
   }
 }
 
@@ -471,7 +521,7 @@ class ReconstructedSigFFTPanel extends FreqPanel {
     this.description='This plot shows the FFT of the signal output by the simulated digital-to-analog conversion. ' + fft_doc + 'This plot clearly reveals one of the compromises inherent in the simulation; since everything must be represented by the computer, the ideal continuous time output signal must be approximated by a discrete time signal with a sufficiently high sampling rate. ';
   }
   drawPanel() {
-    drawFFT(this, this.settings.reconstructedFreq);
+    this.drawFFT(this.settings.reconstructedFreq);
   }
 }
 
@@ -496,13 +546,13 @@ class ImpulsePanel extends Panel {
       this.drawStem(xpos,ytop,base);
     }
     //I'm not sure dBs make sense here
-    // drawHorizontalTick(this, '0.0 dB', ytop);
-    // drawHorizontalTick(this, '-inf dB', base);
-    drawHorizontalTick(this, '1.0', ytop,5,"right");
-    drawHorizontalTick(this, '0.0', base,5,"right");
+    // drawHorizontalTick('0.0 dB', ytop);
+    // drawHorizontalTick('-inf dB', base);
+    this.drawHorizontalTick('1.0', ytop,5,"right");
+    this.drawHorizontalTick('0.0', base,5,"right");
 
-    drawTimeTicks(this, this.numTimeTicks, this.settings.timeZoom/(this.settings.sampleRate));
-    drawName(this);
+    this.drawTimeTicks(this.numTimeTicks, this.settings.timeZoom/(this.settings.sampleRate));
+    this.drawName();
   }
 }
 
@@ -525,12 +575,12 @@ class ImpulseFreqPanel extends FreqPanel {
       let color = getColor(peak);
       this.drawPeak(xpos, this.plotHeight, base, color)
       let text = peak.toFixed(0) + ' fs';
-      drawVerticalTick(this, text, xpos);
+      this.drawVerticalTick(text, xpos);
     }
 
-    drawFreqAmplitudeTicks(this, this.plotHeight, 9);
+    this.drawFreqAmplitudeTicks(this.plotHeight, 9);
     this.drawBorder();
-    drawName(this);
+    this.drawName();
   }
 }
 
@@ -545,62 +595,18 @@ class SampledInputPanel extends Panel{
 
   drawPanel(){
     this.buffer.background(this.background);
-    drawDiscreteSignal(this,this.settings.downsampled)
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawSignalBinaryScaling(this, this.plotHeight/2, 16,this.settings);
+    this.drawDiscreteSignal(this,this.settings.downsampled)
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
+    this.drawSignalBinaryScaling(this.plotHeight/2, 16,this.settings);
 
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
 
 const passband_doc='The frequency range below the nyquist frequency is highlighted by a light grey background. ';
-function drawPassBand(panel) {
-  let sampleRate = panel.settings.sampleRate/panel.settings.downsamplingFactor;
-  let pixels_per_hz = panel.plotWidth / panel.settings.maxVisibleFrequency;
-  panel.buffer.strokeWeight(0);
-  panel.buffer.fill(235);
-  let passbandcutoff = sampleRate/2;
-  let passbandpixelwidth = passbandcutoff * pixels_per_hz;
-  panel.buffer.rect(panel.plotLeft, panel.plotTop, passbandpixelwidth, panel.plotHeight);
-  panel.buffer.strokeWeight(panel.strokeWeight);
-  panel.buffer.fill(panel.fill);
-}
-
-function calculateNumImages(settings) {
-  // calculate the number of spectral images to draw so that the highest frequency
-  // image's lowest negative harmonic is visible
-  let sampleRate = settings.sampleRate / settings.downsamplingFactor;
-  let max_harmonic = settings.harmonicFreqs[settings.harmonicFreqs.length - 1];
-  let numImages = 0;
-  while (numImages * sampleRate - max_harmonic < settings.maxVisibleFrequency)
-    numImages++; 
-  return numImages;
-}
-
-function drawDiracDashes(panel) {
-  let sampleRate = panel.settings.sampleRate / panel.settings.downsamplingFactor;
-  let pixels_per_hz = panel.plotWidth / panel.settings.maxVisibleFrequency;
-  let numImages = calculateNumImages(panel.settings);
-
-  for (let image = 0; image <= numImages; image++) {
-    let color = getColor(image);
-    let imagehz = image * sampleRate; // frequency of a dirac comb harmonic that the input spectrum is convolved with
-    let xpos = imagehz * pixels_per_hz + panel.plotLeft;
-
-    // draw the dotted line associated with this dirac comb image
-    panel.buffer.stroke(color);
-    panel.buffer.drawingContext.setLineDash([5,5]);
-    panel.buffer.line(xpos, panel.plotTop, xpos, panel.plotBottom);
-    panel.buffer.drawingContext.setLineDash([]);
-
-    // label the dotted line associated with this dirac comb image
-    let fstext = imagehz.toFixed(0) + ' Hz';
-    drawVerticalTick(panel, fstext, xpos);
-  }
-}
 
 class SampledInputFreqPanel extends FreqPanel{
   constructor(){ 
@@ -613,13 +619,13 @@ class SampledInputFreqPanel extends FreqPanel{
   drawPanel(){
     this.buffer.background(this.background);
     this.buffer.stroke(this.stroke);
-    drawPassBand(this);
-    drawDiracDashes(this);
+    this.drawPassBand();
+    this.drawDiracDashes();
 
     let base = this.plotBottom;
     let sampleRate = this.settings.sampleRate / this.settings.downsamplingFactor;
     let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
-    let numImages = calculateNumImages(this.settings);
+    let numImages = this.calculateNumImages();
 
     for (let image = 0; image <= numImages; image++) {
 
@@ -644,8 +650,8 @@ class SampledInputFreqPanel extends FreqPanel{
     }
 
     this.drawBorder();
-    drawFreqAmplitudeTicks(this, this.plotHeight, 9);
-    drawName(this);
+    this.drawFreqAmplitudeTicks(this.plotHeight, 9);
+    this.drawName();
   }
 }
 
@@ -660,16 +666,16 @@ class QuantNoisePanel extends Panel{
   }
   drawPanel(){
     this.buffer.background(this.background);
-    drawDiscreteSignal(this, this.settings.quantNoise);
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawDiscreteSignal(this.settings.quantNoise);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
+    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
 
-class QuantNoiseFFTPanel extends Panel{
+class QuantNoiseFFTPanel extends FreqPanel {
   constructor(){
     super();
     this.name ="Quantization Noise FFT";
@@ -679,7 +685,7 @@ class QuantNoiseFFTPanel extends Panel{
     this.xAxis = "Frequency";
   }
   drawPanel(){
-    drawFFT(this, this.settings.quantNoiseFreq);
+    this.drawFFT(this.settings.quantNoiseFreq);
   }
 }
 
@@ -695,13 +701,13 @@ class DitherDistributionHistogramPanel extends Panel{
         drawPanel() {
             this.buffer.background(this.background);
             this.drawBorder();
-            drawName(this);
+            this.drawName();
             const x_axis_low = -1.2;
             const x_axis_high = 1.2;
             for (let i = x_axis_low; i <= x_axis_high; i += 0.2) {
                 let x = Math.floor(this.plotWidth * (i - x_axis_low) / (x_axis_high - x_axis_low));
                 let text = i.toFixed(1);
-                drawVerticalTick(this, text, x + this.plotLeft);
+                this.drawVerticalTick(text, x + this.plotLeft);
             }
 
             let max_value = 0;
@@ -729,14 +735,14 @@ class InputPlusSampledPanel extends Panel {
 
   drawPanel() {
     this.buffer.background(this.background);
-    drawDiscreteSignal(this,this.settings.downsampled)
+    this.drawDiscreteSignal(this,this.settings.downsampled)
     this.buffer.stroke("gray");
-    drawSignal(this, this.settings.original);
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawSignalBinaryScaling(this, this.plotHeight/2, 16,this.settings);
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawSignal(this.settings.original);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
+    this.drawSignalBinaryScaling(this.plotHeight/2, 16,this.settings);
+    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
@@ -752,15 +758,15 @@ class AllSignalsPanel extends Panel {
 
   drawPanel() {
     this.buffer.background(this.background);
-    drawDiscreteSignal(this,this.settings.downsampled)
-    drawSignal(this, this.settings.original);
+    this.drawDiscreteSignal(this,this.settings.downsampled);
+    this.drawSignal(this.settings.original);
     this.buffer.drawingContext.setLineDash([5,5]);
-    drawSignal(this, this.settings.reconstructed);
+    this.drawSignal(this.settings.reconstructed);
     this.buffer.drawingContext.setLineDash([]);
-    drawMidLine(this);
-    drawName(this);
-    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
+    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
     this.drawBorder();
   }
 }
