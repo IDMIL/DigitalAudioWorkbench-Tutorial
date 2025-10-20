@@ -230,8 +230,6 @@ function filterSignal(signal, frequency, order) {
             , Fc: frequency
         });
 
-    console.log(filterCoeffs);
-
     // generate the filter
     let filter = new Fili.FirFilter(filterCoeffs);
 
@@ -371,7 +369,7 @@ function renderWavesImpl(
           , Fc: cutoff
         });
 
-      for (let i = 0; i < Math.min(filterCoeffs.length, settings.filterKernel.length); i++) {
+      for (let i = 0; i < filterCoeffs.length; i++) {
         settings.filterKernel[i] = filterCoeffs[i];
       }
 
@@ -459,14 +457,20 @@ function renderWavesImpl(
         fft.realTransform(settings.originalFreq, original);
         fft.completeSpectrum(settings.originalFreq);
 
-        fft.realTransform(settings.stuffedFreq, stuffed)
+        fft.realTransform(settings.stuffedFreq, stuffed);
         fft.completeSpectrum(settings.reconstructedFreq);
 
-        fft.realTransform(settings.reconstructedFreq, reconstructed)
+        fft.realTransform(settings.reconstructedFreq, reconstructed);
         fft.completeSpectrum(settings.reconstructedFreq);
 
-        fft.realTransform(settings.quantNoiseFreq, quantNoiseStuffed)
+        fft.realTransform(settings.quantNoiseFreq, quantNoiseStuffed);
+
         fft.completeSpectrum(settings.quantNoiseFreq);
+        fft.realTransform(settings.filterKernelFreq, settings.filterKernel);
+        fft.completeSpectrum(settings.filterKernelFreq);
+        for (let i = 0; i < settings.filterKernelFreq.length; ++i) {
+          settings.filterKernelFreq[i] *= 452;
+        }
     }
 
     // fade in and out and suppress clipping distortions ------------------------

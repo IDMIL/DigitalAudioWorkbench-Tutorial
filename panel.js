@@ -422,7 +422,7 @@ function drawFFT(panel, fft, tick='freq') {
   panel.buffer.stroke(panel.stroke);
   panel.drawBorder();
   drawName(panel);
-  if (tick == 'dirac')
+  if (tick === 'dirac')
     drawDiracDashes(panel);
   else
     drawFreqTicks(panel, panel.numFreqTicks, pixels_per_hz);
@@ -438,6 +438,18 @@ class InputSigFFTPanel extends FreqPanel {
 
   drawPanel() {
     drawFFT(this, this.settings.originalFreq);
+  }
+}
+
+class FilterKernelFFTPanel extends FreqPanel {
+  constructor() {
+    super();
+    this.name = "Filter Kernel FFT";
+    this.description='This plot shows the FFT of the filter kernel. ' + fft_doc;
+  }
+
+  drawPanel() {
+    drawFFT(this, this.settings.filterKernelFreq);
   }
 }
 

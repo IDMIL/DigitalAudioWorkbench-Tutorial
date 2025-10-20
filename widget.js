@@ -40,6 +40,7 @@ function getDefaultSettings() {
     , original: new Float32Array(displaySignalSize)
     , originalUnfiltered: new Float32Array(displaySignalSize)
     , filterKernel: new Float32Array(displaySignalSize)
+    , filterKernelFreq: fft.createComplexArray()
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
     , ditherHistogram: {}
     , ditherHistogramBinSize: 0.01
@@ -78,7 +79,8 @@ let panelIdLookups = {
   'quantization-noise-fft' : QuantNoiseFFTPanel,
   'reconstructed' : ReconstructedSigPanel,
   'reconstructed-fft' : ReconstructedSigFFTPanel,
-  'filter-kernel' : FilterKernelPanel
+  'filter-kernel' : FilterKernelPanel,
+  'filter-kernel-fft' : FilterKernelFFTPanel
 }
 
 let sliderIdLookups = {
