@@ -14,6 +14,7 @@
     <script src="../fft.js"></script>
     <script src="../waves.js"></script>
     <script src="../widget.js"></script>
+    <script src="../interaction.js"></script>
   </head>
   <body>
     <main>
@@ -23,6 +24,7 @@
             <div class="section-title">
               <h2>Input</h2>
             </div>
+            <button class="collapse-button" id="coll-input" onclick="collapseClick(this.id)"></button>
           </div>
           <div class="collapse">
             <div class="row panels">
@@ -41,6 +43,7 @@
             <div class="section-title">
               <h2>Filter</h2>
             </div>
+            <button class="collapse-button" id="coll-filter" onclick="collapseClick(this.id)"></button>
           </div>
           <div class="collapse">
             <div class="row panels">
@@ -57,6 +60,7 @@
             <div class="section-title">
               <h2>Sample Rate</h2>
             </div>
+            <button class="collapse-button" id="coll-fs" onclick="collapseClick(this.id)"></button>
           </div>
           <div class="collapse">
             <div class="row panels">
@@ -73,6 +77,8 @@
             <div class="section-title">
               <h2>Dither</h2>
             </div>
+            <button class="collapse-button" id="coll-dither" onclick="collapseClick(this.id)"></button>
+
           </div>
           <div class="collapse">
             <div class="row panels">
@@ -88,6 +94,7 @@
             <div class="section-title">
               <h2>Quantization</h2>
             </div>
+            <button class="collapse-button" id="coll-quantization" onclick="collapseClick(this.id)"></button>
           </div>
           <div class="collapse">
             <div class="row panels">
@@ -104,6 +111,8 @@
             <div class="section-title">
               <h2>Reconstructed</h2>
             </div>
+            <button class="collapse-button" id="coll-recon" onclick="collapseClick(this.id)"></button>
+
           </div>
           <div class="collapse">
             <div class="row panels">
