@@ -39,10 +39,10 @@ main {
     display: inline-block;
 }
 
-.timeline .section .collapse .row {
-    /*display: flex;*/
-    /*align-items: stretch;*/
-    /*gap: 5px;*/
+.timeline .section .collapse .panels {
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
 }
 
 .timeline .section .collapse .panel {

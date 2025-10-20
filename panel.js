@@ -295,6 +295,25 @@ class InputSigUnfilteredPanel extends Panel {
   }
 }
 
+class FilterKernelPanel extends Panel {
+  constructor() {
+    super();
+    this.name="Filter Kernel";
+    this.description = 'Kernel (truncated sinc function) that is convolved with the input to lowpass filter it.'
+      + time_signal_doc + time_ticks_doc + amp_ticks_doc + midline_doc;
+  }
+
+  drawPanel() {
+    this.buffer.background(this.background);
+    drawSignal(this, this.settings.filterKernel);
+    drawMidLine(this);
+    drawName(this);
+    drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawBorder();
+  }
+}
+
 class InputSigPanel extends Panel {
   constructor(){
     super(); 

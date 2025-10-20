@@ -44,8 +44,71 @@
           </div>
           <div class="collapse">
             <div class="row panels">
-              <div class="panel" id="filter-time-domain"></div>
+              <div class="panel" id="filter-kernel"></div>
               <div class="panel" id="filter-freq-domain"></div>
+            </div>
+            <div class="row sliders">
+              <div class="slider" id="antialiasing-filter-order-slider"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="titlebar">
+            <div class="section-title">
+              <h2>Sample Rate</h2>
+            </div>
+          </div>
+          <div class="collapse">
+            <div class="row panels">
+              <div class="panel" id="sampling-time-domain"></div>
+              <div class="panel" id="sampling-freq-domain"></div>
+            </div>
+            <div class="row sliders">
+              <div class="slider" id="sample-rate-slider"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="titlebar">
+            <div class="section-title">
+              <h2>Dither</h2>
+            </div>
+          </div>
+          <div class="collapse">
+            <div class="row panels">
+              <div class="panel" id="dither-histogram"></div>
+            </div>
+            <div class="row sliders">
+              <div class="slider" id="dither-slider"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="titlebar">
+            <div class="section-title">
+              <h2>Quantization</h2>
+            </div>
+          </div>
+          <div class="collapse">
+            <div class="row panels">
+              <div class="panel" id="quantization-noise"></div>
+              <div class="panel" id="quantization-noise-fft"></div>
+            </div>
+            <div class="row sliders">
+              <div class="slider" id="quantization-slider"></div>
+            </div>
+          </div>
+        </div>
+        <div class="section">
+          <div class="titlebar">
+            <div class="section-title">
+              <h2>Reconstructed</h2>
+            </div>
+          </div>
+          <div class="collapse">
+            <div class="row panels">
+              <div class="panel" id="reconstructed"></div>
+              <div class="panel" id="reconstructed-fft"></div>
             </div>
             <div class="row sliders">
             </div>
@@ -87,7 +150,7 @@
     </main>
     <footer>
       <div>Digital Audio Workbench </div>
-      <div>By Arden Butterfield, Josh Rohs, Travis J. West & Marcelo M. Wanderley </div>
+      <div>By Josh Rohs, Travis J. West, Arden Butterfield & Marcelo M. Wanderley </div>
       <div>with contributions by Eduardo Meneses, Christian Frisson, and Erivan Duarte</div>
       <div>Copyright <a href="//www-new.idmil.org/">IDMIL</a>/McGill University, 2020 </div>
     </footer>

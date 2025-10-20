@@ -230,6 +230,8 @@ function filterSignal(signal, frequency, order) {
             , Fc: frequency
         });
 
+    console.log(filterCoeffs);
+
     // generate the filter
     let filter = new Fili.FirFilter(filterCoeffs);
 
@@ -245,6 +247,8 @@ function filterSignal(signal, frequency, order) {
     for (let i = signal.length - shift; i < signal.length; i++) {
         signal[i] = 0;
     }
+
+    return filterCoeffs;
 }
 
 function getDither(ditherType) {
@@ -343,10 +347,35 @@ function renderWavesImpl(
         settings.originalUnfiltered.set(settings.original);
     }
 
+    {
+      let firCalculator = new Fili.FirCoeffs();
+
+      let filterCoeffs = firCalculator.lowpass(
+        { order: settings.antialiasing
+          , Fs: WEBAUDIO_MAX_SAMPLERATE
+          , Fc: (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2
+        });
+    }
+
+    settings.filterKernel.fill(0);
+
     if (settings.antialiasing > 1) {
-        filterSignal(original,
-            (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2,
-            settings.antialiasing);
+      let cutoff = (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2;
+      let order = settings.antialiasing;
+
+      let firCalculator = new Fili.FirCoeffs();
+
+      let filterCoeffs = firCalculator.lowpass(
+        { order: order
+          , Fs: WEBAUDIO_MAX_SAMPLERATE
+          , Fc: cutoff
+        });
+
+      for (let i = 0; i < Math.min(filterCoeffs.length, settings.filterKernel.length); i++) {
+        settings.filterKernel[i] = filterCoeffs[i];
+      }
+
+      filterSignal(original, cutoff, order);
     }
 
     // downsample original wave -------------------------------------------------
@@ -394,7 +423,7 @@ function renderWavesImpl(
         if (settings.bitDepth === BIT_DEPTH_MAX) {
             quantized = y;
         } else {
-            let dither = getDither(settings.ditherType, p) * settings.dither;
+            let dither = getDither(settings.ditherType) * settings.dither;
             if (simulation) {
                 addDitherToHistogram(settings, dither);
             }

@@ -1,5 +1,7 @@
 class Slider {
   constructor() {
+    this.labelWidth = 160;
+    this.sliderWidth = 150;
   }
 
   setup(p, settings) {
@@ -49,20 +51,15 @@ class RangedSlider extends Slider {
   }
 
   resize(x, y, w, p){
-    console.log(w);
-    let width = w - 20;
-    let labelWidth = 100;
-    width -= labelWidth;
-    let sliderWidth = width * 0.6;
-    width -= sliderWidth;
+    let width = w - (20 + this.labelWidth + this.sliderWidth);
     let textboxWidth = width * 0.5;
     width -= textboxWidth;
     let buttonWidth = width;
 
-    this.slider.style('width', Math.round(sliderWidth).toString() + "px");
+    this.slider.style('width', Math.round(this.sliderWidth).toString() + "px");
     this.slider.position(x, y);
     this.textLabel.position(x + this.slider.width + 10, y - 15);
-    this.textBox.position(x+this.slider.width + labelWidth,y);
+    this.textBox.position(x+this.slider.width + this.labelWidth,y);
     this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
     this.button.position(this.textBox.x+this.textBox.width+5,y);
     this.button.style('width', Math.round(buttonWidth).toString() + "px");
@@ -148,15 +145,12 @@ class NumHarmSlider extends RangedSlider {
     this.makeSlider(p);
   }
   resize(x, y, w, p){
-    let width = w - 20;
-    let labelWidth = 250;
-    width -= labelWidth;
-    let sliderWidth = width * 0.5; // slider + dropdowns
-    width -= sliderWidth;
-    let dropDownWidth = sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
-    sliderWidth = sliderWidth * .75; // Slider
-    let textboxWidth = width * 0.42;
-    let buttonWidth = width*.4;
+    let width = w - (20 + this.labelWidth + this.sliderWidth);
+    let textboxWidth = width * 0.5;
+    width -= textboxWidth;
+    let buttonWidth = width;
+    let dropDownWidth = this.sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
+    let sliderWidth = this.sliderWidth * .75; // Slider
 
     this.slider.style('width', Math.round(sliderWidth).toString() + "px");
     this.slider.position(x, y);
@@ -165,7 +159,7 @@ class NumHarmSlider extends RangedSlider {
     this.slopeSel.style('width', Math.round(dropDownWidth).toString() + "px");
     this.slopeSel.position(x+this.slider.width+dropDownWidth+10,y);
     this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 20, y - 15);
-    this.textBox.position(x + this.slider.width + 2*dropDownWidth+ labelWidth+10,y);
+    this.textBox.position(x + this.slider.width + 2*dropDownWidth+ 75,y);
     this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
     this.button.position(this.textBox.x + this.textBox.width,y);
     this.button.style('width', Math.round(buttonWidth).toString() + "px");

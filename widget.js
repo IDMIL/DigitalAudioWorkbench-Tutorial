@@ -39,6 +39,7 @@ function getDefaultSettings() {
     , antialiasing: 0 // antialiasing filter order
     , original: new Float32Array(displaySignalSize)
     , originalUnfiltered: new Float32Array(displaySignalSize)
+    , filterKernel: new Float32Array(displaySignalSize)
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
     , ditherHistogram: {}
     , ditherHistogramBinSize: 0.01
@@ -69,13 +70,25 @@ function getDefaultSettings() {
 
 let panelIdLookups = {
   'input-time-domain' : InputSigUnfilteredPanel,
-  'input-freq-domain' : InputSigFreqPanel
+  'input-freq-domain' : InputSigFreqPanel,
+  'sampling-time-domain' : SampledInputPanel,
+  'sampling-freq-domain' : SampledInputFreqPanel,
+  'dither-histogram' : DitherDistributionHistogramPanel,
+  'quantization-noise' : QuantNoisePanel,
+  'quantization-noise-fft' : QuantNoiseFFTPanel,
+  'reconstructed' : ReconstructedSigPanel,
+  'reconstructed-fft' : ReconstructedSigFFTPanel,
+  'filter-kernel' : FilterKernelPanel
 }
 
 let sliderIdLookups = {
   'audio-input-type-slider' : AudioInputTypeSlider,
   'frequency-slider' : FreqSlider,
-  'num-harmonics-slider' : NumHarmSlider
+  'num-harmonics-slider' : NumHarmSlider,
+  'antialiasing-filter-order-slider': AntialiasingSlider,
+  'sample-rate-slider' : SampleRateSlider,
+  'dither-slider' : DitherSlider,
+  'quantization-slider' : BitDepthSlider
 }
 
 function createWidgets() {
