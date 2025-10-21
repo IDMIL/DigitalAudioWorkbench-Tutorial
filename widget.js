@@ -140,9 +140,8 @@ function createWidgets() {
           canvas.parent(id)
           p.sliderObject.setup(p, settings);
           p.sliderObject.resize(0,0,500,50);
+          p.sliderObject.onEdit();
         }
-
-
       }
       new p5(sketch, id);
     }

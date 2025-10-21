@@ -1,6 +1,6 @@
 class Slider {
   constructor() {
-    this.labelWidth = 160;
+    this.labelWidth = 200;
     this.sliderWidth = 150;
   }
 
@@ -86,10 +86,34 @@ class AudioInputTypeSlider extends Slider{
     this.inputSelect = p.createSelect();
     this.inputSelect.option("Additive Synth");
     this.inputSelect.changed(()=>this.settings.inputType = this.inputSelect.value());
+
+    this.oddEvenSel = p.createSelect();
+    this.oddEvenSel.option("Odd");
+    this.oddEvenSel.option("Even");
+    this.oddEvenSel.option("All");
+    this.oddEvenSel.selected(this.settings.harmType);
+    this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
+
+    this.slopeSel = p.createSelect();
+    this.slopeSel.option("1/x");
+    this.slopeSel.option("1/x2");
+    this.slopeSel.option("lin");
+    this.slopeSel.option("flat");
+    this.slopeSel.option("vowel a");
+    this.slopeSel.option("vowel e");
+    this.slopeSel.option("vowel i");
+    this.slopeSel.option("vowel o");
+    this.slopeSel.option("vowel u");
+    this.slopeSel.selected(this.settings.harmSlope);
+    this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
   }
 
   resize(x, y, w, p) {
+    this.inputSelect.width = w / 3;
+    this.oddEvenSel.width = w / 3;
     this.inputSelect.position(x, y);
+    this.oddEvenSel.position(x + this.inputSelect.width,y);
+    this.slopeSel.position(x + this.inputSelect.width + this.oddEvenSel.width,y);
   }
 
   addOption(option) {
@@ -122,47 +146,8 @@ class NumHarmSlider extends RangedSlider {
     this.initial = 1;
     this.step = 1;
     this.displayVal = this.initial;
-    this.oddEvenSel = p.createSelect();
-    this.oddEvenSel.option("Odd");
-    this.oddEvenSel.option("Even");
-    this.oddEvenSel.option("All");
-    this.oddEvenSel.selected(this.settings.harmType);
-    this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
-
-    this.slopeSel = p.createSelect();
-    this.slopeSel.option("1/x");
-    this.slopeSel.option("1/x2");
-    this.slopeSel.option("lin");
-    this.slopeSel.option("flat");
-    this.slopeSel.option("vowel a");
-    this.slopeSel.option("vowel e");
-    this.slopeSel.option("vowel i");
-    this.slopeSel.option("vowel o");
-    this.slopeSel.option("vowel u");
-    this.slopeSel.selected(this.settings.harmSlope);
-    this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
 
     this.makeSlider(p);
-  }
-  resize(x, y, w, p){
-    let width = w - (20 + this.labelWidth + this.sliderWidth);
-    let textboxWidth = width * 0.5;
-    width -= textboxWidth;
-    let buttonWidth = width;
-    let dropDownWidth = this.sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
-    let sliderWidth = this.sliderWidth * .75; // Slider
-
-    this.slider.style('width', Math.round(sliderWidth).toString() + "px");
-    this.slider.position(x, y);
-    this.oddEvenSel.style('width', Math.round(dropDownWidth).toString() + "px");
-    this.oddEvenSel.position(x+this.slider.width+10,y);
-    this.slopeSel.style('width', Math.round(dropDownWidth).toString() + "px");
-    this.slopeSel.position(x+this.slider.width+dropDownWidth+10,y);
-    this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 20, y - 15);
-    this.textBox.position(x + this.slider.width + 2*dropDownWidth+ 75,y);
-    this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
-    this.button.position(this.textBox.x + this.textBox.width,y);
-    this.button.style('width', Math.round(buttonWidth).toString() + "px");
   }
 }
 
