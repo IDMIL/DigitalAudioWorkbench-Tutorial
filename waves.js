@@ -293,157 +293,169 @@ function applyFade(arr, normalize) {
     arr.forEach(fade);
 }
 
+function renderOriginal(settings, fft, playback) {
+  let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
+
+  // calculate harmonics ------------------------------------------------------
+
+  // The signal is generated using simple additive synthesis. Because of this,
+  // the exact frequency content of the signal can be determined a priori based
+  // on the settings. We generate this information here so that it can be used
+  // not only by the synthesis process below, but also by several of the graphs
+  // used to illustrate the frequency domain content of the signal.
+
+  // We only calculate the harmonics for the simulation; it is assumed they will
+  // already have been calculated earlier when rendering for playback
+
+  if (!playback) {
+    calculateHarmonics(settings);
+  }
+
+  // render original wave -----------------------------------------------------
+
+  // initialize the signal buffer with all zeros (silence)
+  original.fill(0);
+
+  // For the sample at time `n` in the signal buffer `original`,
+  // generate the sum of all the partials based on the previously calculated
+  // frequency and amplitude values.
+  getSamples(settings, original);
+
+  normalize(original, settings.amplitude);
+}
+
+function applyAntialiasingFilter(settings,fft, playback) {
+  let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
+  let filterKernel = playback ? settings.buffers.filterKernel.playback : settings.buffers.filterKernel.display;
+
+  // apply antialiasing filter if applicable ----------------------------------
+
+  // The antialiasing and reconstruction filters are generated using Fili.js.
+  // (https://github.com/markert/fili.js/)
+  // Fili uses the windowed sinc method to generate FIR lowpass filters.
+  // Like real antialiasing and reconstruction filters, the filters used in the
+  // simulation are not ideal brick wall filters, but approximations.
+
+  // apply antialiasing only if the filter order is set
+
+  if (!playback) {
+    settings.buffers.originalUnfiltered.display.set(settings.buffers.original.display);
+  }
+
+  {
+    let firCalculator = new Fili.FirCoeffs();
+
+    let filterCoeffs = firCalculator.lowpass(
+      { order: settings.antialiasing
+        , Fs: WEBAUDIO_MAX_SAMPLERATE
+        , Fc: (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2
+      });
+  }
+
+  filterKernel.fill(0);
+
+  if (settings.antialiasing > 1) {
+    let cutoff = (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2;
+    let order = settings.antialiasing;
+
+    let firCalculator = new Fili.FirCoeffs();
+
+    let filterCoeffs = firCalculator.lowpass(
+      { order: order
+        , Fs: WEBAUDIO_MAX_SAMPLERATE
+        , Fc: cutoff
+      });
+
+    for (let i = 0; i < filterCoeffs.length; i++) {
+      filterKernel[i] = filterCoeffs[i];
+    }
+
+    filterSignal(original, cutoff, order);
+  }
+}
+
+function downsampleWithQuantization(settings, fft, playback) {
+  let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
+  let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
+  let stuffed = playback ? settings.buffers.stuffed.playback : settings.buffers.stuffed.display;
+  let downsampled = playback ? settings.buffers.downsampled.playback : settings.buffers.downsampled.display;
+  let quantNoise  = playback ? settings.buffers.quantNoise.playback  : settings.buffers.quantNoise.display;
+  let quantNoiseStuffed = playback ? settings.buffers.quantNoiseStuffed.playback : settings.buffers.quantNoise.display;
+
+
+  // downsample original wave -------------------------------------------------
+
+  // zero initialize the reconstruction, and zero stuffed buffers
+  reconstructed.fill(0);
+  stuffed.fill(0);
+
+  // generate new signal buffers for the downsampled signal and quantization
+  // noise whose sizes are initialized according to the currently set
+  // downsampling factor
+  if (playback) {
+    settings.buffers.downsampled.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.quantNoise.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+  } else {
+    settings.buffers.downsampled.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.quantNoise.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+  }
+  quantNoiseStuffed.fill(0);
+
+  // calculate the maximum integer value representable with the given bit depth
+  let maxInt = Math.pow(2, settings.bitDepth) - 1;
+
+  let stepSize = (settings.quantType === "midTread") ? 2/(maxInt-1) : 2/(maxInt);
+
+  // generate the output of the simulated ADC process by "sampling" (actually
+  // just downsampling), and quantizing with dither. During this process, we
+  // also load the buffer for the reconstructed signal with the sampled values;
+  // this allows us to skip an explicit zero-stuffing step later
+
+  if (!playback) {
+    settings.ditherHistogram = {};
+  }
+
+  downsampled.forEach( (_, n, arr) => {
+
+    // keep only every kth sample where k is the integer downsampling factor
+    let y = Math.min(Math.max(-1, original[n * settings.downsamplingFactor]), 1);
+
+    let quantized;
+
+    if (settings.bitDepth === BIT_DEPTH_MAX) {
+      quantized = y;
+    } else {
+      let dither = getDither(settings.ditherType) * settings.dither;
+      if (!playback) {
+        addDitherToHistogram(settings, dither);
+      }
+      quantized = quantize(y + dither, settings.quantType, stepSize);
+    }
+
+    // sparsely fill the reconstruction buffer to avoid having to zero-stuff
+    reconstructed[n * settings.downsamplingFactor] = quantized;
+    stuffed[n * settings.downsamplingFactor] = quantized * settings.downsamplingFactor;
+
+    // record the quantization error
+    quantNoise[n] = quantized - y;
+    quantNoiseStuffed[n * settings.downsamplingFactor] = quantNoise[n];
+  });
+
+  // render reconstructed wave by low pass filtering the zero stuffed array----
+
+  // To retain the correct amplitude, we must multiply the output of the
+  // filter by the downsampling factor.
+  reconstructed.forEach( (x, n, arr) => arr[n] = x * settings.downsamplingFactor);
+  filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, 200); // TODO: slider for order, start at 200
+
+}
+
 function renderWavesImpl(
   settings, fft) { return (playback = false) => {
 
-    // if we are not rendering for playback, we are rendering for simulation
-    let simulation = !playback;
-
-    // select the buffer to render to; playback buffer, or simulation buffer
-    let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
-    let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
-    let stuffed = playback ? settings.buffers.stuffed.playback : settings.buffers.stuffed.display;
-    // calculate harmonics ------------------------------------------------------
-
-    // The signal is generated using simple additive synthesis. Because of this,
-    // the exact frequency content of the signal can be determined a priori based
-    // on the settings. We generate this information here so that it can be used
-    // not only by the synthesis process below, but also by several of the graphs
-    // used to illustrate the frequency domain content of the signal.
-
-    // We only calculate the harmonics for the simulation; it is assumed they will
-    // already have been calculated earlier when rendering for playback
-
-    if (simulation) {
-        calculateHarmonics(settings);
-    }
-
-    // render original wave -----------------------------------------------------
-
-    // initialize the signal buffer with all zeros (silence)
-    original.fill(0);
-
-    // For the sample at time `n` in the signal buffer `original`,
-    // generate the sum of all the partials based on the previously calculated
-    // frequency and amplitude values.
-    getSamples(settings, original);
-
-    normalize(original, settings.amplitude);
-
-    // apply antialiasing filter if applicable ----------------------------------
-
-    // The antialiasing and reconstruction filters are generated using Fili.js.
-    // (https://github.com/markert/fili.js/)
-    // Fili uses the windowed sinc method to generate FIR lowpass filters.
-    // Like real antialiasing and reconstruction filters, the filters used in the
-    // simulation are not ideal brick wall filters, but approximations.
-
-    // apply antialiasing only if the filter order is set
-
-    if (simulation) {
-        settings.buffers.originalUnfiltered.display.set(settings.buffers.original.display);
-    }
-
-    {
-      let firCalculator = new Fili.FirCoeffs();
-
-      let filterCoeffs = firCalculator.lowpass(
-        { order: settings.antialiasing
-          , Fs: WEBAUDIO_MAX_SAMPLERATE
-          , Fc: (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2
-        });
-    }
-
-    settings.buffers.filterKernel.display.fill(0);
-    settings.buffers.filterKernel.playback.fill(0);
-
-    if (settings.antialiasing > 1) {
-      let cutoff = (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2;
-      let order = settings.antialiasing;
-
-      let firCalculator = new Fili.FirCoeffs();
-
-      let filterCoeffs = firCalculator.lowpass(
-        { order: order
-          , Fs: WEBAUDIO_MAX_SAMPLERATE
-          , Fc: cutoff
-        });
-
-      for (let i = 0; i < filterCoeffs.length; i++) {
-        settings.buffers.filterKernel.display[i] = filterCoeffs[i];
-        settings.buffers.filterKernel.playback[i] = filterCoeffs[i];
-      }
-
-      filterSignal(original, cutoff, order);
-    }
-
-    // downsample original wave -------------------------------------------------
-
-    // zero initialize the reconstruction, and zero stuffed buffers
-    reconstructed.fill(0);
-    stuffed.fill(0);
-
-    // generate new signal buffers for the downsampled signal and quantization
-    // noise whose sizes are initialized according to the currently set
-    // downsampling factor
-    if (playback) {
-        settings.buffers.downsampled.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-        settings.buffers.quantNoise.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-    } else {
-        settings.buffers.downsampled.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-        settings.buffers.quantNoise.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-    }
-    let downsampled = playback ? settings.buffers.downsampled.playback : settings.buffers.downsampled.display;
-    let quantNoise  = playback ? settings.buffers.quantNoise.playback  : settings.buffers.quantNoise.display;
-    let quantNoiseStuffed = playback ? settings.buffers.quantNoiseStuffed.playback : settings.buffers.quantNoise.display;
-    quantNoiseStuffed.fill(0);
-
-    // calculate the maximum integer value representable with the given bit depth
-    let maxInt = Math.pow(2, settings.bitDepth) - 1;
-
-    let stepSize = (settings.quantType === "midTread") ? 2/(maxInt-1) : 2/(maxInt);
-
-    // generate the output of the simulated ADC process by "sampling" (actually
-    // just downsampling), and quantizing with dither. During this process, we
-    // also load the buffer for the reconstructed signal with the sampled values;
-    // this allows us to skip an explicit zero-stuffing step later
-
-    if (simulation) {
-        settings.ditherHistogram = {};
-    }
-
-    downsampled.forEach( (_, n, arr) => {
-
-        // keep only every kth sample where k is the integer downsampling factor
-        let y = Math.min(Math.max(-1, original[n * settings.downsamplingFactor]), 1);
-
-        let quantized;
-
-        if (settings.bitDepth === BIT_DEPTH_MAX) {
-            quantized = y;
-        } else {
-            let dither = getDither(settings.ditherType) * settings.dither;
-            if (simulation) {
-                addDitherToHistogram(settings, dither);
-            }
-            quantized = quantize(y + dither, settings.quantType, stepSize);
-        }
-
-        // sparsely fill the reconstruction buffer to avoid having to zero-stuff
-        reconstructed[n * settings.downsamplingFactor] = quantized;
-        stuffed[n * settings.downsamplingFactor] = quantized * settings.downsamplingFactor;
-
-        // record the quantization error
-        quantNoise[n] = quantized - y;
-        quantNoiseStuffed[n * settings.downsamplingFactor] = quantNoise[n];
-    });
-
-    // render reconstructed wave by low pass filtering the zero stuffed array----
-
-    // To retain the correct amplitude, we must multiply the output of the
-    // filter by the downsampling factor.
-    reconstructed.forEach( (x, n, arr) => arr[n] = x * settings.downsamplingFactor);
-        filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, 200); // TODO: slider for order, start at 200
+    renderOriginal(settings, fft, playback);
+    applyAntialiasingFilter(settings, fft, playback);
+    downsampleWithQuantization(settings, fft, playback);
 
     // render FFTs --------------------------------------------------------------
     // TODO: apply windows?
@@ -454,27 +466,11 @@ function renderWavesImpl(
     // fills the upper half of the spectrum, which is otherwise not calculated
     // since it is a redundant reflection of the lower half of the spectrum.
 
-    if (simulation) {
+    if (!playback) {
       for (const [key, value] of Object.entries(settings.buffers)) {
         fft.realTransform(value.freq, value.display);
         fft.completeSpectrum(value.freq);
       }
-
-      /*
-        fft.realTransform(settings.buffers.original.freq, settings.buffers.original.display);
-        fft.completeSpectrum(settings.originalFreq);
-
-        fft.realTransform(settings.stuffedFreq, stuffed);
-        fft.completeSpectrum(settings.reconstructedFreq);
-
-        fft.realTransform(settings.reconstructedFreq, reconstructed);
-        fft.completeSpectrum(settings.reconstructedFreq);
-
-        fft.realTransform(settings.quantNoiseFreq, quantNoiseStuffed);
-
-        fft.completeSpectrum(settings.quantNoiseFreq);
-        fft.realTransform(settings.filterKernelFreq, settings.filterKernel);
-        fft.completeSpectrum(settings.filterKernelFreq);*/
         for (let i = 0; i < settings.buffers.filterKernel.freq.length; ++i) {
           settings.buffers.filterKernel.freq[i] *= 452;
         }
@@ -485,20 +481,17 @@ function renderWavesImpl(
     // Audio output is windowed to prevent pops. The envelope is a simple linear
     // ramp up at the beginning and linear ramp down at the end.
 
-    if (playback) {
-        // This normalization makes sure the original signal isn't clipped.
-        // The output is clipped during the simulation, so this may reduce its peak
-        // amplitude a bit, but since the clipping adds distortion the perceived
-        // loudness is relatively the same as the original signal in my testing.
-        let normalize = settings.amplitude > 1.0 ? settings.amplitude : 1.0;
+    // This normalization makes sure the original signal isn't clipped.
+    // The output is clipped during the simulation, so this may reduce its peak
+    // amplitude a bit, but since the clipping adds distortion the perceived
+    // loudness is relatively the same as the original signal in my testing.
 
-        applyFade(original, normalize);
-        applyFade(reconstructed, normalize);
-        applyFade(quantNoise, normalize);
+  if (playback) {
+      let normalize = settings.amplitude > 1.0 ? settings.amplitude : 1.0;
+      for (const [key, value] of Object.entries(settings.buffers)) {
+        applyFade(value.playback, normalize);
+      }
     }
 
 
 }}
-/*
-```
-*/
