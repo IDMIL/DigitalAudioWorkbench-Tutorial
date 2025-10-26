@@ -376,7 +376,7 @@ class InputSigUnfilteredPanel extends Panel {
 
   drawPanel(){
     this.buffer.background(this.background);
-    this.drawSignal(this.settings.originalUnfiltered);
+    this.drawSignal(this.settings.buffers.originalUnfiltered.display);
     this.drawMidLine(this);
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
@@ -395,7 +395,7 @@ class FilterKernelPanel extends Panel {
 
   drawPanel() {
     this.buffer.background(this.background);
-    this.drawSignal(this.settings.filterKernel);
+    this.drawSignal(this.settings.buffers.filterKernel.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
@@ -414,7 +414,7 @@ class InputSigPanel extends Panel {
 
   drawPanel(){
     this.buffer.background(this.background);
-    this.drawSignal(this.settings.original);
+    this.drawSignal(this.settings.buffers.original.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
@@ -433,7 +433,7 @@ class ReconstructedSigPanel extends Panel {
 
   drawPanel(){
     this.buffer.background(this.background);
-    this.drawSignal(this.settings.reconstructed);
+    this.drawSignal(this.settings.buffers.reconstructed.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
@@ -487,7 +487,7 @@ class InputSigFFTPanel extends FreqPanel {
   }
 
   drawPanel() {
-    this.drawFFT(this.settings.originalFreq);
+    this.drawFFT(this.settings.buffers.original.freq);
   }
 }
 
@@ -499,7 +499,7 @@ class FilterKernelFFTPanel extends FreqPanel {
   }
 
   drawPanel() {
-    this.drawFFT(this.settings.filterKernelFreq);
+    this.drawFFT(this.settings.buffers.filterKernel.freq);
   }
 }
 
@@ -510,7 +510,7 @@ class SampledInputFFTPanel extends FreqPanel {
     this.description='This plot shows the FFT of the signal output by the simulated analog-to-digital conversion. ' + fft_doc;
   }
   drawPanel() {
-    this.drawFFT(this.settings.stuffedFreq, 'dirac');
+    this.drawFFT(this.settings.buffers.stuffed.freq, 'dirac');
   }
 }
 
@@ -521,7 +521,7 @@ class ReconstructedSigFFTPanel extends FreqPanel {
     this.description='This plot shows the FFT of the signal output by the simulated digital-to-analog conversion. ' + fft_doc + 'This plot clearly reveals one of the compromises inherent in the simulation; since everything must be represented by the computer, the ideal continuous time output signal must be approximated by a discrete time signal with a sufficiently high sampling rate. ';
   }
   drawPanel() {
-    this.drawFFT(this.settings.reconstructedFreq);
+    this.drawFFT(this.settings.buffers.reconstructed.freq);
   }
 }
 
@@ -666,7 +666,7 @@ class QuantNoisePanel extends Panel{
   }
   drawPanel(){
     this.buffer.background(this.background);
-    this.drawDiscreteSignal(this.settings.quantNoise);
+    this.drawDiscreteSignal(this.settings.buffers.quantNoise.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
@@ -685,7 +685,7 @@ class QuantNoiseFFTPanel extends FreqPanel {
     this.xAxis = "Frequency";
   }
   drawPanel(){
-    this.drawFFT(this.settings.quantNoiseFreq);
+    this.drawFFT(this.settings.buffers.quantNoise.freq);
   }
 }
 
@@ -759,9 +759,9 @@ class AllSignalsPanel extends Panel {
   drawPanel() {
     this.buffer.background(this.background);
     this.drawDiscreteSignal(this,this.settings.downsampled);
-    this.drawSignal(this.settings.original);
+    this.drawSignal(this.settings.buffers.original.display);
     this.buffer.drawingContext.setLineDash([5,5]);
-    this.drawSignal(this.settings.reconstructed);
+    this.drawSignal(this.settings.buffers.reconstructed.display);
     this.buffer.drawingContext.setLineDash([]);
     this.drawMidLine();
     this.drawName();

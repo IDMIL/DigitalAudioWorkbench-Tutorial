@@ -300,10 +300,9 @@ function renderWavesImpl(
     let simulation = !playback;
 
     // select the buffer to render to; playback buffer, or simulation buffer
-    let original = playback ? settings.original_pb : settings.original;
-    let reconstructed = playback ? settings.reconstructed_pb : settings.reconstructed;
-    let stuffed = settings.stuffed;
-
+    let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
+    let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
+    let stuffed = playback ? settings.buffers.stuffed.playback : settings.buffers.stuffed.display;
     // calculate harmonics ------------------------------------------------------
 
     // The signal is generated using simple additive synthesis. Because of this,
@@ -342,7 +341,7 @@ function renderWavesImpl(
     // apply antialiasing only if the filter order is set
 
     if (simulation) {
-        settings.originalUnfiltered.set(settings.original);
+        settings.buffers.originalUnfiltered.display.set(settings.buffers.original.display);
     }
 
     {
@@ -355,7 +354,8 @@ function renderWavesImpl(
         });
     }
 
-    settings.filterKernel.fill(0);
+    settings.buffers.filterKernel.display.fill(0);
+    settings.buffers.filterKernel.playback.fill(0);
 
     if (settings.antialiasing > 1) {
       let cutoff = (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2;
@@ -370,7 +370,8 @@ function renderWavesImpl(
         });
 
       for (let i = 0; i < filterCoeffs.length; i++) {
-        settings.filterKernel[i] = filterCoeffs[i];
+        settings.buffers.filterKernel.display[i] = filterCoeffs[i];
+        settings.buffers.filterKernel.playback[i] = filterCoeffs[i];
       }
 
       filterSignal(original, cutoff, order);
@@ -386,15 +387,15 @@ function renderWavesImpl(
     // noise whose sizes are initialized according to the currently set
     // downsampling factor
     if (playback) {
-        settings.downsampled_pb = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-        settings.quantNoise_pb = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+        settings.buffers.downsampled.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+        settings.buffers.quantNoise.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     } else {
-        settings.downsampled = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-        settings.quantNoise = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+        settings.buffers.downsampled.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+        settings.buffers.quantNoise.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     }
-    let downsampled = playback ? settings.downsampled_pb : settings.downsampled;
-    let quantNoise  = playback ? settings.quantNoise_pb  : settings.quantNoise;
-    let quantNoiseStuffed = settings.quantNoiseStuffed;
+    let downsampled = playback ? settings.buffers.downsampled.playback : settings.buffers.downsampled.display;
+    let quantNoise  = playback ? settings.buffers.quantNoise.playback  : settings.buffers.quantNoise.display;
+    let quantNoiseStuffed = playback ? settings.buffers.quantNoiseStuffed.playback : settings.buffers.quantNoise.display;
     quantNoiseStuffed.fill(0);
 
     // calculate the maximum integer value representable with the given bit depth
@@ -454,7 +455,13 @@ function renderWavesImpl(
     // since it is a redundant reflection of the lower half of the spectrum.
 
     if (simulation) {
-        fft.realTransform(settings.originalFreq, original);
+      for (const [key, value] of Object.entries(settings.buffers)) {
+        fft.realTransform(value.freq, value.display);
+        fft.completeSpectrum(value.freq);
+      }
+
+      /*
+        fft.realTransform(settings.buffers.original.freq, settings.buffers.original.display);
         fft.completeSpectrum(settings.originalFreq);
 
         fft.realTransform(settings.stuffedFreq, stuffed);
@@ -467,9 +474,9 @@ function renderWavesImpl(
 
         fft.completeSpectrum(settings.quantNoiseFreq);
         fft.realTransform(settings.filterKernelFreq, settings.filterKernel);
-        fft.completeSpectrum(settings.filterKernelFreq);
-        for (let i = 0; i < settings.filterKernelFreq.length; ++i) {
-          settings.filterKernelFreq[i] *= 452;
+        fft.completeSpectrum(settings.filterKernelFreq);*/
+        for (let i = 0; i < settings.buffers.filterKernel.freq.length; ++i) {
+          settings.buffers.filterKernel.freq[i] *= 452;
         }
     }
 
