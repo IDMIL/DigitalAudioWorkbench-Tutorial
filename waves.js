@@ -293,6 +293,8 @@ function applyFade(arr, normalize) {
     arr.forEach(fade);
 }
 
+// Rendering steps ----------------------------------------------------------
+
 function renderOriginal(settings, fft, playback) {
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
 
@@ -326,6 +328,7 @@ function renderOriginal(settings, fft, playback) {
 
 function applyAntialiasingFilter(settings,fft, playback) {
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
+  let originalUnfiltered = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.original.display;
   let filterKernel = playback ? settings.buffers.filterKernel.playback : settings.buffers.filterKernel.display;
 
   // apply antialiasing filter if applicable ----------------------------------
@@ -338,9 +341,7 @@ function applyAntialiasingFilter(settings,fft, playback) {
 
   // apply antialiasing only if the filter order is set
 
-  if (!playback) {
-    settings.buffers.originalUnfiltered.display.set(settings.buffers.original.display);
-  }
+  originalUnfiltered.set(original);
 
   {
     let firCalculator = new Fili.FirCoeffs();

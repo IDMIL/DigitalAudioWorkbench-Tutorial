@@ -164,4 +164,20 @@ function createWidgets() {
       new p5(sketch, id);
     }
   }
+
+  const playButtons = document.getElementsByClassName('play-button');
+
+  function buttonPlayFunction(buffer) {
+    settings.render(true);
+    if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
+    playWave(buffer, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
+  }
+
+  for (const playButton of playButtons) {
+    const id = playButton.getAttribute('id');
+    if (id === "play-input") {
+        playButton.onclick = () => { buttonPlayFunction(settings.buffers.originalUnfiltered.playback)};
+    }
+  }
+
 }
