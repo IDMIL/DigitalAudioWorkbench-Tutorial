@@ -296,7 +296,7 @@ function applyFade(arr, normalize) {
 // Rendering steps ----------------------------------------------------------
 
 function renderOriginal(settings, fft, playback) {
-  let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
+  let original = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.originalUnfiltered.display;
 
   // calculate harmonics ------------------------------------------------------
 
@@ -327,8 +327,8 @@ function renderOriginal(settings, fft, playback) {
 }
 
 function applyAntialiasingFilter(settings,fft, playback) {
+  let originalUnfiltered = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.originalUnfiltered.display;
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
-  let originalUnfiltered = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.original.display;
   let filterKernel = playback ? settings.buffers.filterKernel.playback : settings.buffers.filterKernel.display;
 
   // apply antialiasing filter if applicable ----------------------------------
@@ -341,7 +341,9 @@ function applyAntialiasingFilter(settings,fft, playback) {
 
   // apply antialiasing only if the filter order is set
 
-  originalUnfiltered.set(original);
+  for (let i = 0; i < originalUnfiltered.length; i++) {
+    original[i] = originalUnfiltered[i];
+  }
 
   {
     let firCalculator = new Fili.FirCoeffs();

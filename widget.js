@@ -89,7 +89,9 @@ function getDefaultSettings() {
 
 let panelIdLookups = {
   'input-time-domain' : InputSigUnfilteredPanel,
-  'input-freq-domain' : InputSigFreqPanel,
+  'input-freq-domain' : InputSigUnfilteredFFTPanel,
+  'input-filtered-time-domain' : InputSigPanel,
+  'input-filtered-freq-domain' : InputSigFFTPanel,
   'sampling-time-domain' : SampledInputPanel,
   'sampling-freq-domain' : SampledInputFreqPanel,
   'dither-histogram' : DitherDistributionHistogramPanel,
@@ -177,6 +179,10 @@ function createWidgets() {
     const id = playButton.getAttribute('id');
     if (id === "play-input") {
         playButton.onclick = () => { buttonPlayFunction(settings.buffers.originalUnfiltered.playback)};
+    } else if (id === "play-filter-kernel") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.filterKernel.playback)};
+    } else if (id === "play-filtered-input") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.original.playback)};
     }
   }
 

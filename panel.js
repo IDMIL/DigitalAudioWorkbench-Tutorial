@@ -479,10 +479,23 @@ class InputSigFreqPanel extends FreqPanel {
 
 }
 
+class InputSigUnfilteredFFTPanel extends FreqPanel {
+  constructor(){
+    super();
+    this.name = "Input Signal FFT";
+    this.description='This plot shows the FFT of the input signal. ' + fft_doc + 'This plot clearly reveals one of the compromises inherent in the simulation; since everything must be represented by the computer, the ideal continuous time input signal must be approximated by a discrete time signal with a sufficiently high sampling rate. ';
+  }
+
+  drawPanel() {
+    this.drawFFT(this.settings.buffers.originalUnfiltered.freq);
+  }
+}
+
+
 class InputSigFFTPanel extends FreqPanel {
   constructor(){
     super(); 
-    this.name = "Input Signal FFT";
+    this.name = "Input Signal (filtered) FFT";
     this.description='This plot shows the FFT of the input signal. ' + fft_doc + 'This plot clearly reveals one of the compromises inherent in the simulation; since everything must be represented by the computer, the ideal continuous time input signal must be approximated by a discrete time signal with a sufficiently high sampling rate. ';
   }
 
