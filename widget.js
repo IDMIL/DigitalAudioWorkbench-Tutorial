@@ -100,7 +100,9 @@ let panelIdLookups = {
   'reconstructed' : ReconstructedSigPanel,
   'reconstructed-fft' : ReconstructedSigFFTPanel,
   'filter-kernel' : FilterKernelPanel,
-  'filter-kernel-fft' : FilterKernelFFTPanel
+  'filter-kernel-fft' : FilterKernelFFTPanel,
+  'input-plus-sampled' : InputPlusSampledPanel,
+  'all-signals' : AllSignalsPanel
 }
 
 let sliderIdLookups = {
@@ -183,6 +185,10 @@ function createWidgets() {
       playButton.onclick = () => { buttonPlayFunction(settings.buffers.filterKernel.playback)};
     } else if (id === "play-filtered-input") {
       playButton.onclick = () => { buttonPlayFunction(settings.buffers.original.playback)};
+    } else if (id === "play-quantized-noise") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.quantNoise.playback); };
+    } else if (id === "play-reconstructed") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.reconstructed.playback); };
     }
   }
 

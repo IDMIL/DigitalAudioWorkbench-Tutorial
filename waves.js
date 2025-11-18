@@ -172,7 +172,9 @@ function calculateHarmonics(settings) {
 function getAdditiveSynthSample(settings, n) {
   sample = 0;
   for (let harmonic = 0; harmonic < settings.numHarm; harmonic++) {
-
+    if (settings.harmonicFreqs[harmonic] >= 96000 / 2) {
+      return sample;
+    }
     let fundamental_frequency = settings.harmonicFreqs[0];
     let frequency = settings.harmonicFreqs[harmonic];
     let amplitude = settings.harmonicAmps[harmonic];
@@ -474,7 +476,6 @@ function renderWavesImpl(
     // since it is a redundant reflection of the lower half of the spectrum.
 
     if (!playback) {
-      console.log(settings.buffers);
       for (const [key, value] of Object.entries(settings.buffers)) {
         fft.realTransform(value.freq, value.display);
         fft.completeSpectrum(value.freq);

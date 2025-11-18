@@ -71,7 +71,7 @@
           </div>
           <div class="collapse">
             <div class="row panels">
-              <div class="panel" id="sampling-time-domain"></div>
+              <div class="panel" id="input-plus-sampled"></div>
               <div class="panel" id="sampling-freq-domain"></div>
             </div>
             <div class="row sliders">
@@ -112,6 +112,7 @@
             <div class="row sliders">
               <div class="slider" id="quantization-slider"></div>
             </div>
+            <button class="play-button" id="play-quantized-noise">Play</button>
           </div>
         </div>
         <div class="section">
@@ -127,8 +128,12 @@
               <div class="panel" id="reconstructed"></div>
               <div class="panel" id="reconstructed-fft"></div>
             </div>
+            <div class="row panels">
+              <div class="panel" id="all-signals"></div>
+            </div>
             <div class="row sliders">
             </div>
+            <button class="play-button" id="play-reconstructed">Play Reconstructed</button>
           </div>
         </div>
       </div>

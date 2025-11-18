@@ -750,7 +750,7 @@ class InputPlusSampledPanel extends Panel {
     this.buffer.background(this.background);
     this.drawDiscreteSignal(this.settings.buffers.downsampled.display)
     this.buffer.stroke("gray");
-    this.drawSignal(this.settings.original);
+    this.drawSignal(this.settings.buffers.original.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
