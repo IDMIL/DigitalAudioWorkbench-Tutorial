@@ -378,7 +378,19 @@ function applyAntialiasingFilter(settings,fft, playback) {
 }
 
 function downsampleWithQuantization(settings, fft, playback) {
+  // generate new signal buffers for the downsampled signal and quantization
+  // noise whose sizes are initialized according to the currently set
+  // downsampling factor
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
+
+  if (playback) {
+    settings.buffers.downsampled.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.quantNoise.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+  } else {
+    settings.buffers.downsampled.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.quantNoise.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+  }
+
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
   let stuffed = playback ? settings.buffers.stuffed.playback : settings.buffers.stuffed.display;
   let downsampled = playback ? settings.buffers.downsampled.playback : settings.buffers.downsampled.display;
@@ -392,16 +404,7 @@ function downsampleWithQuantization(settings, fft, playback) {
   reconstructed.fill(0);
   stuffed.fill(0);
 
-  // generate new signal buffers for the downsampled signal and quantization
-  // noise whose sizes are initialized according to the currently set
-  // downsampling factor
-  if (playback) {
-    settings.buffers.downsampled.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-    settings.buffers.quantNoise.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-  } else {
-    settings.buffers.downsampled.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-    settings.buffers.quantNoise.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-  }
+
   quantNoiseStuffed.fill(0);
 
   // calculate the maximum integer value representable with the given bit depth
@@ -437,6 +440,7 @@ function downsampleWithQuantization(settings, fft, playback) {
 
     // sparsely fill the reconstruction buffer to avoid having to zero-stuff
     reconstructed[n * settings.downsamplingFactor] = quantized;
+    arr[n] = y;
     stuffed[n * settings.downsamplingFactor] = quantized * settings.downsamplingFactor;
 
     // record the quantization error
@@ -470,6 +474,7 @@ function renderWavesImpl(
     // since it is a redundant reflection of the lower half of the spectrum.
 
     if (!playback) {
+      console.log(settings.buffers);
       for (const [key, value] of Object.entries(settings.buffers)) {
         fft.realTransform(value.freq, value.display);
         fft.completeSpectrum(value.freq);

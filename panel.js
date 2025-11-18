@@ -608,7 +608,7 @@ class SampledInputPanel extends Panel{
 
   drawPanel(){
     this.buffer.background(this.background);
-    this.drawDiscreteSignal(this,this.settings.downsampled)
+    this.drawDiscreteSignal(this.settings.buffers.downsampled.display)
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
@@ -748,7 +748,7 @@ class InputPlusSampledPanel extends Panel {
 
   drawPanel() {
     this.buffer.background(this.background);
-    this.drawDiscreteSignal(this,this.settings.downsampled)
+    this.drawDiscreteSignal(this.settings.buffers.downsampled.display)
     this.buffer.stroke("gray");
     this.drawSignal(this.settings.original);
     this.drawMidLine();
@@ -771,7 +771,7 @@ class AllSignalsPanel extends Panel {
 
   drawPanel() {
     this.buffer.background(this.background);
-    this.drawDiscreteSignal(this,this.settings.downsampled);
+    this.drawDiscreteSignal(this.settings.buffers.downsampled.display);
     this.drawSignal(this.settings.buffers.original.display);
     this.buffer.drawingContext.setLineDash([5,5]);
     this.drawSignal(this.settings.buffers.reconstructed.display);
