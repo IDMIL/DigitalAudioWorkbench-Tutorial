@@ -88,19 +88,19 @@ let audioSources = {}
 async function loadAudioSources() {
   let audioCtx = new AudioContext({sampleRate: 96000});
   sourceFiles = [
-        ["/wav-samples/bach_cello.wav", "cello"],
-        ["/wav-samples/drums.wav", "drums"],
-        ["/wav-samples/sweep_20_4000hz.wav", "sweep"]
-    ]
+    ["/wav-samples/bach_cello.wav", "cello"],
+    ["/wav-samples/drums.wav", "drums"],
+    ["/wav-samples/sweep_20_4000hz.wav", "sweep"]
+  ]
 
-    for (let i = 0; i < sourceFiles.length; i++) {
-        try {
-            const response = await fetch(sourceFiles[i][0]);
-            audioSources[sourceFiles[i][1]] = await audioCtx.decodeAudioData(await response.arrayBuffer());
-        } catch (e) {
-            console.error("tried to fetch " + sourceFiles[i][0], e);
-        }
+  for (let i = 0; i < sourceFiles.length; i++) {
+    try {
+      const response = await fetch(sourceFiles[i][0]);
+      audioSources[sourceFiles[i][1]] = await audioCtx.decodeAudioData(await response.arrayBuffer());
+    } catch (e) {
+      console.error("tried to fetch " + sourceFiles[i][0], e);
     }
+  }
 }
 
 function formantFrequencyStrength(freq, formant1, formant2, decayPerOctave) {
@@ -115,58 +115,58 @@ function formantFrequencyStrength(freq, formant1, formant2, decayPerOctave) {
 }
 
 function calculateHarmonics(settings) {
-    let harmonic_number = 1;
-    let harmonic_amplitude = 1;
-    let invert = 1;
-    let harmInc = (settings.harmType ==="Odd" || settings.harmType === "Even") ? 2 : 1;
+  let harmonic_number = 1;
+  let harmonic_amplitude = 1;
+  let invert = 1;
+  let harmInc = (settings.harmType === "Odd" || settings.harmType === "Even") ? 2 : 1;
 
-    for (let i = 0; i < settings.numHarm; i++) {
+  for (let i = 0; i < settings.numHarm; i++) {
 
-        // the amplitude of each harmonic depends on the harmonic slope setting
-        if (settings.harmSlope === "lin") harmonic_amplitude = 1 - i/settings.numHarm;
-        else if (settings.harmSlope === "1/x") harmonic_amplitude = 1/harmonic_number;
-        else if (settings.harmSlope === "1/x2") harmonic_amplitude = 1/harmonic_number/harmonic_number;
-        else if (settings.harmSlope === "flat") harmonic_amplitude = 1;
-        else if (settings.harmSlope === "log") {
-          harmonic_amplitude = Math.exp(-0.1*(harmonic_number-1));
-        } else if (settings.harmSlope === "vowel a") {
-          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
-            850, 1610, 0.2);
-        } else if (settings.harmSlope === "vowel e") {
-          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
-            390, 2300, 0.2);
-        } else if (settings.harmSlope === "vowel i") {
-          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
-            240, 2400, 0.2);
-        } else if (settings.harmSlope === "vowel o") {
-          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
-            360, 640, 0.2);
-        } else if (settings.harmSlope === "vowel u") {
-          harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
-            250, 595, 0.2);
-        }
-
-        // In case the harmonic slope is 1/x^2 and the harmonic type is "odd",
-        // by inverting every other harmonic we generate a nice triangle wave.
-        if (settings.harmSlope ==="1/x2" && settings.harmType === "Odd") {
-            harmonic_amplitude = harmonic_amplitude * invert;
-            invert *= -1;
-        }
-
-        // the frequency of each partial is a multiple of the fundamental frequency
-        settings.harmonicFreqs[i] = harmonic_number*settings.fundFreq;
-
-        // The harmonic amplitude is calculated above according to the harmonic
-        // slope setting, taking into account the special case for generating a
-        // triangle.
-        settings.harmonicAmps[i] = harmonic_amplitude;
-
-        // With harmonic type set to "even" we want the fundamental and even
-        // harmonics. To achieve this, we increment the harmonic number by 1 after
-        // the fundamental and by 2 after every other partial.
-        if (i === 0 && settings.harmType === "Even") harmonic_number += 1;
-        else harmonic_number += harmInc;
+    // the amplitude of each harmonic depends on the harmonic slope setting
+    if (settings.harmSlope === "lin") harmonic_amplitude = 1 - i / settings.numHarm;
+    else if (settings.harmSlope === "1/x") harmonic_amplitude = 1 / harmonic_number;
+    else if (settings.harmSlope === "1/x2") harmonic_amplitude = 1 / harmonic_number / harmonic_number;
+    else if (settings.harmSlope === "flat") harmonic_amplitude = 1;
+    else if (settings.harmSlope === "log") {
+      harmonic_amplitude = Math.exp(-0.1 * (harmonic_number - 1));
+    } else if (settings.harmSlope === "vowel a") {
+      harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+        850, 1610, 0.2);
+    } else if (settings.harmSlope === "vowel e") {
+      harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+        390, 2300, 0.2);
+    } else if (settings.harmSlope === "vowel i") {
+      harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+        240, 2400, 0.2);
+    } else if (settings.harmSlope === "vowel o") {
+      harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+        360, 640, 0.2);
+    } else if (settings.harmSlope === "vowel u") {
+      harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
+        250, 595, 0.2);
     }
+
+    // In case the harmonic slope is 1/x^2 and the harmonic type is "odd",
+    // by inverting every other harmonic we generate a nice triangle wave.
+    if (settings.harmSlope === "1/x2" && settings.harmType === "Odd") {
+      harmonic_amplitude = harmonic_amplitude * invert;
+      invert *= -1;
+    }
+
+    // the frequency of each partial is a multiple of the fundamental frequency
+    settings.harmonicFreqs[i] = harmonic_number * settings.fundFreq;
+
+    // The harmonic amplitude is calculated above according to the harmonic
+    // slope setting, taking into account the special case for generating a
+    // triangle.
+    settings.harmonicAmps[i] = harmonic_amplitude;
+
+    // With harmonic type set to "even" we want the fundamental and even
+    // harmonics. To achieve this, we increment the harmonic number by 1 after
+    // the fundamental and by 2 after every other partial.
+    if (i === 0 && settings.harmType === "Even") harmonic_number += 1;
+    else harmonic_number += harmInc;
+  }
 }
 
 function getAdditiveSynthSample(settings, n) {
@@ -192,109 +192,110 @@ function getAdditiveSynthSample(settings, n) {
     let phase = phase_increment * n + phase_offset_adjusted;
 
     // accumulate the amplitude contribution from the current harmonic
-    sample += amplitude * Math.sin( phase );
+    sample += amplitude * Math.sin(phase);
   }
   return sample;
 }
 
 function getSamples(settings, destination) {
-    let sample = 0;
-    if (settings.inputType === "Additive Synth") {
-      destination.forEach( (_, n, arr) => {
-        arr[n] = getAdditiveSynthSample(settings, n);
-      });
-    } else {
-      for (const [name, buffer] of Object.entries(audioSources)) {
-        if (settings.inputType === name) {
-          buffer.copyFromChannel(destination, 0, 0);
-        }
+  let sample = 0;
+  if (settings.inputType === "Additive Synth") {
+    destination.forEach((_, n, arr) => {
+      arr[n] = getAdditiveSynthSample(settings, n);
+    });
+  } else {
+    for (const [name, buffer] of Object.entries(audioSources)) {
+      if (settings.inputType === name) {
+        buffer.copyFromChannel(destination, 0, 0);
       }
     }
+  }
 }
 
 function normalize(arr, targetAmplitude) {
-    const amp = Math.max(Math.max(...arr), -Math.min(...arr));
+  const amp = Math.max(Math.max(...arr), -Math.min(...arr));
 
-    // normlize and apply amplitude scaling
-    arr.forEach( (x, n, y) => y[n] = targetAmplitude * x / amp );
+  // normlize and apply amplitude scaling
+  arr.forEach((x, n, y) => y[n] = targetAmplitude * x / amp);
 }
 
 function filterSignal(signal, frequency, order) {
-    // specify the filter parameters; Fs = sampling rate, Fc = cutoff frequency
+  // specify the filter parameters; Fs = sampling rate, Fc = cutoff frequency
 
-    // The cutoff for the antialiasing filter is set to the Nyquist frequency
-    // of the simulated sampling process. The sampling rate of the "sampled"
-    // signal is WEBAUDIO_MAX_SAMPLERATE / the downsampling factor. This is
-    // divided by 2 to get the Nyquist frequency.
-    let firCalculator = new Fili.FirCoeffs();
+  // The cutoff for the antialiasing filter is set to the Nyquist frequency
+  // of the simulated sampling process. The sampling rate of the "sampled"
+  // signal is WEBAUDIO_MAX_SAMPLERATE / the downsampling factor. This is
+  // divided by 2 to get the Nyquist frequency.
+  let firCalculator = new Fili.FirCoeffs();
 
-    let filterCoeffs = firCalculator.lowpass(
-        { order: order
-            , Fs: WEBAUDIO_MAX_SAMPLERATE
-            , Fc: frequency
-        });
+  let filterCoeffs = firCalculator.lowpass(
+    {
+      order: order
+      , Fs: WEBAUDIO_MAX_SAMPLERATE
+      , Fc: frequency
+    });
 
-    // generate the filter
-    let filter = new Fili.FirFilter(filterCoeffs);
+  // generate the filter
+  let filter = new Fili.FirFilter(filterCoeffs);
 
-    // apply the filter
-    signal.forEach( (x, n, y) => y[n] = filter.singleStep(x) );
+  // apply the filter
+  signal.forEach((x, n, y) => y[n] = filter.singleStep(x));
 
-    // time shift the signal by half the filter order to compensate for the
-    // delay introduced by the FIR filter
-    const shift = order / 2;
-    for (let i = 0; i < signal.length - shift; i++) {
-        signal[i] = signal[i + shift];
-    }
-    for (let i = signal.length - shift; i < signal.length; i++) {
-        signal[i] = 0;
-    }
+  // time shift the signal by half the filter order to compensate for the
+  // delay introduced by the FIR filter
+  const shift = order / 2;
+  for (let i = 0; i < signal.length - shift; i++) {
+    signal[i] = signal[i + shift];
+  }
+  for (let i = signal.length - shift; i < signal.length; i++) {
+    signal[i] = 0;
+  }
 
-    return filterCoeffs;
+  return filterCoeffs;
 }
 
 function getDither(ditherType) {
-    switch (ditherType) {
-        case "Rectangular" :
-            return (2 * Math.random() - 1);
-        case "Triangular" :
-            return (Math.random() - Math.random());
-      case "Gaussian" :
-          // box muller transform, mean=0 std=0.5
-          return 0.5 * Math.sqrt(-2.0 * Math.log( 1 - Math.random() )) * Math.cos(2.0 * Math.PI * Math.random())
-    }
+  switch (ditherType) {
+    case "Rectangular" :
+      return (2 * Math.random() - 1);
+    case "Triangular" :
+      return (Math.random() - Math.random());
+    case "Gaussian" :
+      // box muller transform, mean=0 std=0.5
+      return 0.5 * Math.sqrt(-2.0 * Math.log(1 - Math.random())) * Math.cos(2.0 * Math.PI * Math.random())
+  }
 }
 
 function addDitherToHistogram(settings, dither) {
-    const bin = Math.floor(dither / settings.ditherHistogramBinSize) * settings.ditherHistogramBinSize;
-    if (bin in settings.ditherHistogram) {
-        settings.ditherHistogram[bin]++;
-    } else {
-        settings.ditherHistogram[bin] = 1;
-    }
+  const bin = Math.floor(dither / settings.ditherHistogramBinSize) * settings.ditherHistogramBinSize;
+  if (bin in settings.ditherHistogram) {
+    settings.ditherHistogram[bin]++;
+  } else {
+    settings.ditherHistogram[bin] = 1;
+  }
 }
 
 function quantize(y, quantizationType, stepSize) {
-    switch(quantizationType) {
-        case "midTread" :
-            return stepSize*Math.floor(Math.min(Math.max(-1, y, -0.99))/stepSize + 0.5);
-        case "midRise" :
-            return stepSize*(Math.floor(Math.min(Math.max(-1, y, -0.99))/stepSize) + 0.5);
-    }
+  switch (quantizationType) {
+    case "midTread" :
+      return stepSize * Math.floor(Math.min(Math.max(-1, y, -0.99)) / stepSize + 0.5);
+    case "midRise" :
+      return stepSize * (Math.floor(Math.min(Math.max(-1, y, -0.99)) / stepSize) + 0.5);
+  }
 
 }
 
 function applyFade(arr, normalize) {
-    let fade = (_, n, arr) => {
-        let fadeTimeSamps = Math.min(fadeTimeSeconds * WEBAUDIO_MAX_SAMPLERATE, arr.length / 2);
-        // The conditional ensures there is a fade even if the fade time is longer than the signal
-        if (n < fadeTimeSamps)
-            arr[n] = (n / fadeTimeSamps) * arr[n] / normalize;
-        else if (n > arr.length - fadeTimeSamps)
-            arr[n] = ((arr.length - n) / fadeTimeSamps) * arr[n] / normalize;
-        else arr[n] = arr[n] / normalize;
-    };
-    arr.forEach(fade);
+  let fade = (_, n, arr) => {
+    let fadeTimeSamps = Math.min(fadeTimeSeconds * WEBAUDIO_MAX_SAMPLERATE, arr.length / 2);
+    // The conditional ensures there is a fade even if the fade time is longer than the signal
+    if (n < fadeTimeSamps)
+      arr[n] = (n / fadeTimeSamps) * arr[n] / normalize;
+    else if (n > arr.length - fadeTimeSamps)
+      arr[n] = ((arr.length - n) / fadeTimeSamps) * arr[n] / normalize;
+    else arr[n] = arr[n] / normalize;
+  };
+  arr.forEach(fade);
 }
 
 // Rendering steps ----------------------------------------------------------
@@ -330,7 +331,7 @@ function renderOriginal(settings, fft, playback) {
   normalize(original, settings.amplitude);
 }
 
-function applyAntialiasingFilter(settings,fft, playback) {
+function applyAntialiasingFilter(settings, fft, playback) {
   let originalUnfiltered = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.originalUnfiltered.display;
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
   let filterKernel = playback ? settings.buffers.filterKernel.playback : settings.buffers.filterKernel.display;
@@ -353,7 +354,8 @@ function applyAntialiasingFilter(settings,fft, playback) {
     let firCalculator = new Fili.FirCoeffs();
 
     let filterCoeffs = firCalculator.lowpass(
-      { order: settings.antialiasing
+      {
+        order: settings.antialiasing
         , Fs: WEBAUDIO_MAX_SAMPLERATE
         , Fc: (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2
       });
@@ -368,7 +370,8 @@ function applyAntialiasingFilter(settings,fft, playback) {
     let firCalculator = new Fili.FirCoeffs();
 
     let filterCoeffs = firCalculator.lowpass(
-      { order: order
+      {
+        order: order
         , Fs: WEBAUDIO_MAX_SAMPLERATE
         , Fc: cutoff
       });
@@ -398,7 +401,7 @@ function downsampleWithQuantization(settings, fft, playback) {
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
   let stuffed = playback ? settings.buffers.stuffed.playback : settings.buffers.stuffed.display;
   let downsampled = playback ? settings.buffers.downsampled.playback : settings.buffers.downsampled.display;
-  let quantNoise  = playback ? settings.buffers.quantNoise.playback  : settings.buffers.quantNoise.display;
+  let quantNoise = playback ? settings.buffers.quantNoise.playback : settings.buffers.quantNoise.display;
   let quantNoiseStuffed = playback ? settings.buffers.quantNoiseStuffed.playback : settings.buffers.quantNoise.display;
 
 
@@ -414,7 +417,7 @@ function downsampleWithQuantization(settings, fft, playback) {
   // calculate the maximum integer value representable with the given bit depth
   let maxInt = Math.pow(2, settings.bitDepth) - 1;
 
-  let stepSize = (settings.quantType === "midTread") ? 2/(maxInt-1) : 2/(maxInt);
+  let stepSize = (settings.quantType === "midTread") ? 2 / (maxInt - 1) : 2 / (maxInt);
 
   // generate the output of the simulated ADC process by "sampling" (actually
   // just downsampling), and quantizing with dither. During this process, we
@@ -425,7 +428,7 @@ function downsampleWithQuantization(settings, fft, playback) {
     settings.ditherHistogram = {};
   }
 
-  downsampled.forEach( (_, n, arr) => {
+  downsampled.forEach((_, n, arr) => {
 
     // keep only every kth sample where k is the integer downsampling factor
     let y = Math.min(Math.max(-1, original[n * settings.downsamplingFactor]), 1);
@@ -456,13 +459,14 @@ function downsampleWithQuantization(settings, fft, playback) {
 
   // To retain the correct amplitude, we must multiply the output of the
   // filter by the downsampling factor.
-  reconstructed.forEach( (x, n, arr) => arr[n] = x * settings.downsamplingFactor);
+  reconstructed.forEach((x, n, arr) => arr[n] = x * settings.downsamplingFactor);
   filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, 200); // TODO: slider for order, start at 200
 
 }
 
 function renderWavesImpl(
-  settings, fft) { return (playback = false) => {
+  settings, fft) {
+  return (playback = false) => {
 
     renderOriginal(settings, fft, playback);
     applyAntialiasingFilter(settings, fft, playback);
@@ -482,9 +486,9 @@ function renderWavesImpl(
         fft.realTransform(value.freq, value.display);
         fft.completeSpectrum(value.freq);
       }
-        for (let i = 0; i < settings.buffers.filterKernel.freq.length; ++i) {
-          settings.buffers.filterKernel.freq[i] *= 452;
-        }
+      for (let i = 0; i < settings.buffers.filterKernel.freq.length; ++i) {
+        settings.buffers.filterKernel.freq[i] *= 452;
+      }
     }
 
     // fade in and out and suppress clipping distortions ------------------------
@@ -497,12 +501,11 @@ function renderWavesImpl(
     // amplitude a bit, but since the clipping adds distortion the perceived
     // loudness is relatively the same as the original signal in my testing.
 
-  if (playback) {
+    if (playback) {
       let normalize = settings.amplitude > 1.0 ? settings.amplitude : 1.0;
       for (const [key, value] of Object.entries(settings.buffers)) {
         applyFade(value.playback, normalize);
       }
     }
-
-
-}}
+  }
+}
