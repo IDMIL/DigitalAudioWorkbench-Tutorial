@@ -173,6 +173,8 @@ function getAdditiveSynthSample(settings, n) {
   sample = 0;
   for (let harmonic = 0; harmonic < settings.numHarm; harmonic++) {
     if (settings.harmonicFreqs[harmonic] >= 96000 / 2) {
+      // our input signal is not truly analog, but it sampled at 96k, the maximum samplerate supported in webaudio.
+      // If we generate inputs at higher frequencies than that nyquist, it will create aliasing on the input.
       return sample;
     }
     let fundamental_frequency = settings.harmonicFreqs[0];
@@ -257,9 +259,9 @@ function getDither(ditherType) {
             return (2 * Math.random() - 1);
         case "Triangular" :
             return (Math.random() - Math.random());
-        case "Gaussian" :
-            return 0; //TODO bring back
-            // return p.randomGaussian(0, 0.5);
+      case "Gaussian" :
+          // box muller transform, mean=0 std=0.5
+          return 0.5 * Math.sqrt(-2.0 * Math.log( 1 - Math.random() )) * Math.cos(2.0 * Math.PI * Math.random())
     }
 }
 
