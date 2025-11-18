@@ -107,6 +107,7 @@ let panelIdLookups = {
 
 let sliderIdLookups = {
   'audio-input-type-slider' : AudioInputTypeSlider,
+  'amplitude-slider' : AmplitudeSlider,
   'frequency-slider' : FreqSlider,
   'num-harmonics-slider' : NumHarmSlider,
   'antialiasing-filter-order-slider': AntialiasingSlider,
