@@ -121,6 +121,11 @@ function createWidgets() {
 
   settings.render();
 
+  const collapseButtons = document.getElementsByClassName("collapse-button");
+  for (const button of collapseButtons) {
+    button.textContent = "_";
+  }
+
   const panels = document.getElementsByClassName('panel');
   for (const panel of panels) {
     const id = panel.getAttribute('id');
