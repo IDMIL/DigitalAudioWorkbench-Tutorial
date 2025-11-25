@@ -259,7 +259,20 @@ class AntialiasingSlider extends RangedSlider {
     this.min = 0.0;
     this.max =  200;
     this.initial = 0;
-    this.step = 10;
+    this.step = 2;
+    this.makeSlider(p);
+  }
+}
+
+class ReconstructionOrderSlider extends RangedSlider {
+  setup(p, settings){
+    this.settings = settings;
+    this.propName ="reconstructionFilterOrder";
+    this.name = "Anti-imaging filter order";
+    this.min = 0.0;
+    this.max =  200;
+    this.initial = 0;
+    this.step = 2;
     this.makeSlider(p);
   }
 }

@@ -460,7 +460,7 @@ function downsampleWithQuantization(settings, fft, playback) {
   // To retain the correct amplitude, we must multiply the output of the
   // filter by the downsampling factor.
   reconstructed.forEach((x, n, arr) => arr[n] = x * settings.downsamplingFactor);
-  filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, 200); // TODO: slider for order, start at 200
+  filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, settings.reconstructionFilterOrder); // TODO: slider for order, start at 200
 
 }
 
@@ -473,7 +473,6 @@ function renderWavesImpl(
     downsampleWithQuantization(settings, fft, playback);
 
     // render FFTs --------------------------------------------------------------
-    // TODO: apply windows?
 
     // The FFTs of the signals at the various stages of the process are generated
     // using fft.js (https://github.com/indutny/fft.js). The call to

@@ -55,24 +55,10 @@ function getDefaultSettings() {
     , quantType: "midRise" // type of quantization
     , dither: 0.0 // amplitude of white noise added to signal before quantization
     , antialiasing: 0 // antialiasing filter order
-    // , original: new Float32Array(displaySignalSize)
-    // , originalUnfiltered: new Float32Array(displaySignalSize)
-    // , filterKernel: new Float32Array(displaySignalSize)
-    // , filterKernelFreq: fft.createComplexArray()
+    , reconstructionFilterOrder: 200
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
     , ditherHistogram: {}
     , ditherHistogramBinSize: 0.01
-    // , reconstructed: new Float32Array(displaySignalSize)
-    // , stuffed: new Float32Array(displaySignalSize)
-    // , quantNoiseStuffed: new Float32Array(displaySignalSize)
-    // , quantNoise: new Float32Array(displaySignalSize)
-    // , original_pb: new Float32Array(Math.floor(WEBAUDIO_MAX_SAMPLERATE * soundTimeSeconds))
-    // , reconstructed_pb: new Float32Array(Math.floor(WEBAUDIO_MAX_SAMPLERATE * soundTimeSeconds))
-    // , quantNoise_pb: new Float32Array(Math.floor(WEBAUDIO_MAX_SAMPLERATE * soundTimeSeconds))
-    // , originalFreq: fft.createComplexArray()
-    // , stuffedFreq: fft.createComplexArray()
-    // , reconstructedFreq: fft.createComplexArray()
-    // , quantNoiseFreq: fft.createComplexArray()
     , snd: undefined
     , maxVisibleFrequency: WEBAUDIO_MAX_SAMPLERATE / 2
     , freqZoom: 1.0 //X axis zoom for frequency panels
@@ -111,9 +97,11 @@ let sliderIdLookups = {
   'frequency-slider' : FreqSlider,
   'num-harmonics-slider' : NumHarmSlider,
   'antialiasing-filter-order-slider': AntialiasingSlider,
+  'reconstruction-filter-order-slider': ReconstructionOrderSlider,
   'sample-rate-slider' : SampleRateSlider,
   'dither-slider' : DitherSlider,
   'quantization-slider' : BitDepthSlider
+
 }
 
 function createWidgets() {

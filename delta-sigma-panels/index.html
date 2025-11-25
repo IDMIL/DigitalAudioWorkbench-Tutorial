@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../styles.css" media="screen" />
+  <!-- p5.js begin -->
+  <!-- 1) use p5.min.js for optimizing size/transfer -->
+  <script src="../p5.min.js"></script>
+  <!-- 2) use p5.js for debugging -->
+  <!-- <script src="../p5.js"></script> -->
+  <!-- p5.js end-->
+  <script src="../fili.min.js"></script>
+  <script src="../panel.js"></script>
+  <script src="../slider.js"></script>
+  <script src="../fft.js"></script>
+  <script src="../waves.js"></script>
+  <script src="../widget.js"></script>
+  <script src="../interaction.js"></script>
+</head>
+<body>
+<main>
+  <div class="timeline">
+    <div class="section">
+      <div class="titlebar">
+        <div class="section-title">
+          <h2>Input</h2>
+        </div>
+        <button class="collapse-button" id="coll-input" onclick="collapseClick(this.id)"></button>
+      </div>
+      <div class="collapse">
+        <div class="row panels">
+          <div class="panel" id="input-time-domain"></div>
+          <div class="panel" id="input-freq-domain"></div>
+        </div>
+        <div class="row sliders">
+          <div class="slider" id="audio-input-type-slider"></div>
+          <div class="slider" id="frequency-slider"></div>
+          <div class="slider" id="num-harmonics-slider"></div>
+          <div class="slider" id="amplitude-slider"></div>
+        </div>
+        <button class="play-button" id="play-input">Play</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="titlebar">
+        <div class="section-title">
+          <h2>Reconstructed</h2>
+        </div>
+        <button class="collapse-button" id="coll-recon" onclick="collapseClick(this.id)"></button>
+
+      </div>
+      <div class="collapse">
+        <div class="row panels">
+          <div class="panel" id="reconstructed"></div>
+          <div class="panel" id="reconstructed-fft"></div>
+        </div>
+        <div class="row panels">
+          <div class="panel" id="all-signals"></div>
+        </div>
+        <div class="row sliders">
+        </div>
+        <button class="play-button" id="play-reconstructed">Play Reconstructed</button>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>
+  <div>Digital Audio Workbench </div>
+  <div>By Josh Rohs, Travis J. West, Arden Butterfield & Marcelo M. Wanderley </div>
+  <div>with contributions by Eduardo Meneses, Christian Frisson, and Erivan Duarte</div>
+  <div>Copyright <a href="//www-new.idmil.org/">IDMIL</a>/McGill University, 2020 </div>
+</footer>
+
+<script>
+  createWidgets();
+</script>
+</body>
+</html>
