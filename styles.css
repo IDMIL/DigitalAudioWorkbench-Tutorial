@@ -16,20 +16,30 @@ main {
     padding: 10px;
     margin-bottom: 10px;
 }
+
+.titlebar {
+    display: flex;
+    justify-content: space-between;
+}
+
 .timeline {
     margin: auto;
     max-width: 1000px;
 }
 .timeline .section {
     background-color: white;
-    padding: 10px;
+    padding: 20px;
     border: 1px solid grey;
     border-radius: 5px;
     margin-bottom: 10px;
 }
 
-.timeline .section .titlebar .sectionTitle {
-    margin: 3px;
+.timeline .section .titlebar {
+    margin-bottom: 10px;
+}
+
+.timeline .section .titlebar .section-title h2 {
+    margin: 0;
     display: inline;
 }
 
@@ -49,6 +59,10 @@ main {
     border: 1px solid green;
     padding: 3px;
     width: 60%;
+}
+
+.sliders {
+    margin-top: 10px;
 }
 
 .slider {

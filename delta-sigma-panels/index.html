@@ -40,7 +40,27 @@
         <button class="play-button" id="play-input">Play</button>
       </div>
     </div>
-
+    <div class="section">
+      <div class="titlebar">
+        <div class="section-title">
+          <h2>Delta-Sigma</h2>
+        </div>
+        <button class="collapse-button" id="coll-input" onclick="collapseClick(this.id)"></button>
+      </div>
+      <div class="collapse">
+        <div class="row panels">
+          <div class="panel" id="input-time-domain"></div>
+          <div class="panel" id="input-freq-domain"></div>
+        </div>
+        <div class="row sliders">
+          <div class="slider" id="audio-input-type-slider"></div>
+          <div class="slider" id="frequency-slider"></div>
+          <div class="slider" id="num-harmonics-slider"></div>
+          <div class="slider" id="amplitude-slider"></div>
+        </div>
+        <button class="play-button" id="play-input">Play</button>
+      </div>
+    </div>
     <div class="section">
       <div class="titlebar">
         <div class="section-title">
