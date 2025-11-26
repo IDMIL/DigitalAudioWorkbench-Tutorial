@@ -468,9 +468,9 @@ function renderWavesImpl(
   settings, fft) {
   return (playback = false) => {
 
-    renderOriginal(settings, fft, playback);
-    applyAntialiasingFilter(settings, fft, playback);
-    downsampleWithQuantization(settings, fft, playback);
+    for (const stage of settings.renderStages) {
+      stage(settings, fft, playback);
+    }
 
     // render FFTs --------------------------------------------------------------
 

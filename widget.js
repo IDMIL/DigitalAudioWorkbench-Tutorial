@@ -67,6 +67,7 @@ function getDefaultSettings() {
 
     , render: undefined
     , play: playWave
+    , renderStages : []
   };
 
   settings.render = renderWavesImpl(settings, fft);
@@ -107,7 +108,16 @@ let sliderIdLookups = {
 function createWidgets() {
   let settings = getDefaultSettings();
 
-  settings.render();
+  const sections = document.getElementsByClassName('section');
+  for (const section of sections) {
+    if (section.id === "input-section") {
+      settings.renderStages.push(renderOriginal);
+    } else if (section.id === "filter-section") {
+      settings.renderStages.push(applyAntialiasingFilter);
+    } else if (section.id === "samplerate-section") {
+      settings.renderStages.push(downsampleWithQuantization)
+    }
+  }
 
   const collapseButtons = document.getElementsByClassName("collapse-button");
   for (const button of collapseButtons) {
@@ -186,4 +196,6 @@ function createWidgets() {
     }
   }
 
+
+  settings.render();
 }
