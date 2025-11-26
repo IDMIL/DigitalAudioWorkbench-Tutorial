@@ -331,6 +331,27 @@ function renderOriginal(settings, fft, playback) {
   normalize(original, settings.amplitude);
 }
 
+function renderDeltaSigma(settings, fft, playback) {
+  let originalUnfiltered = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.originalUnfiltered.display;
+  let deltaSigma = playback ? settings.buffers.deltaSigma.playback : settings.buffers.deltaSigma.display;
+  let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
+
+  let samplePeriod = Math.floor(settings.downsamplingFactor);
+  let step = settings.deltaSigmaStep;
+  let ds_state = 0;
+  for (let i = 0; i < originalUnfiltered.length; i += samplePeriod) {
+    if (ds_state > originalUnfiltered[i]) {
+      ds_state -= step;
+    } else {
+      ds_state += step;
+    }
+    for (let j = 0; j < samplePeriod; j += 1) {
+      deltaSigma[i+j] = ds_state;
+      reconstructed[i+j] = ds_state;
+    }
+  }
+}
+
 function applyAntialiasingFilter(settings, fft, playback) {
   let originalUnfiltered = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.originalUnfiltered.display;
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
@@ -454,13 +475,21 @@ function downsampleWithQuantization(settings, fft, playback) {
     quantNoise[n] = quantized - y;
     quantNoiseStuffed[n * settings.downsamplingFactor] = quantNoise[n];
   });
+}
+
+function antiImagingFilter(settings, fft, playback) {
+  let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
 
   // render reconstructed wave by low pass filtering the zero stuffed array----
 
   // To retain the correct amplitude, we must multiply the output of the
   // filter by the downsampling factor.
   reconstructed.forEach((x, n, arr) => arr[n] = x * settings.downsamplingFactor);
-  filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, settings.reconstructionFilterOrder); // TODO: slider for order, start at 200
+  const freq = (false)
+    ? settings.reconstructionFilterFrequency
+    : (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor);
+  console.log(freq);
+  filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, freq); // TODO: slider for order, start at 200
 
 }
 

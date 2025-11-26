@@ -34,7 +34,8 @@ function getDefaultSettings() {
       quantNoise: createBuffers(),
       quantNoiseStuffed: createBuffers(),
       downsampled: createBuffers(),
-      reconstructed: createBuffers()
+      reconstructed: createBuffers(),
+      deltaSigma: createBuffers()
     },
     amplitude: 1.0
     , inputType: "Additive Synth"
@@ -56,6 +57,7 @@ function getDefaultSettings() {
     , dither: 0.0 // amplitude of white noise added to signal before quantization
     , antialiasing: 0 // antialiasing filter order
     , reconstructionFilterOrder: 200
+    , deltaSigmaStep: 0.1
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
     , ditherHistogram: {}
     , ditherHistogramBinSize: 0.01
@@ -64,7 +66,7 @@ function getDefaultSettings() {
     , freqZoom: 1.0 //X axis zoom for frequency panels
     , ampZoom: 1.0 // Y axis zoom for all panels
     , timeZoom: 1.0 // X axis zoom for signal panels
-
+    , reconstructionFilterFrequency: -1
     , render: undefined
     , play: playWave
     , renderStages : []
@@ -89,7 +91,8 @@ let panelIdLookups = {
   'filter-kernel' : FilterKernelPanel,
   'filter-kernel-fft' : FilterKernelFFTPanel,
   'input-plus-sampled' : InputPlusSampledPanel,
-  'all-signals' : AllSignalsPanel
+  'all-signals' : AllSignalsPanel,
+  'delta-mod-panel' : DeltaModPanel
 }
 
 let sliderIdLookups = {
@@ -99,10 +102,11 @@ let sliderIdLookups = {
   'num-harmonics-slider' : NumHarmSlider,
   'antialiasing-filter-order-slider': AntialiasingSlider,
   'reconstruction-filter-order-slider': ReconstructionOrderSlider,
+  'reconstruction-filter-freq-slider' : ReconstructionFilterFreqSlider,
   'sample-rate-slider' : SampleRateSlider,
   'dither-slider' : DitherSlider,
-  'quantization-slider' : BitDepthSlider
-
+  'quantization-slider' : BitDepthSlider,
+  'delta-sigma-step-slider' : DeltaSigmaStepSlider
 }
 
 function createWidgets() {
@@ -112,10 +116,14 @@ function createWidgets() {
   for (const section of sections) {
     if (section.id === "input-section") {
       settings.renderStages.push(renderOriginal);
+    } else if (section.id === "delta-sigma-section") {
+      settings.renderStages.push(renderDeltaSigma);
     } else if (section.id === "filter-section") {
       settings.renderStages.push(applyAntialiasingFilter);
     } else if (section.id === "samplerate-section") {
       settings.renderStages.push(downsampleWithQuantization)
+    } else if (section.id === "reconstructed-section") {
+      settings.renderStages.push(antiImagingFilter);
     }
   }
 

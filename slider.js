@@ -136,6 +136,20 @@ class FreqSlider extends RangedSlider{
   }
 }
 
+class DeltaSigmaStepSlider extends RangedSlider {
+  setup(p, settings) {
+    this.settings = settings;
+    this.name = "Delta-Sigma step";
+    this.propName = "deltaSigmaStep";
+    this.min = 0;
+    this.max = 1;
+    this.initial = 0.01;
+    this.step = 0.0001;
+    this.displayVal = this.initial;
+    this.makeSlider(p);
+  }
+}
+
 class NumHarmSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
@@ -277,6 +291,19 @@ class ReconstructionOrderSlider extends RangedSlider {
   }
 }
 
+class ReconstructionFilterFreqSlider extends RangedSlider {
+  setup(p, settings){
+    this.settings = settings;
+    this.propName ="reconstructionFilterFrequency";
+    this.name = "Anti-imaging filter frequency";
+    this.min = 0.0;
+    this.max =  24000;
+    this.initial = 20000;
+    this.step = 2;
+    this.makeSlider(p);
+  }
+
+}
 class PhaseSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;

@@ -423,6 +423,29 @@ class InputSigPanel extends Panel {
   }
 }
 
+class DeltaModPanel extends Panel {
+  constructor(){
+    super();
+    this.name="Input Signal Time Domain with Delta Modulation";
+    this.description='This is an extension of the input signal in time domain with a step function illustrating delta modulation.'
+      + time_signal_doc + time_ticks_doc + amp_ticks_doc + midline_doc;
+  }
+
+  drawPanel(){
+    this.buffer.background(this.background);
+    this.buffer.stroke([150,150,150]);
+    this.drawSignal(this.settings.buffers.originalUnfiltered.display);
+    this.buffer.stroke([0,0,0]);
+    this.drawSignal(this.settings.buffers.deltaSigma.display);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
+    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawBorder();
+  }
+}
+
+
 class ReconstructedSigPanel extends Panel {
   constructor(){
     super(); 
@@ -772,7 +795,7 @@ class AllSignalsPanel extends Panel {
   drawPanel() {
     this.buffer.background(this.background);
     this.drawDiscreteSignal(this.settings.buffers.downsampled.display);
-    this.drawSignal(this.settings.buffers.original.display);
+    this.drawSignal(this.settings.buffers.originalUnfiltered.display);
     this.buffer.drawingContext.setLineDash([5,5]);
     this.drawSignal(this.settings.buffers.reconstructed.display);
     this.buffer.drawingContext.setLineDash([]);
