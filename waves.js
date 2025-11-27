@@ -485,7 +485,7 @@ function antiImagingFilter(settings, fft, playback) {
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
 
   // render reconstructed wave by low pass filtering the zero stuffed array----
-  const freq = (settings.reconstructionFilterFrequency > 0)
+  const freq = (settings.reconstructionFilterFrequency >= 0)
     ? settings.reconstructionFilterFrequency
     : (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2;
 

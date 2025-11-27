@@ -172,7 +172,7 @@ class SampleRateSlider extends RangedSlider{
     this.name ="Sample Rate(Hz):";
     this.propName="downsamplingFactor";
     this.min = p.log(3000)/p.log(2);
-    this.max =  p.log(48000)/p.log(2);
+    this.max =  p.log(WEBAUDIO_MAX_SAMPLERATE)/p.log(2);
     this.initial = p.log(48000)/p.log(2);
     this.step = 0.1
     this.makeSlider(p);

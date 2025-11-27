@@ -113,21 +113,6 @@ let sliderIdLookups = {
 function createWidgets() {
   let settings = getDefaultSettings();
 
-  const sections = document.getElementsByClassName('section');
-  for (const section of sections) {
-    if (section.id === "input-section") {
-      settings.renderStages.push(renderOriginal);
-    } else if (section.id === "delta-sigma-section") {
-      settings.renderStages.push(renderDeltaSigma);
-    } else if (section.id === "filter-section") {
-      settings.renderStages.push(applyAntialiasingFilter);
-    } else if (section.id === "samplerate-section") {
-      settings.renderStages.push(downsampleWithQuantization)
-    } else if (section.id === "reconstructed-section") {
-      settings.renderStages.push(antiImagingFilter);
-    }
-  }
-
   const collapseButtons = document.getElementsByClassName("collapse-button");
   for (const button of collapseButtons) {
     button.textContent = "_";
@@ -168,7 +153,6 @@ function createWidgets() {
     if (id in sliderIdLookups) {
       const sketch = p => {
         p.sliderObject = new sliderIdLookups[id]();
-
         p.setup = function () {
           let canvas = p.createCanvas(500, 50);
           p.textAlign(p.CENTER);
@@ -181,6 +165,23 @@ function createWidgets() {
       new p5(sketch, id);
     }
   }
+
+  const sections = document.getElementsByClassName('section');
+  for (const section of sections) {
+    if (section.id === "input-section") {
+      settings.renderStages.push(renderOriginal);
+    } else if (section.id === "delta-sigma-section") {
+      settings.renderStages.push(renderDeltaSigma);
+
+    } else if (section.id === "filter-section") {
+      settings.renderStages.push(applyAntialiasingFilter);
+    } else if (section.id === "samplerate-section") {
+      settings.renderStages.push(downsampleWithQuantization)
+    } else if (section.id === "reconstructed-section") {
+      settings.renderStages.push(antiImagingFilter);
+    }
+  }
+
 
   const playButtons = document.getElementsByClassName('play-button');
 
