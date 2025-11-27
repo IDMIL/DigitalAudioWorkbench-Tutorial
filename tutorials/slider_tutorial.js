@@ -18,7 +18,7 @@ class slider{
   onEdit(){
     this.updateValue();
     this.settings.render();
-    this.settings.p5.draw();
+    this.settings.p5.redraw();
   }
 
   makeSlider(p){

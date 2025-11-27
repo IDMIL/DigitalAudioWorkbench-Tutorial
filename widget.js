@@ -35,6 +35,7 @@ function getDefaultSettings() {
       quantNoiseStuffed: createBuffers(),
       downsampled: createBuffers(),
       reconstructed: createBuffers(),
+      reconstructedFiltered: createBuffers(),
       deltaSigma: createBuffers()
     },
     amplitude: 1.0

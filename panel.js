@@ -222,6 +222,7 @@ class Panel {
   }
 
   drawSignalAmplitudeTicks(pixel_max, num_ticks) {
+
     for (let i = 1; i <= num_ticks; ++i) {
       let tick_amp_pixels = i * pixel_max / num_ticks / this.settings.ampZoom;
       // let tick_amp_db = linToDB(tick_amp_pixels, pixel_max);

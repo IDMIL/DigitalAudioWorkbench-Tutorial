@@ -250,7 +250,6 @@ function filterSignal(signal, frequency, order) {
   for (let i = signal.length - shift; i < signal.length; i++) {
     signal[i] = 0;
   }
-
   return filterCoeffs;
 }
 
@@ -475,22 +474,22 @@ function downsampleWithQuantization(settings, fft, playback) {
     quantNoise[n] = quantized - y;
     quantNoiseStuffed[n * settings.downsamplingFactor] = quantNoise[n];
   });
+
+  // To retain the correct amplitude, we must multiply the output of the
+  // filter by the downsampling factor.
+  reconstructed.forEach((x, n, arr) => arr[n] = x * settings.downsamplingFactor);
+
 }
 
 function antiImagingFilter(settings, fft, playback) {
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
 
   // render reconstructed wave by low pass filtering the zero stuffed array----
-
-  // To retain the correct amplitude, we must multiply the output of the
-  // filter by the downsampling factor.
-  reconstructed.forEach((x, n, arr) => arr[n] = x * settings.downsamplingFactor);
-  const freq = (false)
+  const freq = (settings.reconstructionFilterFrequency > 0)
     ? settings.reconstructionFilterFrequency
-    : (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor);
-  console.log(freq);
-  filterSignal(reconstructed, (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2, freq); // TODO: slider for order, start at 200
+    : (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2;
 
+  filterSignal(reconstructed, freq, settings.reconstructionFilterOrder); // TODO: slider for order, start at 200
 }
 
 function renderWavesImpl(
