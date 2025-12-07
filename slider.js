@@ -88,9 +88,9 @@ class AudioInputTypeSlider extends Slider{
     this.inputSelect.changed(()=>this.settings.inputType = this.inputSelect.value());
 
     this.oddEvenSel = p.createSelect();
+    this.oddEvenSel.option("All");
     this.oddEvenSel.option("Odd");
     this.oddEvenSel.option("Even");
-    this.oddEvenSel.option("All");
     this.oddEvenSel.selected(this.settings.harmType);
     this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
 

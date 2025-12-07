@@ -19,6 +19,12 @@
 <body>
 <main>
   <div class="timeline">
+    <h1>Digital Audio Workbench (Delta-Sigma Encoding)</h1>
+
+    <h2>By Arden Butterfield, Josh Rohs, Travis J. West & Marcelo M. Wanderley
+      with contributions by Eduardo Meneses, Christian Frisson, Erivan Duarte, Laurent Tarabout, and Maxwell Gentili-Morin</h2>
+    <h3>Copyright IDMIL/McGill University, 2025</h3>
+
     <div class="section" id="input-section">
       <div class="titlebar">
         <div class="section-title">
@@ -83,12 +89,13 @@
     </div>
   </div>
 </main>
-<footer>
-  <div>Digital Audio Workbench </div>
-  <div>By Josh Rohs, Travis J. West, Arden Butterfield & Marcelo M. Wanderley </div>
-  <div>with contributions by Eduardo Meneses, Christian Frisson, and Erivan Duarte</div>
-  <div>Copyright <a href="//www-new.idmil.org/">IDMIL</a>/McGill University, 2020 </div>
-</footer>
+<div class="global-panel">
+  <div id="global-panel-collapse-button" onclick="collapseGlobalPanel()"></div>
+  <div class="contents">
+    <div class="slider" id="time-zoom-slider"></div>
+    <div class="slider" id="amp-zoom-slider"></div>
+  </div>
+</div>
 
 <script>
   createWidgets();
