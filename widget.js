@@ -107,7 +107,9 @@ let sliderIdLookups = {
   'sample-rate-slider' : SampleRateSlider,
   'dither-slider' : DitherSlider,
   'quantization-slider' : BitDepthSlider,
-  'delta-sigma-step-slider' : DeltaSigmaStepSlider
+  'delta-sigma-step-slider' : DeltaSigmaStepSlider,
+  'time-zoom-slider' : TimeZoomSlider,
+  'amp-zoom-slider' : AmpZoomSlider
 }
 
 function createWidgets() {

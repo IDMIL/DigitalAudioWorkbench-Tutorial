@@ -8,3 +8,13 @@ function collapseClick(id) {
     document.getElementById(id).textContent = "\u26F6";
   }
 }
+
+function collapseGlobalPanel() {
+  let collapse = document.getElementById("global-panel-collapse-button").parentNode.querySelector('.contents');
+  if (collapse.style.display === 'none') {
+    collapse.style.display = 'block';
+  } else {
+    collapse.style.display = 'none';
+  }
+
+}

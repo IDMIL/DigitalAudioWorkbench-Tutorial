@@ -1,10 +1,26 @@
 body {
   font-family: Cantarell, sans-serif;
+  margin: 0;
 }
 
+h1 {
+    text-align: center;
+}
+
+h2 {
+    font-size: 1em;
+    text-align: center;
+    font-weight: normal;
+}
+
+h3 {
+    font-style: italic;
+    text-align: center;
+    font-weight: normal;
+}
 footer{
   font-family: Cantarell, sans-serif;
-  padding: 5px 10px 0px;
+  padding: 5px 10px 0;
   background : lightgrey;
   font-size: 9pt;
   color: grey;
@@ -68,3 +84,31 @@ main {
 .slider {
     position: relative;
 }
+
+.global-panel {
+    bottom: 30px;
+    right: 30px;
+    border: 1px solid grey;
+    border-radius: 5px;
+    background-color: lightgrey;
+    position: fixed;
+    display: flex;
+    gap: 10px;
+    min-height: 40px;
+}
+
+
+#global-panel-collapse-button:hover {
+    background-color: darkblue;
+}
+
+#global-panel-collapse-button {
+    width: 20px;
+    background: blue;
+}
+
+.global-panel .contents {
+    padding: 1em;
+
+}
+
