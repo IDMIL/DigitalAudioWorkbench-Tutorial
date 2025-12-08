@@ -71,6 +71,7 @@ function getDefaultSettings() {
     , render: undefined
     , play: playWave
     , renderStages : []
+    , panelProcessingObjects : []
   };
 
   settings.render = renderWavesImpl(settings, fft);
@@ -126,13 +127,15 @@ function createWidgets() {
     if (id in panelIdLookups) {
       const sketch = p => {
         p.panelObject = new panelIdLookups[id]();
+        settings.panelProcessingObjects.push(p);
         p.setup = function () {
           let canvas = p.createCanvas(450, 300);
           p.textAlign(p.CENTER);
           canvas.parent(id)
           p.panelObject.setup(p, 450, 300, settings);
           p.windowResized();
-          // p.noLoop();
+          p.noLoop();
+          p.redraw();
         };
         p.draw = function () {
           p.panelObject.drawPanel();
@@ -162,6 +165,7 @@ function createWidgets() {
           p.sliderObject.setup(p, settings);
           p.sliderObject.resize(0,0,500,50);
           p.sliderObject.onEdit();
+          p.redraw();
         }
       }
       new p5(sketch, id);

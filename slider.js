@@ -14,7 +14,9 @@ class Slider {
   onEdit() {
     this.updateValue();
     this.settings.render();
-    // this.settings.p5.draw();
+    for (const pObj of this.settings.panelProcessingObjects) {
+      pObj.redraw();
+    }
   }
 
   resize(x, y, w, p) {

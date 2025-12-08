@@ -226,10 +226,9 @@ class Panel {
     for (let i = 1; i <= num_ticks; ++i) {
       let tick_amp_pixels = i * pixel_max / num_ticks / this.settings.ampZoom;
       // let tick_amp_db = linToDB(tick_amp_pixels, pixel_max);
-      this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.halfh - tick_amp_pixels*this.settings.ampZoom,5,"right");
-      this.drawHorizontalTick((-tick_amp_pixels/pixel_max).toFixed(2), this.halfh + tick_amp_pixels*this.settings.ampZoom,5,"right");
-      // this.drawHorizontalTick(tick_amp_db.toFixed(1) + 'dBFS', this.halfh - tick_amp_pixels*this.settings.ampZoom,5, "right");
-      // this.drawHorizontalTick(tick_amp_db.toFixed(1) + 'dBFS', this.halfh + tick_amp_pixels*this.settings.ampZoom,5, "right");
+      // TODO: bring these back once I figure out why they are so inefficient
+      // this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.halfh - tick_amp_pixels*this.settings.ampZoom,5,"right");
+      // this.drawHorizontalTick((-tick_amp_pixels/pixel_max).toFixed(2), this.halfh + tick_amp_pixels*this.settings.ampZoom,5,"right");
     }
     // this.drawHorizontalTick('-inf dBFS', this.halfh, 5, "right");
     this.drawHorizontalTick('0.00', this.halfh, 5, "right");
