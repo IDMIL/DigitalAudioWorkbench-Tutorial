@@ -87,6 +87,9 @@ class AudioInputTypeSlider extends Slider{
     this.propName = "inputType";
     this.inputSelect = p.createSelect();
     this.inputSelect.option("Additive Synth");
+    this.inputSelect.option("cello");
+    this.inputSelect.option("drums");
+    this.inputSelect.option("sweep");
     this.inputSelect.changed(()=>this.settings.inputType = this.inputSelect.value());
 
     this.oddEvenSel = p.createSelect();
