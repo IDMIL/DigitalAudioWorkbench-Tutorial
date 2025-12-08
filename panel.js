@@ -93,6 +93,13 @@ class Panel {
     this.buffer.line(this.plotLeft, this.plotBottom, this.plotRight, this.plotBottom);
   }
 
+  repaint() {
+    // Draw loop callback function
+    this.buffer.background(this.background);
+    this.drawPanel();
+    this.drawBorder();
+  }
+
   drawPanel(){}
 
   calculateNumImages() {
@@ -168,7 +175,6 @@ class Panel {
       this.buffer.text(text, tickEnd + 2, height - this.tickTextSize / 2, this.buffer.width, height + this.tickTextSize / 2);
     } else {
       this.buffer.text(text, 0, height - this.tickTextSize / 2, tickStart, height + this.tickTextSize / 2);
-
     }
 
     this.buffer.strokeWeight(this.strokeWeight);
@@ -342,7 +348,6 @@ class FreqPanel extends Panel{
     let num_bins = Math.round(this.plotWidth / pixels_per_bin);
     let normalize = 4/fft.length;
 
-    this.buffer.background(this.background);
     this.buffer.stroke(this.stroke);
     this.drawPassBand();
     this.buffer.beginShape();
@@ -356,8 +361,7 @@ class FreqPanel extends Panel{
     this.buffer.endShape(this.buffer.CLOSE);
     this.buffer.strokeWeight(this.strokeWeight);
     this.buffer.stroke(this.stroke);
-    this.drawBorder();
-    this.drawName();
+        this.drawName();
     if (tick === 'dirac')
       this.drawDiracDashes();
     else
@@ -375,13 +379,11 @@ class InputSigUnfilteredPanel extends Panel {
   }
 
   drawPanel(){
-    this.buffer.background(this.background);
     this.drawSignal(this.settings.buffers.originalUnfiltered.display);
     this.drawMidLine(this);
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
   }
 }
 
@@ -394,13 +396,11 @@ class FilterKernelPanel extends Panel {
   }
 
   drawPanel() {
-    this.buffer.background(this.background);
     this.drawSignal(this.settings.buffers.filterKernel.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
   }
 }
 
@@ -413,14 +413,12 @@ class InputSigPanel extends Panel {
   }
 
   drawPanel(){
-    this.buffer.background(this.background);
     this.drawSignal(this.settings.buffers.original.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
-  }
+      }
 }
 
 class DeltaModPanel extends Panel {
@@ -432,7 +430,6 @@ class DeltaModPanel extends Panel {
   }
 
   drawPanel(){
-    this.buffer.background(this.background);
     this.buffer.stroke([150,150,150]);
     this.drawSignal(this.settings.buffers.originalUnfiltered.display);
     this.buffer.stroke([0,0,0]);
@@ -441,8 +438,7 @@ class DeltaModPanel extends Panel {
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
-  }
+      }
 }
 
 
@@ -455,14 +451,12 @@ class ReconstructedSigPanel extends Panel {
   }
 
   drawPanel(){
-    this.buffer.background(this.background);
     this.drawSignal(this.settings.buffers.reconstructed.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
-  }
+      }
 }
 
 class InputSigFreqPanel extends FreqPanel {
@@ -474,7 +468,6 @@ class InputSigFreqPanel extends FreqPanel {
   }
 
   drawPanel(){
-    this.buffer.background(this.background);
     let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
     this.drawPassBand();
     // let harmInc = 1;
@@ -494,8 +487,7 @@ class InputSigFreqPanel extends FreqPanel {
     }
 
 
-    this.drawBorder();
-    this.drawFreqTicks(this, this.numFreqTicks, pixels_per_hz);
+        this.drawFreqTicks(this, this.numFreqTicks, pixels_per_hz);
     this.drawFreqAmplitudeTicks(this, this.plotHeight, 9);
     this.drawName();
   }
@@ -573,8 +565,6 @@ class ImpulsePanel extends Panel {
   drawPanel(){
     let base = this.plotBottom;
     let ytop = this.plotTop + 10;
-    this.buffer.background(this.background);
-    this.drawBorder();
 
     let visibleSamples = Math.floor(this.plotWidth / this.settings.downsamplingFactor/this.settings.timeZoom+1);
     for (let x = 0; x < visibleSamples; x++) {
@@ -615,8 +605,7 @@ class ImpulseFreqPanel extends FreqPanel {
     }
 
     this.drawFreqAmplitudeTicks(this.plotHeight, 9);
-    this.drawBorder();
-    this.drawName();
+        this.drawName();
   }
 }
 
@@ -630,7 +619,6 @@ class SampledInputPanel extends Panel{
   }
 
   drawPanel(){
-    this.buffer.background(this.background);
     this.drawDiscreteSignal(this.settings.buffers.downsampled.display)
     this.drawMidLine();
     this.drawName();
@@ -638,8 +626,7 @@ class SampledInputPanel extends Panel{
     this.drawSignalBinaryScaling(this.plotHeight/2, 16,this.settings);
 
     this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
-  }
+      }
 }
 
 const passband_doc='The frequency range below the nyquist frequency is highlighted by a light grey background. ';
@@ -653,7 +640,6 @@ class SampledInputFreqPanel extends FreqPanel{
   }
 
   drawPanel(){
-    this.buffer.background(this.background);
     this.buffer.stroke(this.stroke);
     this.drawPassBand();
     this.drawDiracDashes();
@@ -685,8 +671,7 @@ class SampledInputFreqPanel extends FreqPanel{
       }
     }
 
-    this.drawBorder();
-    this.drawFreqAmplitudeTicks(this.plotHeight, 9);
+        this.drawFreqAmplitudeTicks(this.plotHeight, 9);
     this.drawName();
   }
 }
@@ -701,14 +686,12 @@ class QuantNoisePanel extends Panel{
         + time_ticks_doc + amp_ticks_doc + midline_doc;
   }
   drawPanel(){
-    this.buffer.background(this.background);
     this.drawDiscreteSignal(this.settings.buffers.quantNoise.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
     this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
-  }
+      }
 }
 
 class QuantNoiseFFTPanel extends FreqPanel {
@@ -735,9 +718,7 @@ class DitherDistributionHistogramPanel extends Panel{
         }
 
         drawPanel() {
-            this.buffer.background(this.background);
-            this.drawBorder();
-            this.drawName();
+                        this.drawName();
             const x_axis_low = -1.2;
             const x_axis_high = 1.2;
             for (let i = x_axis_low; i <= x_axis_high; i += 0.2) {
@@ -770,7 +751,6 @@ class InputPlusSampledPanel extends Panel {
   }
 
   drawPanel() {
-    this.buffer.background(this.background);
     this.drawDiscreteSignal(this.settings.buffers.downsampled.display)
     this.buffer.stroke("gray");
     this.drawSignal(this.settings.buffers.original.display);
@@ -779,8 +759,7 @@ class InputPlusSampledPanel extends Panel {
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
     this.drawSignalBinaryScaling(this.plotHeight/2, 16,this.settings);
     this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
-  }
+      }
 }
 
 class AllSignalsPanel extends Panel {
@@ -793,7 +772,6 @@ class AllSignalsPanel extends Panel {
   }
 
   drawPanel() {
-    this.buffer.background(this.background);
     this.drawDiscreteSignal(this.settings.buffers.downsampled.display);
     this.drawSignal(this.settings.buffers.originalUnfiltered.display);
     this.buffer.drawingContext.setLineDash([5,5]);
@@ -803,6 +781,5 @@ class AllSignalsPanel extends Panel {
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
     this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-    this.drawBorder();
-  }
+      }
 }

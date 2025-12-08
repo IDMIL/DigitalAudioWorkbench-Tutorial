@@ -138,7 +138,7 @@ function createWidgets() {
           p.redraw();
         };
         p.draw = function () {
-          p.panelObject.drawPanel();
+          p.panelObject.repaint();
           p.image(p.panelObject.buffer, 0, 0);
         };
 
