@@ -114,6 +114,7 @@ let sliderIdLookups = {
 }
 
 function createWidgets() {
+  loadAudioSources();
   let settings = getDefaultSettings();
 
   const collapseButtons = document.getElementsByClassName("collapse-button");
