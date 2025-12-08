@@ -1,20 +1,114 @@
 body {
   font-family: Cantarell, sans-serif;
+  margin: 0;
 }
 
-canvas {
-  width: 100% !important;
-  height: 100% !important;
-  text-align: center;
+h1 {
+    text-align: center;
 }
 
-sup { vertical-align: top; position: relative; top: -0.5em; }
+h2 {
+    font-size: 1em;
+    text-align: center;
+    font-weight: normal;
+}
 
+h3 {
+    font-style: italic;
+    text-align: center;
+    font-weight: normal;
+}
 footer{
   font-family: Cantarell, sans-serif;
-  padding: 5px 10px 0px;
+  padding: 5px 10px 0;
   background : lightgrey;
   font-size: 9pt;
   color: grey;
   text-align: center;
 }
+
+main {
+    background-color: lightgrey;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.titlebar {
+    display: flex;
+    justify-content: space-between;
+}
+
+.timeline {
+    margin: auto;
+    max-width: 1000px;
+}
+.timeline .section {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid grey;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.timeline .section .titlebar {
+    margin-bottom: 10px;
+}
+
+.timeline .section .titlebar .section-title h2 {
+    margin: 0;
+    display: inline;
+}
+
+.timeline .section .titlebar button.collapse-button {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+}
+
+.timeline .section .collapse .panels {
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+}
+
+.timeline .section .collapse .panel {
+    border: 1px solid green;
+    padding: 3px;
+    width: 60%;
+}
+
+.sliders {
+    margin-top: 10px;
+}
+
+.slider {
+    position: relative;
+}
+
+.global-panel {
+    bottom: 30px;
+    right: 30px;
+    border: 1px solid grey;
+    border-radius: 5px;
+    background-color: lightgrey;
+    position: fixed;
+    display: flex;
+    gap: 10px;
+    min-height: 40px;
+}
+
+
+#global-panel-collapse-button:hover {
+    background-color: darkblue;
+}
+
+#global-panel-collapse-button {
+    width: 20px;
+    background: blue;
+}
+
+.global-panel .contents {
+    padding: 1em;
+
+}
+

@@ -797,21 +797,21 @@ function updatePanel(panels, name, checkBoxState) {
     if (!panelPresent) {
       //Replace/add lines for more options
       if (name == "Input Signal Time Domain with Delta Modulation") {panels.push(new deltaModPanel());}
-      if (name == "Input Signal Frequency Domain") {panels.push(new inputSigFreqPanel());}
-      if (name == "Reconstructed Signal Time Domain") {panels.push(new reconstructedSigPanel());}
-      if (name == "Reconstructed Signal FFT") {panels.push(new reconstructedSigFFTPanel());}
+      if (name == "Input Signal Frequency Domain") {panels.push(new InputSigFreqPanel());}
+      if (name == "Reconstructed Signal Time Domain") {panels.push(new ReconstructedSigPanel());}
+      if (name == "Reconstructed Signal FFT") {panels.push(new ReconstructedSigFFTPanel());}
       if (name == "Reconstructed Signal Time Domain using Delta Modulation") {panels.push(new reconstructedDeltaModSigPanel());}
       if (name == "Reconstructed Signal using Delta Modulation FFT") {panels.push(new reconstructedDeltaModSigFFTPanel());}
-      if (name == "Input Signal Time Domain") {panels.push(new inputSigPanel());}
-      if (name == "Sampled Signal FFT") {panels.push(new sampledInputFFTPanel());}
-      if (name == "Sampling Signal Time Domain") {panels.push(new impulsePanel());}
-      if (name == "Sampling Signal Frequency Domain") {panels.push(new impulseFreqPanel());}
-      if (name == "Sampled Signal Time Domain") {panels.push(new sampledInputPanel());}
-      if (name == "Sampled Signal Frequency Domain") {panels.push(new sampledInputFreqPanel());}
-      if (name == "Quantization Noise Time Domain") {panels.push(new quantNoisePanel());}
-      if (name == "Quantization Noise FFT") {panels.push(new quantNoiseFFTPanel());}
-      if (name == "Input with Sampled Signal Time Domain") {panels.push(new inputPlusSampledPanel());}
-      if (name == "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain") {panels.push(new allSignalsPanel());}
+      if (name == "Input Signal Time Domain") {panels.push(new InputSigPanel());}
+      if (name == "Sampled Signal FFT") {panels.push(new SampledInputFFTPanel());}
+      if (name == "Sampling Signal Time Domain") {panels.push(new ImpulsePanel());}
+      if (name == "Sampling Signal Frequency Domain") {panels.push(new ImpulseFreqPanel());}
+      if (name == "Sampled Signal Time Domain") {panels.push(new SampledInputPanel());}
+      if (name == "Sampled Signal Frequency Domain") {panels.push(new SampledInputFreqPanel());}
+      if (name == "Quantization Noise Time Domain") {panels.push(new QuantNoisePanel());}
+      if (name == "Quantization Noise FFT") {panels.push(new QuantNoiseFFTPanel());}
+      if (name == "Input with Sampled Signal Time Domain") {panels.push(new InputPlusSampledPanel());}
+      if (name == "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain") {panels.push(new AllSignalsPanel());}
 
       
       //reorderPanels();
@@ -858,13 +858,13 @@ function updateSlider(sliders, propName, checkBoxState) {
     }
     if (!sliderPresent) {
       //Replace/add lines for more options
-      if (propName == "timeZoom") {sliders.push(new timeZoomSlider());}
-      if (propName == "fundFreq") {sliders.push(new freqSlider());}
-      if (propName == "downsamplingFactor") {sliders.push(new sampleRateSlider());}
+      if (propName == "timeZoom") {sliders.push(new TimeZoomSlider());}
+      if (propName == "fundFreq") {sliders.push(new FreqSlider());}
+      if (propName == "downsamplingFactor") {sliders.push(new SampleRateSlider());}
       if (propName == "downsamplingFactorDelta") {sliders.push(new sampleRateDeltaSlider());}
       if (propName == "deltaStep") {sliders.push(new deltaStepSlider());}
-      if (propName == "numHarm") {sliders.push(new numHarmSlider());}
-      if (propName == "phase") {sliders.push(new phaseSlider());}
+      if (propName == "numHarm") {sliders.push(new NumHarmSlider());}
+      if (propName == "phase") {sliders.push(new PhaseSlider());}
       /*if (propName == "") {sliders.push(new ());}
       if (propName == "") {sliders.push(new ());}
       if (propName == "") {sliders.push(new ());}

@@ -1,151 +1,7 @@
 const BIT_DEPTH_MAX = 16;
 const WEBAUDIO_MAX_SAMPLERATE = 96000;
 const NUM_COLUMNS = 2;
-const MAX_HARMONICS = 20;
-function new_widget(panels, sliders) { const sketch = p => {
-
-var numPanels = panels.length;
-var numSliders = sliders.length;
-let panelHeight, panelWidth, sliderWidth, sliderHeight, numColumns;
-resize(1080, 1920);
-
-// set display and fftSize to ensure there is enough data to fill the panels when zoomed all the way out
-let fftSize = p.pow(2, p.round(p.log(panelWidth/minFreqZoom) / p.log(2)));
-let displaySignalSize = p.max(fftSize, panelWidth/minTimeZoom) * 1.1; // 1.1 for 10% extra safety margin
-let fft = new FFTJS(fftSize);
-var settings =
-    { amplitude : 1.0
-    , fundFreq : 1250 // input signal fundamental freq
-    , sampleRate : WEBAUDIO_MAX_SAMPLERATE
-    , downsamplingFactor : 2
-    , numHarm : 2 //Number of harmonics
-    , harmType : "Odd" // Harmonic series to evaluate - Odd, even or all
-    , harmSlope : "1/x" // Amplitude scaling for harmonics. can be used to create different shapes like saw or square
-    , harmonicFreqs : new Float32Array(MAX_HARMONICS) //Array storing harmonic frequency in hz
-    , harmonicAmps  : new Float32Array(MAX_HARMONICS) //Array storing harmonic amp  (0-1.0)
-    , phase : 0.0 // phase offset for input signal
-    , fftSize : fftSize
-    , bitDepth : BIT_DEPTH_MAX //quantization bit depth
-    , quantType : "midRise" // type of quantization
-    , dither : 0.0 // amplitude of white noise added to signal before quantization
-    , antialiasing : 0 // antialiasing filter order
-    , original: new Float32Array(displaySignalSize)
-    , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
-    , reconstructed: new Float32Array(displaySignalSize)
-    , stuffed: new Float32Array(displaySignalSize)
-    , quantNoiseStuffed: new Float32Array(displaySignalSize)
-    , quantNoise: new Float32Array(displaySignalSize)
-    , original_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
-    , reconstructed_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
-    , quantNoise_pb: new Float32Array(p.floor(WEBAUDIO_MAX_SAMPLERATE*soundTimeSeconds))
-    , originalFreq : fft.createComplexArray()
-    , stuffedFreq : fft.createComplexArray()
-    , reconstructedFreq : fft.createComplexArray()
-    , quantNoiseFreq : fft.createComplexArray()
-    , snd : undefined
-    , maxVisibleFrequency : WEBAUDIO_MAX_SAMPLERATE / 2
-    , freqZoom : 1.0 //X axis zoom for frequency panels
-    , ampZoom : 1.0 // Y axis zoom for all panels
-    , timeZoom: 1.0 // X axis zoom for signal panels
-
-    , p5: undefined
-    , render : undefined
-    , play : undefined
-    };
-
-p.settings = settings;
-
-var renderWaves = renderWavesImpl(settings, fft, p);
-
-p.setup = function () {
-  settings.p5 = p;
-  settings.render = renderWaves;
-  settings.play = playWave;
-
-  p.createCanvas(p.windowWidth, p.windowHeight);
-  p.textAlign(p.CENTER);
-  panels.forEach(panel => panel.setup(p, panelHeight, panelWidth, settings));
-  sliders.forEach(slider => slider.setup(p, settings));
-  sliders.forEach(slider => slider.updateValue(p));
-  renderWaves();
-  buttonSetup();
-  p.windowResized();
-  p.noLoop();
-  setTimeout(p.draw, 250);
-};
-
-p.draw = function() {
-  panels.forEach(panel => panel.drawPanel());
-  panels.forEach( (panel, index) => {
-    let y = p.floor(index / numColumns) * panelHeight;
-    let x = p.floor(index % numColumns) * panelWidth;
-    p.image(panel.buffer, x, y);
-  });
-};
-
-p.windowResized = function() {
-  let w = p.windowWidth - 20; // TODO: get panel bezel somehow instead of hardcoded 20
-  let h = p.windowHeight - 20;
-  resize(w, h);
-  p.resizeCanvas(w, h);
-  panels.forEach(panel => panel.resize(panelHeight, panelWidth));
-
-  let yoffset = panelHeight * p.ceil(numPanels/numColumns) + 20;
-  sliders.forEach( (slider, index) => {
-    let y = yoffset + p.floor(index / numColumns) * sliderHeight;
-    let x = p.floor(index % numColumns) * panelWidth;
-    slider.resize(x + 20, y, sliderWidth,p);
-  });
-
-  let y = yoffset + p.floor((numSliders)/ numColumns) * sliderHeight;
-  let x = p.floor((numSliders) % numColumns) * panelWidth;
-  originalButton.position(x + 20, y);
-  reconstructedButton.position(originalButton.x + originalButton.width * 1.1, originalButton.y);
-  quantNoiseButton.position(reconstructedButton.x + reconstructedButton.width * 1.1, reconstructedButton.y);
-  
-};
-
-function resize(w, h) {
-  if (w < 800) numColumns = 1;
-  else numColumns = 2;
-  let panelRows = Math.ceil((numPanels+1)/numColumns);
-  let sliderRows = Math.ceil((numSliders+1)/numColumns);
-  panelWidth   = w / numColumns;
-  sliderWidth  = w / numColumns;
-  panelHeight  = h / panelRows;
-  sliderHeight = panelHeight / sliderRows;
-  if (sliderHeight < 30) { // keep sliders from getting squished
-    sliderHeight = 30;
-    let sliderPanelHeight = sliderHeight * sliderRows;
-    panelHeight = (h - sliderPanelHeight) / (panelRows - 1);
-  }
-}
-
-function buttonSetup() {
-
-  originalButton = p.createButton("play original");
-  originalButton.position(p.width/2 + 10, p.height - p.height / numPanels + 90);
-  originalButton.mousePressed( () => {
-    renderWaves(true);
-    if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
-    playWave(settings.original_pb, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
-  });
-
-  reconstructedButton = p.createButton("play reconstructed");
-  reconstructedButton.position(originalButton.x + originalButton.width * 1.1, originalButton.y);
-  reconstructedButton.mousePressed( () => {
-    renderWaves(true);
-    if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
-    playWave(settings.reconstructed_pb, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
-  });
-  quantNoiseButton = p.createButton("play quantization noise");
-  quantNoiseButton.position(reconstructedButton.x + reconstructedButton.width * 1.1, reconstructedButton.y);
-  quantNoiseButton.mousePressed( () => {
-    renderWaves(true);
-    if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
-    playWave(settings.quantNoise_pb, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
-  });
-}
+const MAX_HARMONICS = 40;
 
 function playWave(wave, sampleRate, audioctx) {
   var buffer = audioctx.createBuffer(1, wave.length, sampleRate);
@@ -156,6 +12,206 @@ function playWave(wave, sampleRate, audioctx) {
   source.start();
 }
 
+function getDefaultSettings() {
+  let fftSize = 2048;
+  let displaySignalSize = 5000; // TODO: fine-tune these numbers
+  let fft = new FFTJS(fftSize);
 
-};
-return new p5(sketch); } // end function new_widget() { var sketch = p => {
+  function createBuffers() {
+    return {
+      playback: new Float32Array(Math.floor(WEBAUDIO_MAX_SAMPLERATE * soundTimeSeconds)),
+      display: new Float32Array(displaySignalSize),
+      freq: fft.createComplexArray()
+    }
+  }
+
+  let settings = {
+    buffers: {
+      originalUnfiltered: createBuffers(),
+      original: createBuffers(),
+      filterKernel: createBuffers(),
+      stuffed: createBuffers(),
+      quantNoise: createBuffers(),
+      quantNoiseStuffed: createBuffers(),
+      downsampled: createBuffers(),
+      reconstructed: createBuffers(),
+      reconstructedFiltered: createBuffers(),
+      deltaSigma: createBuffers()
+    },
+    amplitude: 1.0
+    , inputType: "Additive Synth"
+    , fundFreq: 1250 // input signal fundamental freq
+    , sampleRate: WEBAUDIO_MAX_SAMPLERATE
+    , downsamplingFactor: 2
+    , numHarm: 2 //Number of harmonics
+    , harmType: "Odd" // Harmonic series to evaluate - Odd, even or all
+    , harmSlope: "1/x" // Amplitude scaling for harmonics. can be used to create different shapes like saw or square
+    , harmonicFreqs: new Float32Array(MAX_HARMONICS) //Array storing harmonic frequency in hz
+    , harmonicAmps: new Float32Array(MAX_HARMONICS) //Array storing harmonic amp  (0-1.0)
+    , phase: 0.0 // phase offset for input signal
+    , fftSize: fftSize
+    , bitDepth: BIT_DEPTH_MAX //quantization bit depth
+    , ditherType: "Rectangular"
+    // Rectangular, Triangular, or Gaussian. distribution from which dither noise is selected.
+    // See Principles of Digital Audio, Pohlmann, p. 41
+    , quantType: "midRise" // type of quantization
+    , dither: 0.0 // amplitude of white noise added to signal before quantization
+    , antialiasing: 0 // antialiasing filter order
+    , reconstructionFilterOrder: 200
+    , deltaSigmaStep: 0.1
+    , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
+    , ditherHistogram: {}
+    , ditherHistogramBinSize: 0.01
+    , snd: undefined
+    , maxVisibleFrequency: WEBAUDIO_MAX_SAMPLERATE / 2
+    , freqZoom: 1.0 //X axis zoom for frequency panels
+    , ampZoom: 1.0 // Y axis zoom for all panels
+    , timeZoom: 1.0 // X axis zoom for signal panels
+    , reconstructionFilterFrequency: -1
+    , render: undefined
+    , play: playWave
+    , renderStages : []
+    , panelProcessingObjects : []
+  };
+
+  settings.render = renderWavesImpl(settings, fft);
+  return settings;
+}
+
+let panelIdLookups = {
+  'input-time-domain' : InputSigUnfilteredPanel,
+  'input-freq-domain' : InputSigUnfilteredFFTPanel,
+  'input-filtered-time-domain' : InputSigPanel,
+  'input-filtered-freq-domain' : InputSigFFTPanel,
+  'sampling-time-domain' : SampledInputPanel,
+  'sampling-freq-domain' : SampledInputFreqPanel,
+  'dither-histogram' : DitherDistributionHistogramPanel,
+  'quantization-noise' : QuantNoisePanel,
+  'quantization-noise-fft' : QuantNoiseFFTPanel,
+  'reconstructed' : ReconstructedSigPanel,
+  'reconstructed-fft' : ReconstructedSigFFTPanel,
+  'filter-kernel' : FilterKernelPanel,
+  'filter-kernel-fft' : FilterKernelFFTPanel,
+  'input-plus-sampled' : InputPlusSampledPanel,
+  'all-signals' : AllSignalsPanel,
+  'delta-mod-panel' : DeltaModPanel
+}
+
+let sliderIdLookups = {
+  'audio-input-type-slider' : AudioInputTypeSlider,
+  'amplitude-slider' : AmplitudeSlider,
+  'frequency-slider' : FreqSlider,
+  'num-harmonics-slider' : NumHarmSlider,
+  'antialiasing-filter-order-slider': AntialiasingSlider,
+  'reconstruction-filter-order-slider': ReconstructionOrderSlider,
+  'reconstruction-filter-freq-slider' : ReconstructionFilterFreqSlider,
+  'sample-rate-slider' : SampleRateSlider,
+  'dither-slider' : DitherSlider,
+  'quantization-slider' : BitDepthSlider,
+  'delta-sigma-step-slider' : DeltaSigmaStepSlider,
+  'time-zoom-slider' : TimeZoomSlider,
+  'amp-zoom-slider' : AmpZoomSlider
+}
+
+function createWidgets() {
+  let settings = getDefaultSettings();
+
+  const collapseButtons = document.getElementsByClassName("collapse-button");
+  for (const button of collapseButtons) {
+    button.textContent = "_";
+  }
+
+  const panels = document.getElementsByClassName('panel');
+  for (const panel of panels) {
+    const id = panel.getAttribute('id');
+    if (id in panelIdLookups) {
+      const sketch = p => {
+        p.panelObject = new panelIdLookups[id]();
+        settings.panelProcessingObjects.push(p);
+        p.setup = function () {
+          let canvas = p.createCanvas(450, 300);
+          p.textAlign(p.CENTER);
+          canvas.parent(id)
+          p.panelObject.setup(p, 450, 300, settings);
+          p.windowResized();
+          p.noLoop();
+          p.redraw();
+        };
+        p.draw = function () {
+          p.panelObject.repaint();
+          p.image(p.panelObject.buffer, 0, 0);
+        };
+
+        p.windowResized = function () {
+          p.panelObject.resize(450, 300);
+        };
+
+        p.settings = settings;
+      }
+      new p5(sketch);
+    }
+  }
+
+  const sliders = document.getElementsByClassName('slider');
+  for (const slider of sliders) {
+    const id = slider.getAttribute('id');
+    if (id in sliderIdLookups) {
+      const sketch = p => {
+        p.sliderObject = new sliderIdLookups[id]();
+        p.setup = function () {
+          let canvas = p.createCanvas(500, 50);
+          p.textAlign(p.CENTER);
+          canvas.parent(id)
+          p.sliderObject.setup(p, settings);
+          p.sliderObject.resize(0,0,500,50);
+          p.sliderObject.onEdit();
+          p.redraw();
+        }
+      }
+      new p5(sketch, id);
+    }
+  }
+
+  const sections = document.getElementsByClassName('section');
+  for (const section of sections) {
+    if (section.id === "input-section") {
+      settings.renderStages.push(renderOriginal);
+    } else if (section.id === "delta-sigma-section") {
+      settings.renderStages.push(renderDeltaSigma);
+
+    } else if (section.id === "filter-section") {
+      settings.renderStages.push(applyAntialiasingFilter);
+    } else if (section.id === "samplerate-section") {
+      settings.renderStages.push(downsampleWithQuantization)
+    } else if (section.id === "reconstructed-section") {
+      settings.renderStages.push(antiImagingFilter);
+    }
+  }
+
+
+  const playButtons = document.getElementsByClassName('play-button');
+
+  function buttonPlayFunction(buffer) {
+    settings.render(true);
+    if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
+    playWave(buffer, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
+  }
+
+  for (const playButton of playButtons) {
+    const id = playButton.getAttribute('id');
+    if (id === "play-input") {
+        playButton.onclick = () => { buttonPlayFunction(settings.buffers.originalUnfiltered.playback)};
+    } else if (id === "play-filter-kernel") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.filterKernel.playback)};
+    } else if (id === "play-filtered-input") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.original.playback)};
+    } else if (id === "play-quantized-noise") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.quantNoise.playback); };
+    } else if (id === "play-reconstructed") {
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.reconstructed.playback); };
+    }
+  }
+
+
+  settings.render();
+}

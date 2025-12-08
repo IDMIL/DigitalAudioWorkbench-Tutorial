@@ -1,8 +1,31 @@
-class slider{
+class Slider {
+  constructor() {
+    this.labelWidth = 200;
+    this.sliderWidth = 150;
+  }
+
+  setup(p, settings) {
+    this.settings = settings;
+  }
+
+  updateValue(p) {
+  }
+
+  onEdit() {
+    this.updateValue();
+    this.settings.render();
+    for (const pObj of this.settings.panelProcessingObjects) {
+      pObj.redraw();
+    }
+  }
+
+  resize(x, y, w, p) {
+  }
+}
+
+class RangedSlider extends Slider {
   button;
   slider;
-  constructor(){
-  }
 
   setup(p, settings){
     // should be overridden to set up the slider
@@ -13,12 +36,6 @@ class slider{
     this.displayVal = this.calcDisplayVal();
     this.textBox.value(this.displayVal);
     this.textLabel.html(this.name+': ');
-  }
-
-  onEdit(){
-    this.updateValue();
-    this.settings.render();
-    this.settings.p5.draw();
   }
 
   makeSlider(p){
@@ -36,25 +53,22 @@ class slider{
   }
 
   resize(x, y, w, p){
-    let width = w - 20;
-    let labelWidth = 250;
-    width -= labelWidth;
-    let sliderWidth = width * 0.6;
-    width -= sliderWidth;
+    let width = w - (20 + this.labelWidth + this.sliderWidth);
     let textboxWidth = width * 0.5;
     width -= textboxWidth;
     let buttonWidth = width;
 
-    this.slider.style('width', Math.round(sliderWidth).toString() + "px");
+    this.slider.style('width', Math.round(this.sliderWidth).toString() + "px");
     this.slider.position(x, y);
     this.textLabel.position(x + this.slider.width + 10, y - 15);
-    this.textBox.position(x+this.slider.width + labelWidth,y);
+    this.textBox.position(x+this.slider.width + this.labelWidth,y);
     this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
     this.button.position(this.textBox.x+this.textBox.width+5,y);
     this.button.style('width', Math.round(buttonWidth).toString() + "px");
   }
   buttonPressed(){
-    this.slider.value(this.calcSliderVal());  }
+    this.slider.value(this.calcSliderVal());
+  }
 
   calcSliderVal(){
     // override this with any calculations needed to convert textbox val to slider val (%, etc)
@@ -66,8 +80,51 @@ class slider{
   }
 }
 
+class AudioInputTypeSlider extends Slider{
+  setup(p, settings) {
+    this.settings = settings;
+    this.name = "Input Type";
+    this.propName = "inputType";
+    this.inputSelect = p.createSelect();
+    this.inputSelect.option("Additive Synth");
+    this.inputSelect.changed(()=>this.settings.inputType = this.inputSelect.value());
 
-class freqSlider extends slider{
+    this.oddEvenSel = p.createSelect();
+    this.oddEvenSel.option("All");
+    this.oddEvenSel.option("Odd");
+    this.oddEvenSel.option("Even");
+    this.oddEvenSel.selected(this.settings.harmType);
+    this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
+
+    this.slopeSel = p.createSelect();
+    this.slopeSel.option("1/x");
+    this.slopeSel.option("1/x2");
+    this.slopeSel.option("lin");
+    this.slopeSel.option("flat");
+    this.slopeSel.option("vowel a");
+    this.slopeSel.option("vowel e");
+    this.slopeSel.option("vowel i");
+    this.slopeSel.option("vowel o");
+    this.slopeSel.option("vowel u");
+    this.slopeSel.selected(this.settings.harmSlope);
+    this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
+  }
+
+  resize(x, y, w, p) {
+    this.inputSelect.width = w / 3;
+    this.oddEvenSel.width = w / 3;
+    this.inputSelect.position(x, y);
+    this.oddEvenSel.position(x + this.inputSelect.width,y);
+    this.slopeSel.position(x + this.inputSelect.width + this.oddEvenSel.width,y);
+  }
+
+  addOption(option) {
+    this.inputSelect.option(option);
+    this.onEdit();
+  }
+}
+
+class FreqSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Frequency (Hz)";
@@ -79,70 +136,45 @@ class freqSlider extends slider{
     this.displayVal = this.initial;
     this.makeSlider(p);
   }
-
 }
 
-class numHarmSlider extends slider{
+class DeltaSigmaStepSlider extends RangedSlider {
+  setup(p, settings) {
+    this.settings = settings;
+    this.name = "Delta-Sigma step";
+    this.propName = "deltaSigmaStep";
+    this.min = 0;
+    this.max = 1;
+    this.initial = 0.01;
+    this.step = 0.0001;
+    this.displayVal = this.initial;
+    this.makeSlider(p);
+  }
+}
+
+class NumHarmSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Number of harmonics";
     this.propName="numHarm"
     this.min = 1;
-    this.max = 20;
+    this.max = MAX_HARMONICS;
     this.initial = 1;
     this.step = 1;
     this.displayVal = this.initial;
-    this.oddEvenSel = p.createSelect();
-    this.oddEvenSel.option("Odd");
-    this.oddEvenSel.option("Even");
-    this.oddEvenSel.option("All");
-    this.oddEvenSel.selected(this.settings.harmType);
-    this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
-
-    this.slopeSel = p.createSelect();
-    this.slopeSel.option("1/x");
-    this.slopeSel.option("1/x2");
-    this.slopeSel.option("lin");
-    this.slopeSel.option("flat");
-    this.slopeSel.selected(this.settings.harmSlope);
-    this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
 
     this.makeSlider(p);
   }
-  resize(x, y, w, p){
-
-    let width = w - 20;
-    let labelWidth = 250;
-    width -= labelWidth;
-    let sliderWidth = width * 0.5; // slider + dropdowns
-    width -= sliderWidth;
-    let dropDownWidth = sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
-    sliderWidth = sliderWidth * .75; // Slider
-    let textboxWidth = width * 0.42;
-    let buttonWidth = width*.4;
-
-    this.slider.style('width', Math.round(sliderWidth).toString() + "px");
-    this.slider.position(x, y);
-    this.oddEvenSel.style('width', Math.round(dropDownWidth).toString() + "px");
-    this.oddEvenSel.position(x+this.slider.width+10,y);
-    this.slopeSel.style('width', Math.round(dropDownWidth).toString() + "px");
-    this.slopeSel.position(x+this.slider.width+dropDownWidth+10,y);
-    this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 20, y - 15);
-    this.textBox.position(x + this.slider.width + 2*dropDownWidth+ labelWidth+10,y);
-    this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
-    this.button.position(this.textBox.x + this.textBox.width,y);
-    this.button.style('width', Math.round(buttonWidth).toString() + "px");
-  }
-  }
+}
 
 
-class sampleRateSlider extends slider{
+class SampleRateSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Sample Rate(Hz):";
     this.propName="downsamplingFactor";
     this.min = p.log(3000)/p.log(2);
-    this.max =  p.log(48000)/p.log(2);
+    this.max =  p.log(WEBAUDIO_MAX_SAMPLERATE)/p.log(2);
     this.initial = p.log(48000)/p.log(2);
     this.step = 0.1
     this.makeSlider(p);
@@ -162,7 +194,7 @@ class sampleRateSlider extends slider{
   }
 }
 
-class ditherSlider extends slider {
+class DitherSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Dither";
@@ -171,12 +203,43 @@ class ditherSlider extends slider {
     this.max =  1.0;
     this.initial = 0.0;
     this.step = 0.01;
+
+    this.ditherTypeSel = p.createSelect();
+    this.ditherTypeSel.option("Rectangular");
+    this.ditherTypeSel.option("Triangular");
+    this.ditherTypeSel.option("Gaussian");
+
+    this.ditherTypeSel.selected(this.settings.ditherType);
+    this.ditherTypeSel.changed(()=>this.settings.ditherType = this.ditherTypeSel.value());
+
     this.makeSlider(p);
   }
 
+  resize(x, y, w, p) {
+    let width = w - 20;
+    let labelWidth = 250;
+    width -= labelWidth;
+    let sliderWidth = width * 0.5; // slider + dropdowns
+    width -= sliderWidth;
+    let dropDownWidth = sliderWidth * .25-10; // Make slider + dropdown the same width as other sliders.
+    sliderWidth = sliderWidth * .75; // Slider
+    let textboxWidth = width * 0.42;
+    let buttonWidth = width*.4;
+
+    this.slider.style('width', Math.round(sliderWidth).toString() + "px");
+    this.slider.position(x, y);
+    this.ditherTypeSel.style('width', Math.round(2*dropDownWidth).toString() + "px");
+    this.ditherTypeSel.position(x+this.slider.width+10,y);
+    this.textLabel.position(x + 2*dropDownWidth + this.slider.width + 20, y - 15);
+    this.textBox.position(x + this.slider.width + 2*dropDownWidth+ labelWidth+10,y);
+    this.textBox.style('width', Math.round(textboxWidth).toString() + "px");
+    this.button.position(this.textBox.x + this.textBox.width,y);
+    this.button.style('width', Math.round(buttonWidth).toString() + "px");
+
+  }
 }
 
-class bitDepthSlider extends slider {
+class BitDepthSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.name ="Bit Depth";
@@ -190,13 +253,13 @@ class bitDepthSlider extends slider {
 
 }
 
-class amplitudeSlider extends slider {
+class AmplitudeSlider extends RangedSlider {
   setup(p,settings){
     this.settings = settings;
     this.propName ="amplitude";
     this.name = "Amplitude";
     this.min = 0.0;
-    this.max =  5;
+    this.max =  1;
     this.initial = 1.0;
     this.step = 0.01;
     this.makeSlider(p);
@@ -204,7 +267,7 @@ class amplitudeSlider extends slider {
 
 }
 
-class antialiasingSlider extends slider {
+class AntialiasingSlider extends RangedSlider {
   setup(p, settings){
     this.settings = settings;
     this.propName ="antialiasing";
@@ -212,12 +275,38 @@ class antialiasingSlider extends slider {
     this.min = 0.0;
     this.max =  200;
     this.initial = 0;
-    this.step = 10;
+    this.step = 2;
     this.makeSlider(p);
   }
 }
 
-class phaseSlider extends slider{
+class ReconstructionOrderSlider extends RangedSlider {
+  setup(p, settings){
+    this.settings = settings;
+    this.propName ="reconstructionFilterOrder";
+    this.name = "Anti-imaging filter order";
+    this.min = 0.0;
+    this.max =  200;
+    this.initial = 0;
+    this.step = 2;
+    this.makeSlider(p);
+  }
+}
+
+class ReconstructionFilterFreqSlider extends RangedSlider {
+  setup(p, settings){
+    this.settings = settings;
+    this.propName ="reconstructionFilterFrequency";
+    this.name = "Anti-imaging filter frequency";
+    this.min = 0.0;
+    this.max =  24000;
+    this.initial = 20000;
+    this.step = 2;
+    this.makeSlider(p);
+  }
+
+}
+class PhaseSlider extends RangedSlider{
   setup(p,settings){
     this.settings = settings;
     this.propName ="phase";
@@ -231,7 +320,7 @@ class phaseSlider extends slider{
 
   calcDisplayVal(){return this.settings[this.propName];}
 }
-class zoomSlider extends slider{
+class ZoomSlider extends RangedSlider{
   calcDisplayVal(){return this.settings[this.propName]*100;}
   calcSliderVal(){
     if (isNaN(this.textBox.value())){
@@ -242,7 +331,7 @@ class zoomSlider extends slider{
     }
   }
 }
-class ampZoomSlider extends zoomSlider{
+class AmpZoomSlider extends ZoomSlider{
   setup(p,settings){
     this.settings = settings;
     this.name ="Amp. Zoom (%)";
@@ -256,7 +345,7 @@ class ampZoomSlider extends zoomSlider{
 }
 
 const minTimeZoom = .25;
-class timeZoomSlider extends zoomSlider{
+class TimeZoomSlider extends ZoomSlider{
   setup(p,settings){
     this.settings = settings;
     this.propName ="timeZoom";
@@ -271,7 +360,7 @@ class timeZoomSlider extends zoomSlider{
 }
 
 const minFreqZoom = 0.5;
-class freqZoomSlider extends zoomSlider{
+class FreqZoomSlider extends ZoomSlider{
   setup(p,settings){
     this.settings = settings;
     this.propName ="freqZoom";
