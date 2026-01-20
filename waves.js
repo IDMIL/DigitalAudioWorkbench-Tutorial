@@ -120,6 +120,61 @@ function calculateHarmonics(settings) {
   let invert = 1;
   let harmInc = (settings.harmType === "Odd" || settings.harmType === "Even") ? 2 : 1;
 
+
+  // data from SHARC dataset: https://web.archive.org/web/20090226034059/http://www.timbre.ws/sharc/
+  const clarinetHarmonics = [
+    1.0, 0.020330578512396693, 0.5368506493506493, 0.045386658795749706,
+    0.39042207792207795, 0.13839728453364816, 0.49614521841794573, 0.038146399055489964,
+    0.10071428571428573, 0.05957201889020071, 0.0363370720188902, 0.08095926800472256,
+    0.03358028335301062, 0.046177685950413216, 0.008293978748524203, 0.026933293978748524,
+    0.011124557260920896, 0.008400236127508854, 0.0048524203069657615, 0.011481700118063754,
+    0.008500590318772138, 0.008288075560802834, 0.0031316410861865407, 0.0030991735537190084,
+    0.0025974025974025974, 0.004126328217237308, 0.000655253837072019, 0.00017709563164108617,
+    0.00012101534828807555, 0.0004309327036599764, 0.000678866587957497, 0.0006434474616292798,
+    0.0004929161747343566, 0.0006463990554899646, 0.00035419126328217233, 0.00037190082644628097,
+    0.0001180637544273908, 0.0005814639905548997
+  ]
+
+  const frenchHornHarmonics = [
+    0.23043554773427188, 0.6242410910690718, 1.0, 0.8554861416630004,
+    0.6396172459304883, 0.5116344038715354, 0.4244610646722393, 0.29865816102067755,
+    0.19071271447426308, 0.1496480422349318, 0.12175758908930928, 0.07521997360316762,
+    0.04647162340519138, 0.03197096348438187, 0.015767707875054996, 0.01661020677518698,
+    0.009472063352397713, 0.00906291245050594, 0.009069511658600968, 0.005954685437747471,
+    0.004100307963044435, 0.004392872855257369, 0.004025516937967444, 0.003570171579410471,
+    0.00291684997800264, 0.0012736471623405192, 0.0020875494940607127, 0.0014672239331280246,
+    0.0008205015398152222, 0.00031896172459304885, 0.00042894852617685877, 0.00042454905411350635,
+    0.0002001759788825341, 0.00022657281126264847, 0.00020897492300923887, 0.00010558732952045754,
+    7.259128904531456e-05, 0.0002067751869775627, 0.00014078310602727673, 6.379234491860976e-05,
+    5.9392872855257375e-05, 0.00010118785745710515, 2.419709634843819e-05, 0.00011218653761548615,
+    8.798944126704795e-05, 9.458864936207654e-05, 0.00012758468983721952, 4.6194456665200174e-05,
+    9.238891333040035e-05, 8.139023317201936e-05, 0.0001847778266608007, 0.00015618125824901012,
+    0.0001913770347558293, 0.00015618125824901012, 0.00017817861856577212, 0.0002441706995160581,
+    3.7395512538495386e-05, 2.8596568411790586e-05, 0.00014738231412230534, 0.00011658600967883854,
+    0.00022657281126264847, 0.00012098548174219095, 0.0001253849538055433, 0.00011218653761548615,
+    5.719313682358117e-05, 5.0593928728552574e-05, 8.798944126704795e-05, 0.0001539815222173339,
+    9.678838539375275e-05, 0.00016058073031236252, 0.00014518257809062912, 5.279366476022877e-05
+  ];
+
+  fluteHarmonics = [
+    1.0, 0.7543711967545639, 0.1576450304259635, 0.1966977687626775,
+    0.1143265720081136, 0.0762657200811359, 0.012525354969574036, 0.009004056795131846,
+    0.0065091277890466535, 0.003862068965517241, 0.002328600405679513, 0.002464503042596349,
+    0.002342799188640974, 0.001308316430020284, 0.0006450304259634889, 0.0001338742393509128,
+    0.0010304259634888438, 0.0005436105476673428, 0.00010750507099391482, 0.0009574036511156186,
+    0.000744421906693712, 0.0005578093306288032, 0.0006754563894523326, 0.00043002028397565926,
+    0.0003387423935091278
+  ];
+
+  violinHarmonics = [
+    0.46135830072666295, 1.0, 0.8625675423886714, 0.29511645239426126,
+    0.9508216880939073, 0.2635252468790758, 0.06555617663499161, 0.03791503633314701,
+    0.0403204769890069, 0.06457611328488913, 0.006828768399478293, 0.006172908514999069,
+    0.0010508664058133034, 0.0038755356810136017, 0.00038382709148500094, 0.0020029811812930873,
+    0.004158747903856903, 0.002397987702627166, 0.0010527296441214832, 0.0009782001117942985,
+    0.0007080305571082541, 0.0008999441028507547, 0.000456493385504006, 0.0008347307620644682
+  ]
+
   for (let i = 0; i < settings.numHarm; i++) {
 
     // the amplitude of each harmonic depends on the harmonic slope setting
@@ -129,6 +184,14 @@ function calculateHarmonics(settings) {
     else if (settings.harmSlope === "flat") harmonic_amplitude = 1;
     else if (settings.harmSlope === "log") {
       harmonic_amplitude = Math.exp(-0.1 * (harmonic_number - 1));
+    } else if (settings.harmSlope === "clarinet") {
+      harmonic_amplitude = i < clarinetHarmonics.length ? clarinetHarmonics[i] : 0;
+    } else if (settings.harmSlope === "french horn") {
+      harmonic_amplitude = i < frenchHornHarmonics.length ? frenchHornHarmonics[i] : 0;
+    } else if (settings.harmSlope === "flute") {
+      harmonic_amplitude = i < fluteHarmonics.length ? fluteHarmonics[i] : 0;
+    } else if (settings.harmSlope === "violin") {
+      harmonic_amplitude = i < violinHarmonics.length ? violinHarmonics[i] : 0;
     } else if (settings.harmSlope === "vowel a") {
       harmonic_amplitude = formantFrequencyStrength(harmonic_number * settings.fundFreq,
         850, 1610, 0.2);
@@ -219,38 +282,75 @@ function normalize(arr, targetAmplitude) {
   arr.forEach((x, n, y) => y[n] = targetAmplitude * x / amp);
 }
 
-function filterSignal(signal, frequency, order) {
+function filterSignal(signal, frequency, order, mode, filterKernel) {
   // specify the filter parameters; Fs = sampling rate, Fc = cutoff frequency
 
   // The cutoff for the antialiasing filter is set to the Nyquist frequency
   // of the simulated sampling process. The sampling rate of the "sampled"
   // signal is WEBAUDIO_MAX_SAMPLERATE / the downsampling factor. This is
   // divided by 2 to get the Nyquist frequency.
-  let firCalculator = new Fili.FirCoeffs();
 
-  let filterCoeffs = firCalculator.lowpass(
-    {
-      order: order
-      , Fs: WEBAUDIO_MAX_SAMPLERATE
-      , Fc: frequency
+  if (mode === "FIR") {
+    let firCalculator = new Fili.FirCoeffs();
+
+    let filterCoeffs = firCalculator.lowpass(
+      {
+        order: order
+        , Fs: WEBAUDIO_MAX_SAMPLERATE
+        , Fc: frequency
+      });
+
+    // generate the filter
+    let filter = new Fili.FirFilter(filterCoeffs);
+
+    // apply the filter
+    // filter.multiStep(signal);
+    signal.forEach((x, n, y) => y[n] = filter.singleStep(x));
+
+    // time shift the signal by half the filter order to compensate for the
+    // delay introduced by the FIR filter
+    const shift = order / 2;
+    for (let i = 0; i < signal.length - shift; i++) {
+      signal[i] = signal[i + shift];
+    }
+    for (let i = signal.length - shift; i < signal.length; i++) {
+      signal[i] = 0;
+    }
+
+    if (filterKernel) {
+      for (let i = 0; i < filterCoeffs.length; i++) {
+        filterKernel[i] = filterCoeffs[i];
+      }
+    }
+  } else if (mode === "Butterworth" || mode === "Chebyshev") {
+    let iirCalculator = new Fili.CalcCascades();
+
+    let characteristic = mode === "Butterworth" ? "butterworth" : "tschebyscheff05";
+
+    order = mode === "Butterworth" ? Math.min(order, 12) : Math.min(order, 4);
+
+    let filterCoeffs = iirCalculator.lowpass({
+      order: order, // cascade 3 biquad filters (max: 12)
+      characteristic: characteristic,
+      transform: characteristic === "tschebyscheff05" ? 'matchedZ' : undefined,
+      Fs: WEBAUDIO_MAX_SAMPLERATE, // sampling frequency
+      Fc: frequency, // cutoff frequency / center frequency for bandpass, bandstop, peak
+      preGain: false // adds one constant multiplication for highpass and lowpass
+      // k = (1 + cos(omega)) * 0.5 / k = 1 with preGain == false
     });
 
-  // generate the filter
-  let filter = new Fili.FirFilter(filterCoeffs);
+    let filter = new Fili.IirFilter(filterCoeffs);
 
-  // apply the filter
-  signal.forEach((x, n, y) => y[n] = filter.singleStep(x));
+    signal.forEach((x, n, y) => y[n] = filter.singleStep(x));
 
-  // time shift the signal by half the filter order to compensate for the
-  // delay introduced by the FIR filter
-  const shift = order / 2;
-  for (let i = 0; i < signal.length - shift; i++) {
-    signal[i] = signal[i + shift];
+    if (filterKernel) {
+      filterKernel[0] = 1;
+      let filter = new Fili.IirFilter(filterCoeffs);
+      filterKernel.forEach((x, n, y) => y[n] = filter.singleStep(x));
+    }
   }
-  for (let i = signal.length - shift; i < signal.length; i++) {
-    signal[i] = 0;
-  }
-  return filterCoeffs;
+
+  // return filterCoeffs;
 }
 
 function getDither(ditherType) {
@@ -396,11 +496,11 @@ function applyAntialiasingFilter(settings, fft, playback) {
         , Fc: cutoff
       });
 
-    for (let i = 0; i < filterCoeffs.length; i++) {
-      filterKernel[i] = filterCoeffs[i];
-    }
 
-    filterSignal(original, cutoff, order);
+
+    filterSignal(original, cutoff, order, settings.filterType, filterKernel);
+  } else {
+    filterKernel[0] = 1;
   }
 }
 
@@ -489,7 +589,7 @@ function antiImagingFilter(settings, fft, playback) {
     ? settings.reconstructionFilterFrequency
     : (WEBAUDIO_MAX_SAMPLERATE / settings.downsamplingFactor) / 2;
 
-  filterSignal(reconstructed, freq, settings.reconstructionFilterOrder); // TODO: slider for order, start at 200
+  filterSignal(reconstructed, freq, settings.reconstructionFilterOrder, 'FIR'); // TODO: slider for order, start at 200
 }
 
 function renderWavesImpl(

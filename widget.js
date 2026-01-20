@@ -57,6 +57,7 @@ function getDefaultSettings() {
     , quantType: "midRise" // type of quantization
     , dither: 0.0 // amplitude of white noise added to signal before quantization
     , antialiasing: 0 // antialiasing filter order
+    , filterType: "FIR"
     , reconstructionFilterOrder: 200
     , deltaSigmaStep: 0.1
     , downsampled: new Float32Array(1) // this gets re-inited when rendering waves
@@ -103,6 +104,7 @@ let sliderIdLookups = {
   'frequency-slider' : FreqSlider,
   'num-harmonics-slider' : NumHarmSlider,
   'antialiasing-filter-order-slider': AntialiasingSlider,
+  'filter-type-slider' : FilterTypeSlider,
   'reconstruction-filter-order-slider': ReconstructionOrderSlider,
   'reconstruction-filter-freq-slider' : ReconstructionFilterFreqSlider,
   'sample-rate-slider' : SampleRateSlider,

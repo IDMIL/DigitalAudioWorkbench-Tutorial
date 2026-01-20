@@ -1,5 +1,3 @@
-// Canned documentation blurbs
-//Panel class. should be extended with a drawPanel method
 const log10 = Math.log(10);
 function linToDB(a, a_0 = 1)
 {
