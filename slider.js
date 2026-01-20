@@ -31,11 +31,14 @@ class RangedSlider extends Slider {
     // should be overridden to set up the slider
   }
 
+  postUpdateValue(p) {}
+
   updateValue(p){
     this.settings[this.propName] = this.slider.value();
     this.displayVal = this.calcDisplayVal();
     this.textBox.value(this.displayVal);
     this.textLabel.html(this.name+': ');
+    this.postUpdateValue();
   }
 
   makeSlider(p){
@@ -302,7 +305,22 @@ class AntialiasingSlider extends RangedSlider {
     this.max =  200;
     this.initial = 0;
     this.step = 2;
+    this.setMaxBasedOnFilterType();
     this.makeSlider(p);
+  }
+
+  setMaxBasedOnFilterType() {
+    if (this.settings.filterType === "FIR") {
+      this.max = 200;
+    } else if (this.settings.filterType === "Butterworth") {
+      this.max = 12;
+    } else if (this.settings.filterType === "Chebyshev") {
+      this.max = 4;
+    }
+  }
+
+  postUpdateValue(p) {
+    this.setMaxBasedOnFilterType();
   }
 }
 
