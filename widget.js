@@ -212,6 +212,8 @@ function createWidgets() {
       playButton.onclick = () => { buttonPlayFunction(settings.buffers.quantNoise.playback); };
     } else if (id === "play-reconstructed") {
       playButton.onclick = () => { buttonPlayFunction(settings.buffers.reconstructed.playback); };
+    } else if (id === "play-delta-sigma") {
+      playButton.onclick = () => {buttonPlayFunction(settings.buffers.deltaSigma.playback)};
     }
   }
 
