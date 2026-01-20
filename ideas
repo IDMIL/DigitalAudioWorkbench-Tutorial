@@ -1,0 +1,9 @@
+play quantization error separately
+filter types (butterworth, cheb)
+contriubtions: only Laurent Tarabout
+pinned floating panel for input signal?
+change name --CIRMMT not IDMIL (based on...)
+
+graph pos + neg bits in ds
+
+noise shaping - push outside of audible band, especially w/ ds

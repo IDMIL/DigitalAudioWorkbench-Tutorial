@@ -104,6 +104,11 @@ class AudioInputTypeSlider extends Slider{
     this.slopeSel.option("1/x2");
     this.slopeSel.option("lin");
     this.slopeSel.option("flat");
+    this.slopeSel.option("log");
+    this.slopeSel.option("flute");
+    this.slopeSel.option("clarinet");
+    this.slopeSel.option("french horn");
+    this.slopeSel.option("violin");
     this.slopeSel.option("vowel a");
     this.slopeSel.option("vowel e");
     this.slopeSel.option("vowel i");
@@ -124,6 +129,24 @@ class AudioInputTypeSlider extends Slider{
   addOption(option) {
     this.inputSelect.option(option);
     this.onEdit();
+  }
+}
+
+class FilterTypeSlider extends Slider {
+  setup(p, settings) {
+    this.settings = settings;
+    this.name = "Filter Type";
+    this.propName = "filterType";
+    this.inputSelect = p.createSelect();
+    this.inputSelect.option("FIR");
+    this.inputSelect.option("Butterworth");
+    this.inputSelect.option("Chebyshev");
+    this.inputSelect.changed(() => this.settings.filterType = this.inputSelect.value());
+  }
+
+  resize(x, y, w, p) {
+    this.inputSelect.width = w;
+    this.inputSelect.position(x, y);
   }
 }
 
