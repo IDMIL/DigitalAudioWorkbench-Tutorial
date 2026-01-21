@@ -140,7 +140,6 @@ class FilterTypeSlider extends Slider {
     this.inputSelect = p.createSelect();
     this.inputSelect.option("FIR");
     this.inputSelect.option("Butterworth");
-    this.inputSelect.option("Chebyshev");
     this.inputSelect.changed(() => this.settings.filterType = this.inputSelect.value());
   }
 
@@ -327,23 +326,9 @@ class AntialiasingSlider extends RangedSlider {
     this.max =  200;
     this.initial = 0;
     this.step = 2;
-    this.setMaxBasedOnFilterType();
     this.makeSlider(p);
   }
 
-  setMaxBasedOnFilterType() {
-    if (this.settings.filterType === "FIR") {
-      this.max = 200;
-    } else if (this.settings.filterType === "Butterworth") {
-      this.max = 12;
-    } else if (this.settings.filterType === "Chebyshev") {
-      this.max = 4;
-    }
-  }
-
-  postUpdateValue(p) {
-    this.setMaxBasedOnFilterType();
-  }
 }
 
 class ReconstructionOrderSlider extends RangedSlider {

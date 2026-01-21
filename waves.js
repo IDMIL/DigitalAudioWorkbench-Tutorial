@@ -282,22 +282,23 @@ function filterSignal(signal, frequency, order, mode, filterKernel) {
         filterKernel[i] = filterCoeffs[i];
       }
     }
-  } else if (mode === "Butterworth" || mode === "Chebyshev") {
+  } else if (mode === "Butterworth") {
     let iirCalculator = new Fili.CalcCascades();
 
-    let characteristic = mode === "Butterworth" ? "butterworth" : "tschebyscheff05";
+    let characteristic = "butterworth";
 
-    order = mode === "Butterworth" ? Math.min(order, 12) : Math.min(order, 4);
+    // order = mode === "Butterworth" ? Math.min(order, 12) : Math.min(order, 4);
 
     let filterCoeffs = iirCalculator.lowpass({
       order: order, // cascade 3 biquad filters (max: 12)
       characteristic: characteristic,
-      transform: characteristic === "tschebyscheff05" ? 'matchedZ' : undefined,
       Fs: WEBAUDIO_MAX_SAMPLERATE, // sampling frequency
       Fc: frequency, // cutoff frequency / center frequency for bandpass, bandstop, peak
       preGain: false // adds one constant multiplication for highpass and lowpass
       // k = (1 + cos(omega)) * 0.5 / k = 1 with preGain == false
     });
+
+    console.log(filterCoeffs);
 
     let filter = new Fili.IirFilter(filterCoeffs);
 
