@@ -43,6 +43,7 @@ function getDefaultSettings() {
     , fundFreq: 1250 // input signal fundamental freq
     , sampleRate: WEBAUDIO_MAX_SAMPLERATE
     , downsamplingFactor: 2
+    , noiseFloor: -96
     , numHarm: 2 //Number of harmonics
     , harmType: "All" // Harmonic series to evaluate - Odd, even or all
     , harmSlope: "1/x" // Amplitude scaling for harmonics. can be used to create different shapes like saw or square
@@ -102,6 +103,7 @@ let sliderIdLookups = {
   'audio-input-type-slider' : AudioInputTypeSlider,
   'amplitude-slider' : AmplitudeSlider,
   'frequency-slider' : FreqSlider,
+  'noise-floor-slider' : NoiseFloorSlider,
   'num-harmonics-slider' : NumHarmSlider,
   'antialiasing-filter-order-slider': AntialiasingSlider,
   'filter-type-slider' : FilterTypeSlider,

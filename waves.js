@@ -227,6 +227,12 @@ function getSamples(settings, destination) {
       }
     }
   }
+  if (settings.noiseFloor > -96) {
+    const noiseGain = Math.pow(10, settings.noiseFloor / 20);
+    destination.forEach((x, n, arr) => {
+      arr[n] = x + (Math.random() * 2 - 1) * noiseGain;
+    });
+  }
 }
 
 function normalize(arr, targetAmplitude) {

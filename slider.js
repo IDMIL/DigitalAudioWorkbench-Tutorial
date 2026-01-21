@@ -121,7 +121,7 @@ class AudioInputTypeSlider extends Slider{
   resize(x, y, w, p) {
     this.inputSelect.width = w / 3;
     this.oddEvenSel.width = w / 3;
-    this.inputSelect.position(x, y);
+    this.inputSelect. position(x, y);
     this.oddEvenSel.position(x + this.inputSelect.width,y);
     this.slopeSel.position(x + this.inputSelect.width + this.oddEvenSel.width,y);
   }
@@ -162,6 +162,31 @@ class FreqSlider extends RangedSlider{
     this.displayVal = this.initial;
     this.makeSlider(p);
   }
+}
+
+class NoiseFloorSlider extends RangedSlider {
+  setup(p,settings){
+    this.settings = settings;
+    this.name ="Noise floor (dB)";
+    this.propName = "noiseFloor";
+    this.min = -96;
+    this.max = 0 ;
+    this.initial = -96;
+    this.step = 1.0;
+    this.displayVal = this.initial;
+    this.makeSlider(p);
+  }
+
+  calcSliderVal(){
+    // override this with any calculations needed to convert textbox val to slider val (%, etc)
+    return this.textBox.value() === "-infinity" ? -96 : this.textBox.value();
+  }
+  calcDisplayVal(){
+    // override this with any calculations needed to convert stored variable to display val (%, etc)
+    return this.settings[this.propName] <= -96 ? "-infinity" : this.settings[this.propName];
+  }
+
+
 }
 
 class DeltaSigmaStepSlider extends RangedSlider {
