@@ -108,10 +108,7 @@ class AudioInputTypeSlider extends Slider{
     this.slopeSel.option("lin");
     this.slopeSel.option("flat");
     this.slopeSel.option("log");
-    this.slopeSel.option("flute");
     this.slopeSel.option("clarinet");
-    this.slopeSel.option("french horn");
-    this.slopeSel.option("violin");
     this.slopeSel.option("vowel a");
     this.slopeSel.option("vowel e");
     this.slopeSel.option("vowel i");
