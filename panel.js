@@ -136,15 +136,30 @@ class Panel {
     let pixel_max = this.plotHeight/2;
     let pixel_per_fullscale = pixel_max * this.settings.ampZoom;
     this.buffer.noFill();
-    //TODO: there are some artifacts here due to the way the signal is drawn, especially when zoomed in and/or large amplitude
     this.buffer.beginShape();
     this.buffer.curveTightness(1.0);
-    for (let x = 0; x < this.plotWidth; x++) {
-      let pixel_amp = pixel_per_fullscale * signal[Math.round(x/this.settings.timeZoom)];
+
+    const iToXScale = this.settings.timeZoom * (this.settings.displaySignalSize) / (signal.length);
+
+    const increment = Math.max(1, Math.floor(0.5/iToXScale));
+
+    console.log("inc", increment, "scale", iToXScale);
+
+    for (let i = 0; i < signal.length; i += increment) {
+      let x = i * iToXScale;
+      let pixel_amp = signal[i] * pixel_per_fullscale;
       let y = this.halfh - pixel_amp;
-      y = (y<this.plotTop)? y=this.plotTop : (y>this.plotBottom)? y= this.plotBottom : y=y; this.buffer.curveTightness(0.0);
+      // y = (y<this.plotTop)? this.plotTop : (y>this.plotBottom)? this.plotBottom : y;
+      this.buffer.curveTightness(0.0);
       this.buffer.curveVertex(x + this.plotLeft, y);
+      if (i === 0) {
+        this.buffer.curveVertex(x + this.plotLeft, y);
+      }
+      if (x > this.plotWidth) {
+        break;
+      }
     }
+
     this.buffer.endShape();
   }
 
@@ -436,7 +451,7 @@ class DeltaModPanel extends Panel {
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-      }
+  }
 }
 
 

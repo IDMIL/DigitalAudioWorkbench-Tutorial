@@ -39,10 +39,12 @@ function getDefaultSettings() {
       deltaSigma: createBuffers()
     },
     amplitude: 1.0
+    , displaySignalSize: displaySignalSize
     , inputType: "Additive Synth"
     , fundFreq: 1250 // input signal fundamental freq
     , sampleRate: WEBAUDIO_MAX_SAMPLERATE
     , downsamplingFactor: 2
+    , deltaSigmaSamplingRate: 44100
     , noiseFloor: -96
     , numHarm: 2 //Number of harmonics
     , harmType: "All" // Harmonic series to evaluate - Odd, even or all
@@ -110,6 +112,7 @@ let sliderIdLookups = {
   'reconstruction-filter-order-slider': ReconstructionOrderSlider,
   'reconstruction-filter-freq-slider' : ReconstructionFilterFreqSlider,
   'sample-rate-slider' : SampleRateSlider,
+  'ds-sample-rate-slider' : DeltaSigmaSampleRateSlider,
   'dither-slider' : DitherSlider,
   'quantization-slider' : BitDepthSlider,
   'delta-sigma-step-slider' : DeltaSigmaStepSlider,

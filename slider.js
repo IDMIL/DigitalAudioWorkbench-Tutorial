@@ -217,6 +217,20 @@ class NumHarmSlider extends RangedSlider {
   }
 }
 
+class DeltaSigmaSampleRateSlider extends RangedSlider {
+  setup(p,settings){
+    this.settings = settings;
+    this.name ="Delta-Sigma sampling rate";
+    this.propName="deltaSigmaSamplingRate"
+    this.min = 1;
+    this.max = 1000000;
+    this.initial = 44100;
+    this.step = 1;
+    this.displayVal = this.initial;
+
+    this.makeSlider(p);
+  }
+}
 
 class SampleRateSlider extends RangedSlider{
   setup(p,settings){
