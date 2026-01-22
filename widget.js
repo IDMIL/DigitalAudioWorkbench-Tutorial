@@ -176,7 +176,7 @@ function createWidgets() {
           p.redraw();
         }
       }
-      new p5(sketch, id);
+      new p5(sketch);
     }
   }
 

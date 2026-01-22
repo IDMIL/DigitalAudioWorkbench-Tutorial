@@ -1,4 +1,6 @@
 class Slider {
+  renderFunction = undefined;
+
   constructor() {
     this.labelWidth = 200;
     this.sliderWidth = 150;
@@ -13,10 +15,7 @@ class Slider {
 
   onEdit() {
     this.updateValue();
-    this.settings.render();
-    for (const pObj of this.settings.panelProcessingObjects) {
-      pObj.redraw();
-    }
+    this.renderFunction();
   }
 
   resize(x, y, w, p) {
@@ -84,6 +83,7 @@ class RangedSlider extends Slider {
 }
 
 class AudioInputTypeSlider extends Slider{
+  id = "audio-input-type-slider";
   setup(p, settings) {
     this.settings = settings;
     this.name = "Input Type";

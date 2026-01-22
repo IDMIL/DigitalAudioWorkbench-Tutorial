@@ -80,28 +80,6 @@ maintainers if you have any questions.
 // simulation from the other implementation details so that this documentation
 // can be more easily accessed. 
 
-const soundTimeSeconds = 1.5;
-const fadeTimeSeconds = 0.125;
-
-let audioSources = {}
-
-async function loadAudioSources() {
-  let audioCtx = new AudioContext({sampleRate: 96000});
-  sourceFiles = [
-    ["/wav-samples/bach_cello.wav", "cello"],
-    ["/wav-samples/drums.wav", "drums"],
-    ["/wav-samples/sweep_20_4000hz.wav", "sweep"]
-  ]
-
-  for (let i = 0; i < sourceFiles.length; i++) {
-    try {
-      const response = await fetch(sourceFiles[i][0]);
-      audioSources[sourceFiles[i][1]] = await audioCtx.decodeAudioData(await response.arrayBuffer());
-    } catch (e) {
-      console.error("tried to fetch " + sourceFiles[i][0], e);
-    }
-  }
-}
 
 function formantFrequencyStrength(freq, formant1, formant2, decayPerOctave) {
   if (freq < 1) {
@@ -410,7 +388,11 @@ function renderDeltaSigma(settings, fft, playback) {
 
   if (settings.deltaSigmaSamplingRate <= (WEBAUDIO_MAX_SAMPLERATE/2)) {
     if (!playback && deltaSigma.length !== settings.displaySignalSize) {
-      deltaSigma = new Float32Array(settings.displaySignalSize);
+      settings.buffers.deltaSigma.display = new Float32Array(settings.displaySignalSize);
+      settings.buffers.reconstructed.display = new Float32Array(settings.displaySignalSize);
+      deltaSigma = settings.buffers.deltaSigma.display;
+      reconstructed = settings.buffers.reconstructed.display;
+
     }
     let samplePeriod = Math.floor(WEBAUDIO_MAX_SAMPLERATE / settings.deltaSigmaSamplingRate);
     let ds_state = 0;

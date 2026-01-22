@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../styles.css" media="screen" />
+  <!-- p5.js begin -->
+  <!-- 1) use p5.min.js for optimizing size/transfer -->
+  <script src="../p5.min.js"></script>
+  <!-- 2) use p5.js for debugging -->
+  <!-- <script src="../p5.js"></script> -->
+  <!-- p5.js end-->
+  <script src="../fili.js"></script>
+  <script src="../fft.js"></script>
+  <script src="../section.js"></script>
+  <script src="../main.js"></script>
+  <script src="../slider.js"></script>
+  <title>Digital Audio Workbench (Sampling)</title>
+</head>
+<body>
+<main>
+  <div class="timeline">
+
+    <h1>Digital Audio Workbench (Sampling and Quantization)</h1>
+
+    <h2>By Arden Butterfield, Josh Rohs, Travis J. West & Marcelo M. Wanderley
+      with contributions by Laurent Tarabout</h2>
+    <h3>Copyright CIRMMT/McGill University, 2025, based on IDMIL's <a href="https://idmil.github.io/DigitalAudioWorkbench/">Digital Audio Workbench</a></h3>
+
+    <div id="sections">
+      <script>
+        buildAndRunPage([
+          new InputSection(),
+          new FilterSection(),
+          new SamplerateSection(),
+          new DitherSection(),
+          new QuantizationSection(),
+          new ReconstructedSection(),
+        ])
+      </script>
+    </div>
+  </div>
+</main>
+<div class="global-panel">
+  <div id="global-panel-collapse-button" onclick="collapseGlobalPanel()"></div>
+  <div class="contents">
+    <div class="slider" id="time-zoom-slider"></div>
+    <div class="slider" id="amp-zoom-slider"></div>
+  </div>
+</div>
+</body>
+</html>
