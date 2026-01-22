@@ -117,6 +117,13 @@ class InputSection extends Section {
     }
   }
 
+  #normalize(arr, targetAmplitude) {
+    const amp = Math.max(Math.max(...arr), -Math.min(...arr));
+
+    // normlize and apply amplitude scaling
+    arr.forEach((x, n, y) => y[n] = targetAmplitude * x / amp);
+  }
+
   #getAdditiveSynthSample(n) {
     let sample = 0;
     for (let harmonic = 0; harmonic < this.settings.numHarm; harmonic++) {
@@ -170,6 +177,7 @@ class InputSection extends Section {
     this.#calculateHarmonics();
     signal.data.fill(0);
     this.#getSamples(signal.data);
+    this.#normalize(signal.data, this.settings.amplitude);
     if (display) {
       for (let i = 0; i < signal.data.length; i++) {
         this.settings.display[i] = signal.data[i];
