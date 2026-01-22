@@ -1,3 +1,4 @@
+
 class Slider {
   renderFunction = undefined;
 
@@ -40,15 +41,19 @@ class RangedSlider extends Slider {
     this.postUpdateValue();
   }
 
-  makeSlider(p){
+  makeSlider(p, parentId){
     this.slider = p.createSlider(this.min, this.max, this.initial, this.step);
+    this.slider.parent(parentId);
     this.textLabel = p.createP();
+    this.textLabel.parent(parentId);
     this.slider.input(this.onEdit.bind(this));
     this.slider.mousePressed(this.onEdit.bind(this));
     this.slider.mouseReleased(this.onEdit.bind(this));
     this.textBox = p.createInput();
+    this.textBox.parent(parentId);
     this.textBox.size(300);
     this.button = p.createButton("Update");
+    this.button.parent(parentId);
     // this.button.size(200)
     this.button.mousePressed(this.buttonPressed.bind(this));
     this.button.mouseReleased(this.onEdit.bind(this));
@@ -83,12 +88,13 @@ class RangedSlider extends Slider {
 }
 
 class AudioInputTypeSlider extends Slider{
-  id = "audio-input-type-slider";
+  static id = "audio-input-type-slider";
   setup(p, settings) {
     this.settings = settings;
     this.name = "Input Type";
     this.propName = "inputType";
     this.inputSelect = p.createSelect();
+    this.inputSelect.parent(AudioInputTypeSlider.id);
     this.inputSelect.option("Additive Synth");
     this.inputSelect.option("cello");
     this.inputSelect.option("drums");
@@ -99,6 +105,7 @@ class AudioInputTypeSlider extends Slider{
     this.oddEvenSel.option("All");
     this.oddEvenSel.option("Odd");
     this.oddEvenSel.option("Even");
+    this.oddEvenSel.parent(AudioInputTypeSlider.id)
     this.oddEvenSel.selected(this.settings.harmType);
     this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
 
@@ -114,6 +121,7 @@ class AudioInputTypeSlider extends Slider{
     this.slopeSel.option("vowel i");
     this.slopeSel.option("vowel o");
     this.slopeSel.option("vowel u");
+    this.slopeSel.parent(AudioInputTypeSlider.id);
     this.slopeSel.selected(this.settings.harmSlope);
     this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
   }
@@ -133,6 +141,8 @@ class AudioInputTypeSlider extends Slider{
 }
 
 class FilterTypeSlider extends Slider {
+  static id = "filter-type-type-slider";
+
   setup(p, settings) {
     this.settings = settings;
     this.name = "Filter Type";
@@ -140,6 +150,7 @@ class FilterTypeSlider extends Slider {
     this.inputSelect = p.createSelect();
     this.inputSelect.option("FIR");
     this.inputSelect.option("Butterworth");
+    this.inputSelect.parent(FilterTypeSlider.id);
     this.inputSelect.changed(() => this.settings.filterType = this.inputSelect.value());
   }
 
@@ -150,20 +161,23 @@ class FilterTypeSlider extends Slider {
 }
 
 class FreqSlider extends RangedSlider{
+  static id = "freq-slider";
   setup(p,settings){
     this.settings = settings;
     this.name ="Frequency (Hz)";
     this.propName = "fundFreq";
     this.min = 0;
-    this.max = this.settings.sampleRate / 4 ;
+    this.max = WEBAUDIO_MAX_SAMPLERATE / 4 ;
     this.initial = 440;
     this.step = 1.0;
     this.displayVal = this.initial;
-    this.makeSlider(p);
+    this.makeSlider(p, FreqSlider.id);
   }
 }
 
 class NoiseFloorSlider extends RangedSlider {
+  static id = "noise-floor-slider";
+
   setup(p,settings){
     this.settings = settings;
     this.name ="Noise floor (dB)";
@@ -173,7 +187,7 @@ class NoiseFloorSlider extends RangedSlider {
     this.initial = -96;
     this.step = 1.0;
     this.displayVal = this.initial;
-    this.makeSlider(p);
+    this.makeSlider(p, NoiseFloorSlider.id);
   }
 
   calcSliderVal(){
@@ -189,6 +203,7 @@ class NoiseFloorSlider extends RangedSlider {
 }
 
 class DeltaSigmaStepSlider extends RangedSlider {
+  static id = "delta-sigma-step-slider";
   setup(p, settings) {
     this.settings = settings;
     this.name = "Delta-Sigma step";
@@ -198,11 +213,12 @@ class DeltaSigmaStepSlider extends RangedSlider {
     this.initial = 0.01;
     this.step = 0.0001;
     this.displayVal = this.initial;
-    this.makeSlider(p);
+    this.makeSlider(p, DeltaSigmaStepSlider.id);
   }
 }
 
 class NumHarmSlider extends RangedSlider {
+  static id = "num-harm-slider";
   setup(p,settings){
     this.settings = settings;
     this.name ="Number of harmonics";
@@ -213,11 +229,12 @@ class NumHarmSlider extends RangedSlider {
     this.step = 1;
     this.displayVal = this.initial;
 
-    this.makeSlider(p);
+    this.makeSlider(p, NumHarmSlider.id);
   }
 }
 
 class DeltaSigmaSampleRateSlider extends RangedSlider {
+  static id = "delta-sigma-sigma-sample-rate-slider";
   setup(p,settings){
     this.settings = settings;
     this.name ="Delta-Sigma sampling rate";
@@ -228,11 +245,13 @@ class DeltaSigmaSampleRateSlider extends RangedSlider {
     this.step = 1;
     this.displayVal = this.initial;
 
-    this.makeSlider(p);
+    this.makeSlider(p, DeltaSigmaStepSlider.id);
   }
 }
 
 class SampleRateSlider extends RangedSlider{
+  static id = "sample-rate-slider";
+
   setup(p,settings){
     this.settings = settings;
     this.name ="Sample Rate(Hz):";
@@ -241,7 +260,7 @@ class SampleRateSlider extends RangedSlider{
     this.max =  p.log(WEBAUDIO_MAX_SAMPLERATE)/p.log(2);
     this.initial = p.log(48000)/p.log(2);
     this.step = 0.1
-    this.makeSlider(p);
+    this.makeSlider(p, SamplerateSlider.id);
   }
   calcDisplayVal(){
     return this.displayVal= Math.round(this.settings.sampleRate / this.settings.downsamplingFactor , 3);//
@@ -259,6 +278,8 @@ class SampleRateSlider extends RangedSlider{
 }
 
 class DitherSlider extends RangedSlider {
+  static id = 'dither-slider';
+
   setup(p,settings){
     this.settings = settings;
     this.name ="Dither";
@@ -274,6 +295,7 @@ class DitherSlider extends RangedSlider {
     this.ditherTypeSel.option("Gaussian");
 
     this.ditherTypeSel.selected(this.settings.ditherType);
+    this.ditherTypeSel.parent(DitherSlider.id);
     this.ditherTypeSel.changed(()=>this.settings.ditherType = this.ditherTypeSel.value());
 
     this.makeSlider(p);
@@ -304,6 +326,7 @@ class DitherSlider extends RangedSlider {
 }
 
 class BitDepthSlider extends RangedSlider {
+  static id = 'bit-depth-slider';
   setup(p,settings){
     this.settings = settings;
     this.name ="Bit Depth";
@@ -312,12 +335,14 @@ class BitDepthSlider extends RangedSlider {
     this.max =  BIT_DEPTH_MAX;
     this.initial = BIT_DEPTH_MAX;
     this.step = 1;
-    this.makeSlider(p);
+    this.makeSlider(p, BitDepthSlider.id);
   }
 
 }
 
 class AmplitudeSlider extends RangedSlider {
+  static id = 'amplitude-slider';
+
   setup(p,settings){
     this.settings = settings;
     this.propName ="amplitude";
@@ -326,12 +351,14 @@ class AmplitudeSlider extends RangedSlider {
     this.max =  1;
     this.initial = 1.0;
     this.step = 0.01;
-    this.makeSlider(p);
+    this.makeSlider(p, AmplitudeSlider.id);
   }
 
 }
 
 class AntialiasingSlider extends RangedSlider {
+  static id = 'antialiasing-slider';
+
   setup(p, settings){
     this.settings = settings;
     this.propName ="antialiasing";
@@ -340,12 +367,14 @@ class AntialiasingSlider extends RangedSlider {
     this.max =  200;
     this.initial = 0;
     this.step = 2;
-    this.makeSlider(p);
+    this.makeSlider(p, AntialiasingSlider.id);
   }
 
 }
 
 class ReconstructionOrderSlider extends RangedSlider {
+  static id = 'reconstruction-order-slider';
+
   setup(p, settings){
     this.settings = settings;
     this.propName ="reconstructionFilterOrder";
@@ -354,11 +383,13 @@ class ReconstructionOrderSlider extends RangedSlider {
     this.max =  200;
     this.initial = 0;
     this.step = 2;
-    this.makeSlider(p);
+    this.makeSlider(p, ReconstructionOrderSlider.id);
   }
 }
 
 class ReconstructionFilterFreqSlider extends RangedSlider {
+  static id = 'reconstruction-filter-freq-slider';
+
   setup(p, settings){
     this.settings = settings;
     this.propName ="reconstructionFilterFrequency";
@@ -367,11 +398,13 @@ class ReconstructionFilterFreqSlider extends RangedSlider {
     this.max =  24000;
     this.initial = 20000;
     this.step = 2;
-    this.makeSlider(p);
+    this.makeSlider(p, ReconstructionOrderSlider.id);
   }
 
 }
 class PhaseSlider extends RangedSlider{
+  static id = 'phase-slider';
+
   setup(p,settings){
     this.settings = settings;
     this.propName ="phase";
@@ -380,7 +413,7 @@ class PhaseSlider extends RangedSlider{
     this.max =  360; //pi
     this.initial = 0.0;
     this.step = 1; //pi/8
-    this.makeSlider(p);
+    this.makeSlider(p, PhaseSlider.id);
 }
 
   calcDisplayVal(){return this.settings[this.propName];}
@@ -397,6 +430,8 @@ class ZoomSlider extends RangedSlider{
   }
 }
 class AmpZoomSlider extends ZoomSlider{
+  static id = 'amp-zoom-slider';
+
   setup(p,settings){
     this.settings = settings;
     this.name ="Amp. Zoom (%)";
@@ -405,12 +440,14 @@ class AmpZoomSlider extends ZoomSlider{
     this.max = 4.0;
     this.initial =1.0;
     this.step = .01;
-    this.makeSlider(p);
+    this.makeSlider(p, AmpZoomSlider.id);
 }
 }
 
 const minTimeZoom = .25;
 class TimeZoomSlider extends ZoomSlider{
+  static id = 'time-zoom-slider';
+
   setup(p,settings){
     this.settings = settings;
     this.propName ="timeZoom";
@@ -419,13 +456,15 @@ class TimeZoomSlider extends ZoomSlider{
     this.max =  3;
     this.initial = 1.0;
     this.step = .01;
-    this.makeSlider(p);
+    this.makeSlider(p, TimeZoomSlider.id);
 }
 
 }
 
 const minFreqZoom = 0.5;
 class FreqZoomSlider extends ZoomSlider{
+  static id = 'freq-zoom-slider';
+
   setup(p,settings){
     this.settings = settings;
     this.propName ="freqZoom";
@@ -433,7 +472,7 @@ class FreqZoomSlider extends ZoomSlider{
     this.max =  3;
     this.initial = 1.0;
     this.step = .01;
-    this.makeSlider(p);
+    this.makeSlider(p, FreqZoomSlider.id);
 }
 updateValue(p){
   this.settings.freqZoom = this.slider.value();

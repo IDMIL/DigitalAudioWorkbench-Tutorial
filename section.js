@@ -10,7 +10,7 @@ class Section {
             <div class="section-title">
               <h2>` + this.getTitle() + `</h2>
             </div>
-            <button class="collapse-button" id="coll-input" onclick="collapseClick(this.id)"></button>
+            <button class="collapse-button" id="coll-input" onclick="collapseClick('` + this.getId() + `')"></button>
           </div>
           <div class="collapse">
             <div class="row panels">
@@ -52,7 +52,7 @@ class Section {
       p.setup = function () {
         let canvas = p.createCanvas(450, 300);
         p.textAlign(p.CENTER);
-        canvas.parent(id)
+        canvas.parent(panelParentId);
         p.panelObject.setup(p, 450, 300, panelSettings);
         p.windowResized();
         p.noLoop();
@@ -70,20 +70,19 @@ class Section {
 
       p.settings = settings;
     }
-    new p5(sketch);
+    this.panels.push(sketch);
     return `<div id=` + panelParentId + ` class="panel"></div>`;
   }
 
   createSlider(sliderClass, sliderSettings) {
-    let sliderParentId = "";
+    let sliderParentId = sliderClass.id;
     const sketch = p => {
       p.sliderObject = new sliderClass();
-      sliderParentId = p.sliderObject.id;
-      console.log(sliderParentId);
       p.sliderObject.renderFunction = this.renderAllFunction;
       p.setup = function () {
         let canvas = p.createCanvas(500, 50);
         p.textAlign(p.CENTER);
+        console.log(sliderParentId);
         canvas.parent(sliderParentId)
         p.sliderObject.setup(p, sliderSettings);
         p.sliderObject.resize(0,0,500,50);
@@ -91,11 +90,22 @@ class Section {
         p.redraw();
       }
     }
-    new p5(sketch);
+    // new p5(sketch);
+    this.sliders.push(sketch);
 
     return `<div id=` + sliderParentId + ` class="slider"></div>`;
   }
 
+  createCanvasesAndSliders() {
+    for (const sketch of this.sliders) {
+      console.log(sketch);
+      new p5(sketch);
+    }
+
+    for (const panel of this.panels) {
+      new p5(panel);
+    }
+  }
 
   processAudio(signal) {
 
@@ -103,7 +113,12 @@ class Section {
 }
 
 class InputSection extends Section {
-  audioInputSliderSettings = {}
+  audioInputSliderSettings = {};
+  frequencySliderSettings = {};
+  numHarmonicsSliderSettings = {};
+  amplitudeSliderSettings = {};
+  noiseFloorSliderSettings = {};
+
   getTitle() {
     return `Input`;
   }
@@ -113,7 +128,11 @@ class InputSection extends Section {
   }
 
   getSliders() {
-    return this.createSlider(AudioInputTypeSlider, this.audioInputSliderSettings);
+    return this.createSlider(AudioInputTypeSlider, this.audioInputSliderSettings) +
+      this.createSlider(FreqSlider, this.frequencySliderSettings) +
+      this.createSlider(NumHarmSlider, this.numHarmonicsSliderSettings) +
+      this.createSlider(AmplitudeSlider, this.amplitudeSliderSettings) +
+      this.createSlider(NoiseFloorSlider, this.noiseFloorSliderSettings)
   }
 }
 

@@ -39,4 +39,8 @@ function buildAndRunPage(sections) {
     div.innerHTML = section.getHtml();
     document.getElementById('sections').appendChild(div);
   }
+
+  for (const section of sections) {
+    section.createCanvasesAndSliders();
+  }
 }

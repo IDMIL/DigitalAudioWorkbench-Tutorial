@@ -1,0 +1,5 @@
+const BIT_DEPTH_MAX = 16;
+const WEBAUDIO_MAX_SAMPLERATE = 96000;
+const NUM_COLUMNS = 2;
+const MAX_HARMONICS = 40;
+
