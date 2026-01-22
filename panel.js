@@ -42,6 +42,7 @@ class Panel {
   setup(p, width, height, settings) {
     this.settings = settings;
     this.buffer = p.createGraphics(1,1);
+    console.log(this.buffer);
     this.resize(width, height);
     this.bufferInit();
     this.buffer.textFont('Helvetica',20);
@@ -134,12 +135,12 @@ class Panel {
   drawSignal(signal, zoom = 1)
   {
     let pixel_max = this.plotHeight/2;
-    let pixel_per_fullscale = pixel_max * this.settings.ampZoom;
+    let pixel_per_fullscale = pixel_max * globalAmpZoom;
     this.buffer.noFill();
     this.buffer.beginShape();
     this.buffer.curveTightness(1.0);
 
-    const iToXScale = this.settings.timeZoom * (this.settings.displaySignalSize) / (signal.length);
+    const iToXScale = globalTimeZoom * (DISPLAY_SIGNAL_SIZE) / (signal.length);
 
     const increment = Math.max(1, Math.floor(0.5/iToXScale));
 
@@ -165,30 +166,31 @@ class Panel {
 
   drawDiscreteSignal(signal){
     let gain = this.plotHeight/2;
-    let visibleSamples = Math.floor(this.plotWidth / this.settings.downsamplingFactor/this.settings.timeZoom+1);
+    let visibleSamples = Math.floor(this.plotWidth / this.settings.downsamplingFactor/globalTimeZoom+1);
     for (let x = 0; x < visibleSamples; x++) {
-      let xpos = Math.round(this.plotLeft + x * this.settings.downsamplingFactor*this.settings.timeZoom);
-      let ypos = this.halfh - gain * signal[x]*this.settings.ampZoom;
+      let xpos = Math.round(this.plotLeft + x * this.settings.downsamplingFactor*globalTimeZoom);
+      let ypos = this.halfh - gain * signal[x]*globalAmpZoom;
       this.drawStem(xpos,ypos,this.halfh);
     }
   }
 
   drawHorizontalTick(text, height, tick_length = 5, side="left") {
-    this.buffer.fill(this.fill);
-    this.buffer.textFont('Helvetica', this.tickTextSize);
-    this.buffer.textStyle(this.buffer.ITALIC);
-    this.buffer.strokeWeight(0);
-    this.buffer.textAlign(this.buffer.RIGHT);
     let tickStart = this.plotLeft - tick_length;
     let tickEnd = this.plotLeft;
-    if (side === "right") {
-      this.buffer.textAlign(this.buffer.LEFT);
-      tickEnd = this.plotRight + tick_length;
-      tickStart = this.plotRight;
-      this.buffer.text(text, tickEnd + 2, height - this.tickTextSize / 2, this.buffer.width, height + this.tickTextSize / 2);
-    } else {
-      this.buffer.text(text, 0, height - this.tickTextSize / 2, tickStart, height + this.tickTextSize / 2);
-    }
+
+    // this.buffer.fill(this.fill);
+    // this.buffer.textFont('Helvetica', this.tickTextSize);
+    // this.buffer.textStyle(this.buffer.ITALIC);
+    // this.buffer.strokeWeight(0);
+    // this.buffer.textAlign(this.buffer.RIGHT);
+    // if (side === "right") {
+    //   this.buffer.textAlign(this.buffer.LEFT);
+    //   tickEnd = this.plotRight + tick_length;
+    //   tickStart = this.plotRight;
+    //   this.buffer.text(text, tickEnd + 2, height - this.tickTextSize / 2, this.buffer.width, height + this.tickTextSize / 2);
+    // } else {
+    //   this.buffer.text(text, 0, height - this.tickTextSize / 2, tickStart, height + this.tickTextSize / 2);
+    // }
 
     this.buffer.strokeWeight(this.strokeWeight);
     this.buffer.line(tickStart, height,
@@ -243,11 +245,11 @@ class Panel {
   drawSignalAmplitudeTicks(pixel_max, num_ticks) {
 
     for (let i = 1; i <= num_ticks; ++i) {
-      let tick_amp_pixels = i * pixel_max / num_ticks / this.settings.ampZoom;
+      let tick_amp_pixels = i * pixel_max / num_ticks / globalAmpZoom;
       // let tick_amp_db = linToDB(tick_amp_pixels, pixel_max);
       // TODO: bring these back once I figure out why they are so inefficient
-      // this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.halfh - tick_amp_pixels*this.settings.ampZoom,5,"right");
-      // this.drawHorizontalTick((-tick_amp_pixels/pixel_max).toFixed(2), this.halfh + tick_amp_pixels*this.settings.ampZoom,5,"right");
+      // this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.halfh - tick_amp_pixels*globalAmpZoom,5,"right");
+      // this.drawHorizontalTick((-tick_amp_pixels/pixel_max).toFixed(2), this.halfh + tick_amp_pixels*globalAmpZoom,5,"right");
     }
     // this.drawHorizontalTick('-inf dBFS', this.halfh, 5, "right");
     this.drawHorizontalTick('0.00', this.halfh, 5, "right");
@@ -258,7 +260,7 @@ class Panel {
     let stepSize = (settings.quantType === "midTread") ? 2 / (maxInt - 1) : 2 / (maxInt);
     let numTicks = Math.min(num_ticks, maxInt + 1);
     let tickScale = (maxInt + 1) / numTicks;
-    let pixel_per_fullscale = pixel_max * this.settings.ampZoom;
+    let pixel_per_fullscale = pixel_max * globalAmpZoom;
     // let stepSize = (settings.quantType == "midRise")?  2/(numTicks-1) : 2/(numTicks);
 
     let val = -1;
@@ -273,7 +275,7 @@ class Panel {
           val = stepSize * (Math.floor(val / stepSize) + 0.5);
           break;
       }
-      let tick_amp_pixels = val * pixel_max / num_ticks / this.settings.ampZoom;
+      let tick_amp_pixels = val * pixel_max / num_ticks / globalAmpZoom;
       let pixel_amp = pixel_per_fullscale * val;
       let y = this.halfh - pixel_amp;
 
@@ -333,8 +335,8 @@ class FreqPanel extends Panel{
 
   drawFreqAmplitudeTicks(pixel_max, num_ticks) {
     for (let i = 0; i <= num_ticks; ++i) {
-      let tick_amp_pixels = i * pixel_max / num_ticks / this.settings.ampZoom;
-      this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.plotBottom - tick_amp_pixels*this.settings.ampZoom, 5, "right");
+      let tick_amp_pixels = i * pixel_max / num_ticks / globalAmpZoom;
+      this.drawHorizontalTick((tick_amp_pixels/pixel_max).toFixed(2), this.plotBottom - tick_amp_pixels*globalAmpZoom, 5, "right");
     }
   }
 
@@ -351,7 +353,7 @@ class FreqPanel extends Panel{
   }
 
   drawFFT(fft, tick='freq') {
-    let gain = this.plotHeight * this.settings.ampZoom;
+    let gain = this.plotHeight * globalAmpZoom;
     let offset = 100;
     let hz_per_bin = this.settings.sampleRate / (fft.length / 2);
     // fft.length / 2 because it is an interleaved complex array
@@ -384,6 +386,7 @@ class FreqPanel extends Panel{
 }
 
 class InputSigUnfilteredPanel extends Panel {
+  static id = 'input-signal-unfiltered-panel';
   constructor(){
     super();
     this.name="Input Signal Time Domain (Pre-Filter)";
@@ -396,11 +399,12 @@ class InputSigUnfilteredPanel extends Panel {
     this.drawMidLine(this);
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this, this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
   }
 }
 
 class FilterKernelPanel extends Panel {
+  static id = 'filter-kernel-panel';
   constructor() {
     super();
     this.name="Filter Kernel";
@@ -413,11 +417,12 @@ class FilterKernelPanel extends Panel {
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this, this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
   }
 }
 
 class InputSigPanel extends Panel {
+  static id = 'input-sig-panel';
   constructor(){
     super(); 
     this.name="Input Signal Time Domain (Post-Filter)";
@@ -426,15 +431,16 @@ class InputSigPanel extends Panel {
   }
 
   drawPanel(){
-    this.drawSignal(this.settings.buffers.original.display);
+    this.drawSignal(this.settings.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this, this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
       }
 }
 
 class DeltaModPanel extends Panel {
+  static id = 'delta-mod-panel';
   constructor(){
     super();
     this.name="Input Signal Time Domain with Delta Modulation";
@@ -450,12 +456,13 @@ class DeltaModPanel extends Panel {
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this, this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
   }
 }
 
 
 class ReconstructedSigPanel extends Panel {
+  static id = 'reconstructed-sig-panel';
   constructor(){
     super(); 
     this.name="Reconstructed Signal Time Domain";
@@ -468,11 +475,12 @@ class ReconstructedSigPanel extends Panel {
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
-    this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this, this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
       }
 }
 
 class InputSigFreqPanel extends FreqPanel {
+  static id = 'input-sig-freq-panel';
   constructor(){
     super();
     this.name="Input Signal Frequency Domain";
@@ -481,7 +489,7 @@ class InputSigFreqPanel extends FreqPanel {
   }
 
   drawPanel(){
-    let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
+    let pixels_per_hz = this.plotWidth / MAX_VISIBLE_FREQUENCY;
     this.drawPassBand();
     // let harmInc = 1;
     // if (this.settings.harmType =="Odd" || this.settings.harmType == "Even"){ harmInc=2;}
@@ -493,14 +501,14 @@ class InputSigFreqPanel extends FreqPanel {
       if (xpos > this.plotRight|| xpos< this.plotLeft) break;
       // if (this.settings.harmSlope == "lin") {ampScale = 1 - (harm-1)/(this.settings.numHarm)};
       // if (this.settings.harmSlope == "1/x") {ampScale = 1/harmPeak};
-      let height = this.settings.ampZoom * this.settings.amplitude * this.plotHeight *this.settings.harmonicAmps[harm-1];
+      let height = globalAmpZoom * this.settings.amplitude * this.plotHeight *this.settings.harmonicAmps[harm-1];
       this.drawPeak(xpos, height, this.plotBottom)
       harm+=1;
       // (harmPeak ==1 && this.settings.harmType != "Odd")? harmPeak++ : harmPeak +=harmInc;
     }
 
 
-        this.drawFreqTicks(this, this.numFreqTicks, pixels_per_hz);
+    this.drawFreqTicks(this, this.numFreqTicks, pixels_per_hz);
     this.drawFreqAmplitudeTicks(this, this.plotHeight, 9);
     this.drawName();
   }
@@ -508,6 +516,7 @@ class InputSigFreqPanel extends FreqPanel {
 }
 
 class InputSigUnfilteredFFTPanel extends FreqPanel {
+  static id = 'input-sig-frequency-unfilteredFFT-panel';
   constructor(){
     super();
     this.name = "Input Signal FFT";
@@ -521,6 +530,7 @@ class InputSigUnfilteredFFTPanel extends FreqPanel {
 
 
 class InputSigFFTPanel extends FreqPanel {
+  static id = 'input-sig-fft-panel';
   constructor(){
     super(); 
     this.name = "Input Signal (filtered) FFT";
@@ -533,6 +543,7 @@ class InputSigFFTPanel extends FreqPanel {
 }
 
 class FilterKernelFFTPanel extends FreqPanel {
+  static id = 'filter-kernel-freq-panel';
   constructor() {
     super();
     this.name = "Filter Kernel FFT";
@@ -545,6 +556,7 @@ class FilterKernelFFTPanel extends FreqPanel {
 }
 
 class SampledInputFFTPanel extends FreqPanel {
+  static id = 'sampled-input-fft-panel';
   constructor(){
     super();
     this.name="Sampled Signal FFT";
@@ -556,6 +568,7 @@ class SampledInputFFTPanel extends FreqPanel {
 }
 
 class ReconstructedSigFFTPanel extends FreqPanel {
+  static id = 'reconstructed-sig-fft-panel';
   constructor(){
     super();
     this.name="Reconstructed Signal FFT";
@@ -567,6 +580,7 @@ class ReconstructedSigFFTPanel extends FreqPanel {
 }
 
 class ImpulsePanel extends Panel {
+  static id = 'impulse-panel';
   constructor(){
     super()
     this.strokeWeight=1;
@@ -579,9 +593,9 @@ class ImpulsePanel extends Panel {
     let base = this.plotBottom;
     let ytop = this.plotTop + 10;
 
-    let visibleSamples = Math.floor(this.plotWidth / this.settings.downsamplingFactor/this.settings.timeZoom+1);
+    let visibleSamples = Math.floor(this.plotWidth / this.settings.downsamplingFactor/globalTimeZoom+1);
     for (let x = 0; x < visibleSamples; x++) {
-      let xpos = this.plotLeft + x * this.settings.downsamplingFactor*this.settings.timeZoom;
+      let xpos = this.plotLeft + x * this.settings.downsamplingFactor*globalTimeZoom;
       this.drawStem(xpos,ytop,base);
     }
     //I'm not sure dBs make sense here
@@ -590,12 +604,13 @@ class ImpulsePanel extends Panel {
     this.drawHorizontalTick('1.0', ytop,5,"right");
     this.drawHorizontalTick('0.0', base,5,"right");
 
-    this.drawTimeTicks(this.numTimeTicks, this.settings.timeZoom/(this.settings.sampleRate));
+    this.drawTimeTicks(this.numTimeTicks, globalTimeZoom/(this.settings.sampleRate));
     this.drawName();
   }
 }
 
 class ImpulseFreqPanel extends FreqPanel {
+  static id = 'impulse-freq-panel';
   constructor(){
     super();
     this.name="Sampling Signal Frequency Domain";
@@ -623,6 +638,7 @@ class ImpulseFreqPanel extends FreqPanel {
 }
 
 class SampledInputPanel extends Panel{
+  static id = 'sampled-input-panel';
   constructor(){
     super()
     this.strokeWeight=1;
@@ -638,14 +654,15 @@ class SampledInputPanel extends Panel{
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
     this.drawSignalBinaryScaling(this.plotHeight/2, 16,this.settings);
 
-    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
       }
 }
 
 const passband_doc='The frequency range below the nyquist frequency is highlighted by a light grey background. ';
 
 class SampledInputFreqPanel extends FreqPanel{
-  constructor(){ 
+  static id = 'sampled-input-freq-panel';
+  constructor(){
     super(); 
     this.name = "Sampled Signal Frequency Domain";
     this.description='This is a frequency domain representation of the output from the simulated analog-to-digital conversion process. ' + analytic_frequency_doc + 'Notice that periodic images of the input signal are present at multiples of the sampling frequency. These are later removed by the digital-to-analog conversion process, leaving only the frequency content below the Nyquist frequency (whether that content was present in the original signal or introduced by one of the period aliases at multiples of the sampling frequency, i.e. aliasing). '
@@ -675,8 +692,8 @@ class SampledInputFreqPanel extends FreqPanel{
         if (hzNegative < 0) hzNegative = 0 + (0 - hzNegative); //Reflect at 0. TODO should technically use a new color.
         // don't reflect at sampleRate because we are already drawing the negative frequency images
 
-        let positiveHeight = this.settings.ampZoom * this.settings.amplitude*this.plotHeight*this.settings.harmonicAmps[harm-1];
-        let negativeHeight = this.settings.ampZoom * this.settings.amplitude*this.plotHeight*this.settings.harmonicAmps[harm-1];
+        let positiveHeight = globalAmpZoom * this.settings.amplitude*this.plotHeight*this.settings.harmonicAmps[harm-1];
+        let negativeHeight = globalAmpZoom * this.settings.amplitude*this.plotHeight*this.settings.harmonicAmps[harm-1];
         let xNegative = hzNegative * pixels_per_hz + this.plotLeft;
         let xPositive = hzPositive * pixels_per_hz + this.plotLeft;
         if (xNegative < this.plotRight) this.drawPeak(xNegative, negativeHeight, base, color);
@@ -690,6 +707,7 @@ class SampledInputFreqPanel extends FreqPanel{
 }
 
 class QuantNoisePanel extends Panel{
+  static id = 'quant_noise-panel';
   constructor(){
     super()
     this.strokeWeight=1;
@@ -703,11 +721,12 @@ class QuantNoisePanel extends Panel{
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
-    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
       }
 }
 
 class QuantNoiseFFTPanel extends FreqPanel {
+  static id = 'quant_noiseFFTPanel';
   constructor(){
     super();
     this.name ="Quantization Noise FFT";
@@ -722,7 +741,8 @@ class QuantNoiseFFTPanel extends FreqPanel {
 }
 
 class DitherDistributionHistogramPanel extends Panel{
-        constructor(){
+        static id = 'dither-distribution-histogram-panel';
+  constructor(){
             super();
             this.name = "Dither Distribution Histogram";
             this.description = 'This plot shows a histogram of the dither signal.';
@@ -756,6 +776,7 @@ class DitherDistributionHistogramPanel extends Panel{
 }
 
 class InputPlusSampledPanel extends Panel {
+  static id='input-plus-sampled-panel';
   constructor() {
     super();
     this.name = "Input with Sampled Signal Time Domain";
@@ -771,11 +792,12 @@ class InputPlusSampledPanel extends Panel {
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
     this.drawSignalBinaryScaling(this.plotHeight/2, 16,this.settings);
-    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
       }
 }
 
 class AllSignalsPanel extends Panel {
+  static id = 'all-signals-panel';f
   constructor() {
     super();
     this.name = "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain";
@@ -793,6 +815,6 @@ class AllSignalsPanel extends Panel {
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
-    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+    this.drawTimeTicks(this.numTimeTicks/globalTimeZoom, 1/(globalTimeZoom*this.settings.sampleRate));
       }
 }

@@ -23,11 +23,23 @@ async function loadAudioSources() {
 
 
 function buildAndRunPage(sections) {
-  function renderAll() {
-    for (let section of sections) {
-      section.processAudio();
+  function repaintPanels() {
+    for (const section of sections) {
+      section.repaintPanels();
+    }
+  }
 
-      // TODO: redraw all panels
+  function renderAll(display=true) {
+    signal = {
+      fs: WEBAUDIO_MAX_SAMPLERATE,
+      data: new Float32Array(DISPLAY_SIGNAL_SIZE)
+    }
+
+    for (const section of sections) {
+
+      section.processAudio(signal, display);
+
+      repaintPanels();
     }
   }
 
@@ -43,4 +55,6 @@ function buildAndRunPage(sections) {
   for (const section of sections) {
     section.createCanvasesAndSliders();
   }
+
+  // renderAll(true);
 }

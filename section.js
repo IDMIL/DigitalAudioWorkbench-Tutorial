@@ -1,8 +1,10 @@
 
 
 class Section {
+  panelFunctions = [];
+  sliderFunctions = [];
+
   panels = [];
-  sliders = [];
   renderAllFunction = undefined;
 
   getHtml() {
@@ -48,7 +50,7 @@ class Section {
 
     const sketch = p => {
       p.panelObject = new panelClass();
-      panels.push(p);
+      this.panels.push(p);
       p.setup = function () {
         let canvas = p.createCanvas(450, 300);
         p.textAlign(p.CENTER);
@@ -67,10 +69,8 @@ class Section {
       p.windowResized = function () {
         p.panelObject.resize(450, 300);
       };
-
-      p.settings = settings;
     }
-    this.panels.push(sketch);
+    this.panelFunctions.push(sketch);
     return `<div id=` + panelParentId + ` class="panel"></div>`;
   }
 
@@ -82,57 +82,38 @@ class Section {
       p.setup = function () {
         let canvas = p.createCanvas(500, 50);
         p.textAlign(p.CENTER);
-        console.log(sliderParentId);
         canvas.parent(sliderParentId)
         p.sliderObject.setup(p, sliderSettings);
         p.sliderObject.resize(0,0,500,50);
         p.sliderObject.onEdit();
+        p.noLoop();
         p.redraw();
       }
     }
     // new p5(sketch);
-    this.sliders.push(sketch);
+    this.sliderFunctions.push(sketch);
 
     return `<div id=` + sliderParentId + ` class="slider"></div>`;
   }
 
   createCanvasesAndSliders() {
-    for (const sketch of this.sliders) {
-      console.log(sketch);
-      new p5(sketch);
-    }
-
-    for (const panel of this.panels) {
+    for (const panel of this.panelFunctions) {
       new p5(panel);
     }
+
+    for (const sketch of this.sliderFunctions) {
+      new p5(sketch);
+    }
   }
 
-  processAudio(signal) {
+  processAudio(signal, display) {
 
   }
-}
 
-class InputSection extends Section {
-  audioInputSliderSettings = {};
-  frequencySliderSettings = {};
-  numHarmonicsSliderSettings = {};
-  amplitudeSliderSettings = {};
-  noiseFloorSliderSettings = {};
-
-  getTitle() {
-    return `Input`;
-  }
-
-  getId() {
-    return `inputSection`;
-  }
-
-  getSliders() {
-    return this.createSlider(AudioInputTypeSlider, this.audioInputSliderSettings) +
-      this.createSlider(FreqSlider, this.frequencySliderSettings) +
-      this.createSlider(NumHarmSlider, this.numHarmonicsSliderSettings) +
-      this.createSlider(AmplitudeSlider, this.amplitudeSliderSettings) +
-      this.createSlider(NoiseFloorSlider, this.noiseFloorSliderSettings)
+  repaintPanels() {
+    for (const p of this.panels) {
+      p.draw();
+    }
   }
 }
 

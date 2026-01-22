@@ -99,7 +99,10 @@ class AudioInputTypeSlider extends Slider{
     this.inputSelect.option("cello");
     this.inputSelect.option("drums");
     this.inputSelect.option("sweep");
-    this.inputSelect.changed(()=>this.settings.inputType = this.inputSelect.value());
+    this.inputSelect.changed(()=>{
+      this.settings.inputType = this.inputSelect.value();
+      this.onEdit();
+    });
 
     this.oddEvenSel = p.createSelect();
     this.oddEvenSel.option("All");
@@ -107,7 +110,10 @@ class AudioInputTypeSlider extends Slider{
     this.oddEvenSel.option("Even");
     this.oddEvenSel.parent(AudioInputTypeSlider.id)
     this.oddEvenSel.selected(this.settings.harmType);
-    this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
+    this.oddEvenSel.changed(()=> {
+      this.settings.harmType = this.oddEvenSel.value();
+      this.onEdit();
+    });
 
     this.slopeSel = p.createSelect();
     this.slopeSel.option("1/x");
@@ -123,7 +129,10 @@ class AudioInputTypeSlider extends Slider{
     this.slopeSel.option("vowel u");
     this.slopeSel.parent(AudioInputTypeSlider.id);
     this.slopeSel.selected(this.settings.harmSlope);
-    this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
+    this.slopeSel.changed(()=> {
+      this.settings.harmSlope = this.slopeSel.value();
+      this.onEdit();
+    });
   }
 
   resize(x, y, w, p) {
