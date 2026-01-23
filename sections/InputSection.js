@@ -8,6 +8,7 @@ class InputSection extends Section {
     amplitude: 1,
     noiseFloor: -96,
     display: new Float32Array(DISPLAY_SIGNAL_SIZE),
+    playback: new Float32Array(soundTimeSeconds * WEBAUDIO_MAX_SAMPLERATE),
     freq: fft.createComplexArray(),
     harmonicFreqs: new Float32Array(MAX_HARMONICS), //Array storing harmonic frequency in hz
     harmonicAmps: new Float32Array(MAX_HARMONICS), //Array storing harmonic amp  (0-1.0)
@@ -173,6 +174,15 @@ class InputSection extends Section {
     }
   }
 
+  hasStandardPlayButton() {
+    return true;
+  }
+
+  play() {
+    console.log("play input");
+    this.playWave(this.settings.playback, WEBAUDIO_MAX_SAMPLERATE);
+  }
+
   processAudio(signal, display) {
     this.#calculateHarmonics();
     signal.data.fill(0);
@@ -184,7 +194,10 @@ class InputSection extends Section {
       }
       fft.realTransform(this.settings.freq, this.settings.display);
       fft.completeSpectrum(this.settings.freq);
-
+    } else {
+      for (let i = 0; i < signal.data.length; i++) {
+        this.settings.playback[i] = signal.data[i];
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
-const soundTimeSeconds = 1.5;
-const fadeTimeSeconds = 0.125;
 
 let audioSources = {}
+
+let allSections = []
 
 async function loadAudioSources() {
   let audioCtx = new AudioContext({sampleRate: 96000});
@@ -21,29 +21,46 @@ async function loadAudioSources() {
   }
 }
 
+function play(sectionId) {
+  renderAll(false);
 
-function buildAndRunPage(sections) {
-  function repaintPanels() {
-    for (const section of sections) {
-      section.repaintPanels();
+  console.log(allSections);
+  for (const section of allSections) {
+    if (section.getId() === sectionId) {
+      section.play();
+      break;
     }
   }
+}
 
-  function renderAll(display=true) {
-    signal = {
-      fs: WEBAUDIO_MAX_SAMPLERATE,
-      data: new Float32Array(DISPLAY_SIGNAL_SIZE)
-    }
+function repaintPanels() {
+  for (const section of allSections) {
+    section.repaintPanels();
+  }
+}
 
-    for (const section of sections) {
+function renderAll(display=true) {
+  signal = {
+    fs: WEBAUDIO_MAX_SAMPLERATE,
+    data: new Float32Array(display ? DISPLAY_SIGNAL_SIZE : soundTimeSeconds * WEBAUDIO_MAX_SAMPLERATE)
+  }
 
-      section.processAudio(signal, display);
 
+  for (const section of allSections) {
+    section.processAudio(signal, display);
+  }
+
+  if (display) {
+    for (const section of allSections) {
       repaintPanels();
     }
   }
+}
 
+
+function buildAndRunPage(sections) {
   for (const section of sections) {
+    allSections.push(section);
     section.renderAllFunction = renderAll;
     const div = document.createElement('div');
     div.className = 'section';

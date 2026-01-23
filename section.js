@@ -42,7 +42,14 @@ class Section {
   }
 
   getPlayButton() {
+    if (this.hasStandardPlayButton()) {
+      return `<button className="play-button" onclick="play('` + this.getId() + `')">Play</button>`
+    }
     return ``;
+  }
+
+  hasStandardPlayButton() {
+    return false;
   }
 
   createPanel(panelClass, panelSettings) {
@@ -108,6 +115,20 @@ class Section {
 
   processAudio(signal, display) {
 
+  }
+
+  play() {
+
+  }
+
+  playWave(wave, sampleRate) {
+    let audioCtx = new AudioContext({sampleRate: sampleRate});
+    var buffer = audioCtx.createBuffer(1, wave.length, sampleRate);
+    buffer.copyToChannel(wave, 0, 0);
+    var source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+    source.start();
   }
 
   repaintPanels() {

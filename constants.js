@@ -4,6 +4,10 @@ const NUM_COLUMNS = 2;
 const MAX_HARMONICS = 40;
 const DISPLAY_SIGNAL_SIZE = 5000;
 
+const soundTimeSeconds = 1.5;
+const fadeTimeSeconds = 0.125;
+
+
 const MAX_VISIBLE_FREQUENCY = WEBAUDIO_MAX_SAMPLERATE / 2
 
 const fftSize = 2048;
