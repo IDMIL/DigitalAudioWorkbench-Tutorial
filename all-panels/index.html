@@ -69,8 +69,7 @@
               <div class="slider" id="antialiasing-filter-order-slider"></div>
               <div class="slider" id="filter-type-slider"></div>
             </div>
-            <button class="play-button" id="play-filter-kernel">Play kernel</button>
-            <button class="play-button" id="play-filtered-input">Play filtered input</button>
+            <button class="play-button" id="play-filtered-input">Play</button>
           </div>
         </div>
         <div class="section" id="samplerate-section">
@@ -88,42 +87,29 @@
             <div class="row sliders">
               <div class="slider" id="sample-rate-slider"></div>
             </div>
-            <button class="play-button" id="play-sample-rate">Play</button>
-          </div>
-        </div>
-        <div class="section" id="dither-section">
-          <div class="titlebar">
-            <div class="section-title">
-              <h2>Dither</h2>
-            </div>
-            <button class="collapse-button" id="coll-dither" onclick="collapseClick(this.id)"></button>
-
-          </div>
-          <div class="collapse">
-            <div class="row panels">
-              <div class="panel" id="dither-histogram"></div>
-            </div>
-            <div class="row sliders">
-              <div class="slider" id="dither-slider"></div>
-            </div>
           </div>
         </div>
         <div class="section" id="quantization-section">
           <div class="titlebar">
             <div class="section-title">
-              <h2>Quantization</h2>
+              <h2>Dither Quantization</h2>
             </div>
             <button class="collapse-button" id="coll-quantization" onclick="collapseClick(this.id)"></button>
           </div>
           <div class="collapse">
             <div class="row panels">
+              <div class="panel" id="dither-histogram"></div>
+              <div class="panel" id="downsampled-quantized"></div>
+            </div>
+            <div class="row panels">
               <div class="panel" id="quantization-noise"></div>
               <div class="panel" id="quantization-noise-fft"></div>
             </div>
             <div class="row sliders">
+              <div class="slider" id="dither-slider"></div>
               <div class="slider" id="quantization-slider"></div>
             </div>
-            <button class="play-button" id="play-quantized-noise">Play</button>
+            <button class="play-button" id="play-quantized-noise">Play quantization noise</button>
           </div>
         </div>
         <div class="section" id="reconstructed-section">

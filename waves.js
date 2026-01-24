@@ -529,17 +529,23 @@ function downsampleWithQuantization(settings, fft, playback) {
   // downsampling factor
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
 
-  if (playback) {
+  if (playback && settings.buffers.downsampled.playback.length !== Math.round(original.length / settings.downsamplingFactor)) {
+
     settings.buffers.downsampled.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.downsampledWithQuantization.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     settings.buffers.quantNoise.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-  } else {
+
+  } else if (settings.buffers.downsampled.display.length !==Math.round(original.length / settings.downsamplingFactor)) {
+
     settings.buffers.downsampled.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.downsampledWithQuantization.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     settings.buffers.quantNoise.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
   }
 
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
   let stuffed = playback ? settings.buffers.stuffed.playback : settings.buffers.stuffed.display;
   let downsampled = playback ? settings.buffers.downsampled.playback : settings.buffers.downsampled.display;
+  let downsampledWithQuantization = playback ? settings.buffers.downsampledWithQuantization.playback : settings.buffers.downsampledWithQuantization.display;
   let quantNoise = playback ? settings.buffers.quantNoise.playback : settings.buffers.quantNoise.display;
   let quantNoiseStuffed = playback ? settings.buffers.quantNoiseStuffed.playback : settings.buffers.quantNoise.display;
 
@@ -587,6 +593,7 @@ function downsampleWithQuantization(settings, fft, playback) {
     // sparsely fill the reconstruction buffer to avoid having to zero-stuff
     reconstructed[n * settings.downsamplingFactor] = quantized;
     arr[n] = y;
+    downsampledWithQuantization[n] = quantized;
     stuffed[n * settings.downsamplingFactor] = quantized * settings.downsamplingFactor;
 
     // record the quantization error

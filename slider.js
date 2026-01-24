@@ -53,7 +53,7 @@ class RangedSlider extends Slider {
     // this.button.size(200)
     this.button.mousePressed(this.buttonPressed.bind(this));
     this.button.mouseReleased(this.onEdit.bind(this));
-  }
+    }
 
   resize(x, y, w, p){
     let width = w - (20 + this.labelWidth + this.sliderWidth);
@@ -93,14 +93,20 @@ class AudioInputTypeSlider extends Slider{
     this.inputSelect.option("cello");
     this.inputSelect.option("drums");
     this.inputSelect.option("sweep");
-    this.inputSelect.changed(()=>this.settings.inputType = this.inputSelect.value());
+    this.inputSelect.changed(()=>{
+      this.settings.inputType = this.inputSelect.value();
+      this.onEdit();
+    });
 
     this.oddEvenSel = p.createSelect();
     this.oddEvenSel.option("All");
     this.oddEvenSel.option("Odd");
     this.oddEvenSel.option("Even");
     this.oddEvenSel.selected(this.settings.harmType);
-    this.oddEvenSel.changed(()=>this.settings.harmType = this.oddEvenSel.value());
+    this.oddEvenSel.changed(()=>{
+      this.settings.harmType = this.oddEvenSel.value();
+      this.onEdit();
+    });
 
     this.slopeSel = p.createSelect();
     this.slopeSel.option("1/x");
@@ -115,7 +121,10 @@ class AudioInputTypeSlider extends Slider{
     this.slopeSel.option("vowel o");
     this.slopeSel.option("vowel u");
     this.slopeSel.selected(this.settings.harmSlope);
-    this.slopeSel.changed(()=>this.settings.harmSlope = this.slopeSel.value());
+    this.slopeSel.changed(()=>{
+      this.settings.harmSlope = this.slopeSel.value();
+      this.onEdit();
+    });
   }
 
   resize(x, y, w, p) {
@@ -140,7 +149,10 @@ class FilterTypeSlider extends Slider {
     this.inputSelect = p.createSelect();
     this.inputSelect.option("FIR");
     this.inputSelect.option("Butterworth");
-    this.inputSelect.changed(() => this.settings.filterType = this.inputSelect.value());
+    this.inputSelect.changed(() => {
+      this.settings.filterType = this.inputSelect.value();
+      this.onEdit();
+    });
   }
 
   resize(x, y, w, p) {
@@ -274,7 +286,10 @@ class DitherSlider extends RangedSlider {
     this.ditherTypeSel.option("Gaussian");
 
     this.ditherTypeSel.selected(this.settings.ditherType);
-    this.ditherTypeSel.changed(()=>this.settings.ditherType = this.ditherTypeSel.value());
+    this.ditherTypeSel.changed(()=>{
+      this.settings.ditherType = this.ditherTypeSel.value();
+      this.onEdit();
+    });
 
     this.makeSlider(p);
   }
@@ -314,6 +329,16 @@ class BitDepthSlider extends RangedSlider {
     this.step = 1;
     this.makeSlider(p);
   }
+
+  calcSliderVal(){
+    // override this with any calculations needed to convert textbox val to slider val (%, etc)
+    return this.textBox.value() === "unquantized" ? 16 : this.textBox.value();
+  }
+  calcDisplayVal(){
+    // override this with any calculations needed to convert stored variable to display val (%, etc)
+    return this.settings[this.propName] >= 16 ? "unquantized" : this.settings[this.propName];
+  }
+
 
 }
 

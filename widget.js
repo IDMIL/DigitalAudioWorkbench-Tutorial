@@ -31,9 +31,10 @@ function getDefaultSettings() {
       original: createBuffers(),
       filterKernel: createBuffers(),
       stuffed: createBuffers(),
+      downsampled: createBuffers(),
       quantNoise: createBuffers(),
       quantNoiseStuffed: createBuffers(),
-      downsampled: createBuffers(),
+      downsampledWithQuantization : createBuffers(),
       reconstructed: createBuffers(),
       reconstructedFiltered: createBuffers(),
       deltaSigma: createBuffers()
@@ -92,6 +93,7 @@ let panelIdLookups = {
   'dither-histogram' : DitherDistributionHistogramPanel,
   'quantization-noise' : QuantNoisePanel,
   'quantization-noise-fft' : QuantNoiseFFTPanel,
+  'downsampled-quantized' : QuantizedSignalPanel,
   'reconstructed' : ReconstructedSigPanel,
   'reconstructed-fft' : ReconstructedSigFFTPanel,
   'filter-kernel' : FilterKernelPanel,
@@ -199,27 +201,26 @@ function createWidgets() {
 
   const playButtons = document.getElementsByClassName('play-button');
 
-  function buttonPlayFunction(buffer) {
+  function buttonPlayFunction(buffer, samplerate=WEBAUDIO_MAX_SAMPLERATE) {
     settings.render(true);
     if (!settings.snd) settings.snd = new (window.AudioContext || window.webkitAudioContext)();
-    playWave(buffer, WEBAUDIO_MAX_SAMPLERATE, settings.snd);
+    console.log(samplerate);
+    playWave(buffer, samplerate, settings.snd);
   }
 
   for (const playButton of playButtons) {
     const id = playButton.getAttribute('id');
     if (id === "play-input") {
-        playButton.onclick = () => { buttonPlayFunction(settings.buffers.originalUnfiltered.playback)};
-    } else if (id === "play-filter-kernel") {
-      playButton.onclick = () => { buttonPlayFunction(settings.buffers.filterKernel.playback)};
+        playButton.onclick = () => { buttonPlayFunction(settings.buffers.originalUnfiltered.playback);};
     } else if (id === "play-filtered-input") {
-      playButton.onclick = () => { buttonPlayFunction(settings.buffers.original.playback)};
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.original.playback);};
     } else if (id === "play-quantized-noise") {
-      playButton.onclick = () => { buttonPlayFunction(settings.buffers.quantNoise.playback); };
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.quantNoiseStuffed.playback);};
     } else if (id === "play-reconstructed") {
-      playButton.onclick = () => { buttonPlayFunction(settings.buffers.reconstructed.playback); };
+      playButton.onclick = () => { buttonPlayFunction(settings.buffers.reconstructed.playback);};
     } else if (id === "play-delta-sigma") {
-      playButton.onclick = () => {buttonPlayFunction(settings.buffers.deltaSigma.playback)};
-    }
+      playButton.onclick = () => {buttonPlayFunction(settings.buffers.deltaSigma.playback);};
+      }
   }
 
 

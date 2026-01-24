@@ -143,8 +143,6 @@ class Panel {
 
     const increment = Math.max(1, Math.floor(0.5/iToXScale));
 
-    console.log("inc", increment, "scale", iToXScale);
-
     for (let i = 0; i < signal.length; i += increment) {
       let x = i * iToXScale;
       let pixel_amp = signal[i] * pixel_per_fullscale;
@@ -698,8 +696,28 @@ class QuantNoisePanel extends Panel{
     this.description = 'This plot shows the difference between the sampled signal before and after quantization, representing the error introduced by the quantization process. '
         + time_ticks_doc + amp_ticks_doc + midline_doc;
   }
+
   drawPanel(){
     this.drawDiscreteSignal(this.settings.buffers.quantNoise.display);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
+    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+      }
+}
+
+class QuantizedSignalPanel extends Panel{
+  constructor(){
+    super()
+    this.strokeWeight=1;
+    this.ellipseSize=5;
+    this.name ="Quantized Signal";
+    this.description = 'This plot shows the quantized signal in the time domain. '
+        + time_ticks_doc + amp_ticks_doc + midline_doc;
+  }
+
+  drawPanel(){
+    this.drawDiscreteSignal(this.settings.buffers.downsampledWithQuantization.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
@@ -781,7 +799,6 @@ class AllSignalsPanel extends Panel {
     this.name = "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain";
     this.description = 'This plot combines the input signal, sampled signal, and reconstructed signal time domain plots. See the documentation for each individual plot for more information. ';
     this.ellipseSize = 5;
-
   }
 
   drawPanel() {
@@ -794,5 +811,5 @@ class AllSignalsPanel extends Panel {
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
     this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-      }
+  }
 }
