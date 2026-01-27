@@ -7,6 +7,28 @@ h1 {
     text-align: center;
 }
 
+h1.main-title {
+    margin: 0;
+    font-size: 3em;
+    color: white;
+
+}
+
+p.credits {
+    color: white;
+    text-align: center;
+}
+
+p.credits a {
+    color: lightskyblue;
+}
+
+#main-title-section {
+    padding-top: 2em;
+    padding-bottom: 2em;
+    background-color: black;
+}
+
 h2 {
     font-size: 1em;
     text-align: center;
@@ -34,7 +56,6 @@ footer{
 main {
     background-color: lightgrey;
     padding: 10px;
-    margin-bottom: 10px;
 }
 
 .titlebar {

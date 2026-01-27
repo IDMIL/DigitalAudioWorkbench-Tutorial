@@ -336,7 +336,7 @@ class BitDepthSlider extends RangedSlider {
   }
   calcDisplayVal(){
     // override this with any calculations needed to convert stored variable to display val (%, etc)
-    return this.settings[this.propName] >= 16 ? "unquantized" : this.settings[this.propName];
+    return this.settings[this.propName] >= 16 ? "unquantized  " : this.settings[this.propName];
   }
 
 
