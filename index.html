@@ -2,102 +2,93 @@
 <html>
   <head>
 
-    <link rel="stylesheet" type="text/css" href="home_style.css" media="screen" />
-    <title>Tutorials from the IDMIL The Digital Audio Workbench</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" media="screen" />
+    <title>DAWb2 (CIRMMT)</title>
   </head>
 
-  <body>
-    <h1>The Digital Audio Workbench Tutorial</h1>
-    <h4>Input Devices and Musical Interaction Laboratory (IDMIL) - <a href="//www.idmil.org/">www.idmil.org</a>
-        <br>McGill University, Canada.</h4>
+<body>
+<main>
+  <div class="timeline">
+    <div class="section" id="main-title-section">
+      <h1 class="main-title">Digital Audio Workbench 2</h1>
 
-    <small>
-    <p style="margin-left: 40px">
-        <i>
-        By Laurent Tarabout, Maxwell Gentili-Morin & Marcelo M. Wanderley<br>
-        <small>based on the original IDMIL Digital Audio Workbench</small><br>
-        Copyright IDMIL/McGill University, 2023-2025
-        </i>
-    </p> 
-    </small>
-    
-    <p>
-        The Digital Audio Workbench Tutorial aims take the groundwork laid out from the <a href = "https://idmil.github.io/DigitalAudioWorkbench/">Digital Audio Workbench</a>
-        and craft a series of tutorials that review the key concepts behind sampling and quantization.  
-        <br><br>
+      <p class="credits">
+        By Arden Butterfield, Josh Rohs, Travis J. West & Marcelo M. Wanderley
+        with contributions by Laurent Tarabout
+      </p>
 
-        This is an active project and will continue to have tutorials added weekly.
-    </p>
+      <p class="credits">
+        Copyright <a href="https://www.cirmmt.org">CIRMMT</a>/McGill University, 2026, based on the <a href="https://idmil.github.io/DigitalAudioWorkbench/">Digital Audio Workbench</a>
+      </p>
+    </div>
+    <div class="section">
+      <p>
+        The Digital Audio Workbench 2 builds on the <a href = "https://idmil.github.io/DigitalAudioWorkbench/">Digital Audio Workbench</a>,
+        developed at The Input Devices and Music Interaction Laboratory (IDMIL) at McGill University.
+        This project aims to provide a workbench or playground for exploratory learing of antialiasing techniques
+        in sampling and quantization, as well as delta-sigma modulation for analog to digital conversion.
 
-    <p>
+      <p>
         Please follow the links below to explore different subsets of the
-        workbench:  
-    </p>
+        workbench:
+      </p>
 
-    <ul>
-      <li><a href="tutorials">Tutorial on Sampling and Quantization</a></li>
-      <li><a href="delta-modulation">Tutorial on Delta Modulation</a></li>
-      <li><a href="all-panels">all panels and sliders</a> (mainly for developers)</li> 
-    </ul>
+      <ul>
+        <li><a href="sampling">Tutorial on Sampling and Quantization</a></li>
+        <li><a href="delta-sigma">Tutorial on Delta-Sigma Modulation</a></li>
+      </ul>
 
-    <p>
+      <p>
         <small>
-        Detailed information is avaialble in the <a href="README.md">project's README file</a>. 
+          Detailed information is avaialble in the <a href="README.md">project's README file</a>.
         </small>
-    </p>
+      </p>
+    </div>
+    <div class="section">
+      <small><small>
+        <p>
+          This software is licensed under the MIT License.
+        </p>
 
-    <small>
-    <p>
-        <b>Disclaimer:</b>
-        <br>
-         <i>This is a preliminary version of the tool.</i> 
-         <br><br>
-         Note that so far we have only tested the project on recent Chromium-based browsers.  Furthermore, the display is
-        not yet adequately responsive for mobile devices and other small screens.
-        <br><br>
-        If you have any suggestions, questions or comments, please feel free to <a mailto:mwanderley@acm.org>send us an email</a>.  
-    </p>
-    </small>
+        <p>
+          fft.js copyright (c) 2017 Fedor Indutny <br>
+          fili.js copyright (c) 2014 Florian Markert <br>
+          p5.js is copyright (c) 2025 Processing Foundation <br>
+          All other files copyright (c) 2023&ndash;2026 The Input Devices and Musical
+          Interaction Laboratory (IDMIL), McGill University and the Center for Interdisciplinary Research in Music Media
+          Technology (CIRMMT). <br>
+        </p>
 
+        <p>
+          Permission is hereby granted, free of charge, to any person obtaining a
+          copy of this software and associated documentation files (the
+          "Software"), to deal in the Software without restriction, including
+          without limitation the rights to use, copy, modify, merge, publish,
+          distribute, sublicense, and/or sell copies of the Software, and to
+          permit persons to whom the Software is furnished to do so, subject to
+          the following conditions:
+        </p>
+
+        <p>
+          The above copyright notice and this permission notice shall be included
+          in all copies or substantial portions of the Software.
+        </p>
+
+        <p>
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+          OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+          MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+          IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+          CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+          TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+          SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
+        </p>
+      </small></small>
+
+      <a href="https://www.cirmmt.org"><img src="/images/CIRMMT_logo.svg" alt="CIRMMT Logo"></a>
+    </div>
+  </div>
+</main>
     <hr>
-
-    <small><small>
-    <p>
-        This software is licensed under the MIT License.
-    </p>
-        
-    <p>
-        fft.js copyright (c) 2017 Fedor Indutny <br>
-        fili.js copyright (c) 2014 Florian Markert <br>
-        All other files copyright (c) 2023 The Input Devices and Musical
-        Interaction Laboratory (IDMIL), McGill University <br>
-    </p>
-
-    <p>
-        Permission is hereby granted, free of charge, to any person obtaining a
-        copy of this software and associated documentation files (the
-        "Software"), to deal in the Software without restriction, including
-        without limitation the rights to use, copy, modify, merge, publish,
-        distribute, sublicense, and/or sell copies of the Software, and to
-        permit persons to whom the Software is furnished to do so, subject to
-        the following conditions:
-    </p>
-        
-    <p>
-        The above copyright notice and this permission notice shall be included
-        in all copies or substantial portions of the Software.
-    </p>
-        
-    <p>
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-        OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-        MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-        CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-        TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-        SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
-    </p>
-     </small></small>
-
   </body>
 </html>

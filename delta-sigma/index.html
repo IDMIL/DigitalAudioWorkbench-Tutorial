@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="../styles.css" media="screen" />
+  <!-- p5.js begin -->
+  <!-- 1) use p5.min.js for optimizing size/transfer -->
+  <script src="../p5.min.js"></script>
+  <!-- 2) use p5.js for debugging -->
+  <!-- <script src="../p5.js"></script> -->
+  <!-- p5.js end-->
+  <script src="../fili.js"></script>
+  <script src="../panel.js"></script>
+  <script src="../slider.js"></script>
+  <script src="../fft.js"></script>
+  <script src="../waves.js"></script>
+  <script src="../widget.js"></script>
+  <script src="../interaction.js"></script>
+  <title>DAWb2 (CIRMMT) | Delta-Sigma</title>
+</head>
+<body>
+<main>
+  <div class="timeline">
+    <h1>Digital Audio Workbench (Delta-Sigma Encoding)</h1>
+
+    <h2>By Arden Butterfield, Josh Rohs, Travis J. West & Marcelo M. Wanderley
+      with contributions by Laurent Tarabout</h2>
+    <h3>Copyright CIRMMT/McGill University, 2026, based on IDMIL's <h ref="https://idmil.github.io/DigitalAudioWorkbench/">Digital Audio Workbench</h></h3>
+
+    <div class="section" id="input-section">
+      <div class="titlebar">
+        <div class="section-title">
+          <h2>Input</h2>
+        </div>
+        <button class="collapse-button" id="coll-input" onclick="collapseClick(this.id)"></button>
+      </div>
+      <div class="collapse">
+        <div class="row panels">
+          <div class="panel" id="input-time-domain"></div>
+          <div class="panel" id="input-freq-domain"></div>
+        </div>
+        <div class="row sliders">
+          <div class="slider" id="audio-input-type-slider"></div>
+          <div class="slider" id="frequency-slider"></div>
+          <div class="slider" id="num-harmonics-slider"></div>
+          <div class="slider" id="amplitude-slider"></div>
+          <div class="slider" id="noise-floor-slider"></div>
+        </div>
+        <button class="play-button" id="play-input">Play</button>
+      </div>
+    </div>
+    <div class="section" id="delta-sigma-section">
+      <div class="titlebar">
+        <div class="section-title">
+          <h2>Delta-Sigma</h2>
+        </div>
+        <button class="collapse-button" id="coll-delta-sigma" onclick="collapseClick(this.id)"></button>
+      </div>
+      <div class="collapse">
+        <div class="row panels">
+          <div class="panel" id="delta-mod-panel"></div>
+        </div>
+        <div class="row sliders">
+          <div class="slider" id="ds-sample-rate-slider"></div>
+          <div class="slider" id="delta-sigma-step-slider"></div>
+        </div>
+        <button class="play-button" id="play-delta-sigma">Play</button>
+      </div>
+    </div>
+    <div class="section" id="reconstructed-section">
+      <div class="titlebar">
+        <div class="section-title">
+          <h2>Reconstructed</h2>
+        </div>
+        <button class="collapse-button" id="coll-recon" onclick="collapseClick(this.id)"></button>
+
+      </div>
+      <div class="collapse">
+        <div class="row panels">
+          <div class="panel" id="reconstructed"></div>
+          <div class="panel" id="reconstructed-fft"></div>
+        </div>
+        <div class="row panels">
+          <div class="panel" id="all-signals"></div>
+        </div>
+        <div class="row sliders">
+          <div class="slider" id="reconstruction-filter-order-slider"></div>
+          <div class="slider" id="reconstruction-filter-freq-slider"></div>
+        </div>
+        <button class="play-button" id="play-reconstructed">Play Reconstructed</button>
+      </div>
+    </div>
+    <div class="section" id="footer-section">
+      <a href="https://www.cirmmt.org"><img style="margin:auto; display:block" src="/images/CIRMMT_logo.svg" alt="CIRMMT Logo"></a>
+    </div>
+    </div>
+</main>
+<div class="global-panel">
+  <div id="global-panel-collapse-button" onclick="collapseGlobalPanel()"></div>
+  <div class="contents">
+    <div class="slider" id="time-zoom-slider"></div>
+    <div class="slider" id="amp-zoom-slider"></div>
+  </div>
+</div>
+
+<script>
+  createWidgets();
+</script>
+</body>
+</html>

@@ -7,10 +7,36 @@ h1 {
     text-align: center;
 }
 
+h1.main-title {
+    margin: 0;
+    font-size: 3em;
+    color: white;
+
+}
+
+p.credits {
+    color: white;
+    text-align: center;
+}
+
+p.credits a {
+    color: lightskyblue;
+}
+
+#main-title-section {
+    padding-top: 2em;
+    padding-bottom: 2em;
+    background-color: black;
+}
+
 h2 {
     font-size: 1em;
     text-align: center;
     font-weight: normal;
+}
+
+.section-title h2 {
+    font-size: 2em;
 }
 
 h3 {
@@ -30,7 +56,6 @@ footer{
 main {
     background-color: lightgrey;
     padding: 10px;
-    margin-bottom: 10px;
 }
 
 .titlebar {
@@ -44,7 +69,7 @@ main {
 }
 .timeline .section {
     background-color: white;
-    padding: 20px;
+    padding: 40px;
     border: 1px solid grey;
     border-radius: 5px;
     margin-bottom: 10px;
@@ -69,12 +94,13 @@ main {
     display: flex;
     align-items: stretch;
     gap: 5px;
+    margin-bottom: 30px;
+    justify-content: center;
 }
 
 .timeline .section .collapse .panel {
-    border: 1px solid green;
+    border: 1px solid lightgrey;
     padding: 3px;
-    width: 60%;
 }
 
 .sliders {

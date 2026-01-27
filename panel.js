@@ -136,15 +136,28 @@ class Panel {
     let pixel_max = this.plotHeight/2;
     let pixel_per_fullscale = pixel_max * this.settings.ampZoom;
     this.buffer.noFill();
-    //TODO: there are some artifacts here due to the way the signal is drawn, especially when zoomed in and/or large amplitude
     this.buffer.beginShape();
     this.buffer.curveTightness(1.0);
-    for (let x = 0; x < this.plotWidth; x++) {
-      let pixel_amp = pixel_per_fullscale * signal[Math.round(x/this.settings.timeZoom)];
+
+    const iToXScale = this.settings.timeZoom * (this.settings.displaySignalSize) / (signal.length);
+
+    const increment = Math.max(1, Math.floor(0.5/iToXScale));
+
+    for (let i = 0; i < signal.length; i += increment) {
+      let x = i * iToXScale;
+      let pixel_amp = signal[i] * pixel_per_fullscale;
       let y = this.halfh - pixel_amp;
-      y = (y<this.plotTop)? y=this.plotTop : (y>this.plotBottom)? y= this.plotBottom : y=y; this.buffer.curveTightness(0.0);
+      // y = (y<this.plotTop)? this.plotTop : (y>this.plotBottom)? this.plotBottom : y;
+      this.buffer.curveTightness(0.0);
       this.buffer.curveVertex(x + this.plotLeft, y);
+      if (i === 0) {
+        this.buffer.curveVertex(x + this.plotLeft, y);
+      }
+      if (x > this.plotWidth) {
+        break;
+      }
     }
+
     this.buffer.endShape();
   }
 
@@ -436,7 +449,7 @@ class DeltaModPanel extends Panel {
     this.drawName();
     this.drawSignalAmplitudeTicks(this, this.plotHeight/2, 4);
     this.drawTimeTicks(this, this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-      }
+  }
 }
 
 
@@ -683,8 +696,28 @@ class QuantNoisePanel extends Panel{
     this.description = 'This plot shows the difference between the sampled signal before and after quantization, representing the error introduced by the quantization process. '
         + time_ticks_doc + amp_ticks_doc + midline_doc;
   }
+
   drawPanel(){
     this.drawDiscreteSignal(this.settings.buffers.quantNoise.display);
+    this.drawMidLine();
+    this.drawName();
+    this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
+    this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
+      }
+}
+
+class QuantizedSignalPanel extends Panel{
+  constructor(){
+    super()
+    this.strokeWeight=1;
+    this.ellipseSize=5;
+    this.name ="Quantized Signal";
+    this.description = 'This plot shows the quantized signal in the time domain. '
+        + time_ticks_doc + amp_ticks_doc + midline_doc;
+  }
+
+  drawPanel(){
+    this.drawDiscreteSignal(this.settings.buffers.downsampledWithQuantization.display);
     this.drawMidLine();
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
@@ -766,7 +799,6 @@ class AllSignalsPanel extends Panel {
     this.name = "Input (solid), Sampled (lollipop), Reconstructed (dotted), Time Domain";
     this.description = 'This plot combines the input signal, sampled signal, and reconstructed signal time domain plots. See the documentation for each individual plot for more information. ';
     this.ellipseSize = 5;
-
   }
 
   drawPanel() {
@@ -779,5 +811,5 @@ class AllSignalsPanel extends Panel {
     this.drawName();
     this.drawSignalAmplitudeTicks(this.plotHeight/2, 4);
     this.drawTimeTicks(this.numTimeTicks/this.settings.timeZoom, 1/(this.settings.timeZoom*this.settings.sampleRate));
-      }
+  }
 }

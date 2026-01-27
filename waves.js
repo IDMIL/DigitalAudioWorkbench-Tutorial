@@ -287,18 +287,14 @@ function filterSignal(signal, frequency, order, mode, filterKernel) {
 
     let characteristic = "butterworth";
 
-    // order = mode === "Butterworth" ? Math.min(order, 12) : Math.min(order, 4);
-
     let filterCoeffs = iirCalculator.lowpass({
-      order: order, // cascade 3 biquad filters (max: 12)
+      order: order, // cascade 3 biquad filters
       characteristic: characteristic,
       Fs: WEBAUDIO_MAX_SAMPLERATE, // sampling frequency
       Fc: frequency, // cutoff frequency / center frequency for bandpass, bandstop, peak
       preGain: false // adds one constant multiplication for highpass and lowpass
       // k = (1 + cos(omega)) * 0.5 / k = 1 with preGain == false
     });
-
-    console.log(filterCoeffs);
 
     let filter = new Fili.IirFilter(filterCoeffs);
 
@@ -391,24 +387,86 @@ function renderOriginal(settings, fft, playback) {
   normalize(original, settings.amplitude);
 }
 
+function getInterpolatedSample(array, i) {
+  if (i <= 0) {
+    return array[0];
+  }
+  if (i >= array.length - 1) {
+    return array[array.length - 1];
+  }
+  let lowIndex = Math.floor(i);
+  let highIndex = lowIndex + 1;
+
+  return array[lowIndex] * (highIndex - i) + array[highIndex] * (i - lowIndex);
+}
+
 function renderDeltaSigma(settings, fft, playback) {
   let originalUnfiltered = playback ? settings.buffers.originalUnfiltered.playback : settings.buffers.originalUnfiltered.display;
   let deltaSigma = playback ? settings.buffers.deltaSigma.playback : settings.buffers.deltaSigma.display;
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
 
-  let samplePeriod = Math.floor(settings.downsamplingFactor);
   let step = settings.deltaSigmaStep;
-  let ds_state = 0;
-  for (let i = 0; i < originalUnfiltered.length; i += samplePeriod) {
-    if (ds_state > originalUnfiltered[i]) {
-      ds_state -= step;
-    } else {
-      ds_state += step;
+
+
+  if (settings.deltaSigmaSamplingRate <= (WEBAUDIO_MAX_SAMPLERATE/2)) {
+    if (!playback && deltaSigma.length !== settings.displaySignalSize) {
+      deltaSigma = new Float32Array(settings.displaySignalSize);
     }
-    for (let j = 0; j < samplePeriod; j += 1) {
-      deltaSigma[i+j] = ds_state;
-      reconstructed[i+j] = ds_state;
+    let samplePeriod = Math.floor(WEBAUDIO_MAX_SAMPLERATE / settings.deltaSigmaSamplingRate);
+    let ds_state = 0;
+    for (let i = 0; i < originalUnfiltered.length; i += samplePeriod) {
+      if (ds_state > originalUnfiltered[i]) {
+        ds_state -= step;
+      } else {
+        ds_state += step;
+      }
+      for (let j = 0; j < samplePeriod; j += 1) {
+        deltaSigma[i+j] = ds_state;
+        reconstructed[i+j] = ds_state;
+      }
     }
+  } else if (!playback) {
+    // Simulate a higher sample rate
+    if (settings.buffers.deltaSigma.display.length !== settings.displaySignalSize * settings.deltaSigmaSamplingRate / WEBAUDIO_MAX_SAMPLERATE) {
+      settings.buffers.deltaSigma.display = new Float32Array(settings.displaySignalSize * settings.deltaSigmaSamplingRate / WEBAUDIO_MAX_SAMPLERATE);
+      settings.buffers.reconstructed.display = new Float32Array(settings.displaySignalSize * settings.deltaSigmaSamplingRate / WEBAUDIO_MAX_SAMPLERATE);
+    }
+    let upsampledOutput = new Float32Array(settings.buffers.deltaSigma.display.length);
+
+    let ds_state = 0;
+    let scale = originalUnfiltered.length / settings.buffers.deltaSigma.display.length;
+    for (let i = 0; i < settings.buffers.deltaSigma.display.length; i += 1) {
+
+      if (ds_state > getInterpolatedSample(originalUnfiltered, i * scale)) {
+        ds_state -= step;
+      } else {
+        ds_state += step;
+      }
+      settings.buffers.deltaSigma.display[i] = ds_state;
+      settings.buffers.reconstructed.display[i] = ds_state;
+    }
+
+    // let iirCalculator = new Fili.CalcCascades();
+    //
+    // let characteristic = "butterworth";
+    //
+    // let filterCoeffs = iirCalculator.lowpass({
+    //   order: 6, // cascade 3 biquad filters
+    //   characteristic: characteristic,
+    //   Fs: settings.deltaSigmaSamplingRate, // sampling frequency
+    //   Fc: 20000, // cutoff frequency / center frequency for bandpass, bandstop, peak
+    //   preGain: false // adds one constant multiplication for highpass and lowpass
+    // });
+    //
+    // let filter = new Fili.IirFilter(filterCoeffs);
+    //
+    // upsampledOutput.forEach((x, n, y) => y[n] = filter.singleStep(x));
+    //
+    // const decimationRatio = settings.deltaSigmaSamplingRate / WEBAUDIO_MAX_SAMPLERATE;
+    // console.log(decimationRatio);
+    // for (let i = 0; i < reconstructed.length; ++i) {
+    //   reconstructed[i] = upsampledOutput[Math.min(Math.floor(i * decimationRatio), upsampledOutput.length - 1)];
+    // }
   }
 }
 
@@ -471,17 +529,23 @@ function downsampleWithQuantization(settings, fft, playback) {
   // downsampling factor
   let original = playback ? settings.buffers.original.playback : settings.buffers.original.display;
 
-  if (playback) {
+  if (playback && settings.buffers.downsampled.playback.length !== Math.round(original.length / settings.downsamplingFactor)) {
+
     settings.buffers.downsampled.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.downsampledWithQuantization.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     settings.buffers.quantNoise.playback = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
-  } else {
+
+  } else if (settings.buffers.downsampled.display.length !==Math.round(original.length / settings.downsamplingFactor)) {
+
     settings.buffers.downsampled.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
+    settings.buffers.downsampledWithQuantization.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
     settings.buffers.quantNoise.display = new Float32Array(Math.round(original.length / settings.downsamplingFactor));
   }
 
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
   let stuffed = playback ? settings.buffers.stuffed.playback : settings.buffers.stuffed.display;
   let downsampled = playback ? settings.buffers.downsampled.playback : settings.buffers.downsampled.display;
+  let downsampledWithQuantization = playback ? settings.buffers.downsampledWithQuantization.playback : settings.buffers.downsampledWithQuantization.display;
   let quantNoise = playback ? settings.buffers.quantNoise.playback : settings.buffers.quantNoise.display;
   let quantNoiseStuffed = playback ? settings.buffers.quantNoiseStuffed.playback : settings.buffers.quantNoise.display;
 
@@ -529,6 +593,7 @@ function downsampleWithQuantization(settings, fft, playback) {
     // sparsely fill the reconstruction buffer to avoid having to zero-stuff
     reconstructed[n * settings.downsamplingFactor] = quantized;
     arr[n] = y;
+    downsampledWithQuantization[n] = quantized;
     stuffed[n * settings.downsamplingFactor] = quantized * settings.downsamplingFactor;
 
     // record the quantization error
@@ -543,6 +608,7 @@ function downsampleWithQuantization(settings, fft, playback) {
 }
 
 function antiImagingFilter(settings, fft, playback) {
+
   let reconstructed = playback ? settings.buffers.reconstructed.playback : settings.buffers.reconstructed.display;
 
   // render reconstructed wave by low pass filtering the zero stuffed array----
