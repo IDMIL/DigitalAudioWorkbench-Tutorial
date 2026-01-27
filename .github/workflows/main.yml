@@ -17,6 +17,7 @@ jobs:
           mkdir .public
           cp -a sampling .public
           cp -a delta-sigma .public
+          cp -a images .public
           cp -a *.js .public
           cp -a index.html .public
           cp -a *.css .public
