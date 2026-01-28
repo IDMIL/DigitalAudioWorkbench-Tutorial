@@ -242,7 +242,7 @@ function normalize(arr, targetAmplitude) {
   arr.forEach((x, n, y) => y[n] = targetAmplitude * x / amp);
 }
 
-function filterSignal(signal, frequency, order, mode, filterKernel) {
+function filterSignal(signal, frequency, order, mode, filterKernel, fs=WEBAUDIO_MAX_SAMPLERATE) {
   // specify the filter parameters; Fs = sampling rate, Fc = cutoff frequency
 
   // The cutoff for the antialiasing filter is set to the Nyquist frequency
@@ -256,7 +256,7 @@ function filterSignal(signal, frequency, order, mode, filterKernel) {
     let filterCoeffs = firCalculator.lowpass(
       {
         order: order
-        , Fs: WEBAUDIO_MAX_SAMPLERATE
+        , Fs: fs
         , Fc: frequency
       });
 
@@ -290,7 +290,7 @@ function filterSignal(signal, frequency, order, mode, filterKernel) {
     let filterCoeffs = iirCalculator.lowpass({
       order: order, // cascade 3 biquad filters
       characteristic: characteristic,
-      Fs: WEBAUDIO_MAX_SAMPLERATE, // sampling frequency
+      Fs: fs, // sampling frequency
       Fc: frequency, // cutoff frequency / center frequency for bandpass, bandstop, peak
       preGain: false // adds one constant multiplication for highpass and lowpass
       // k = (1 + cos(omega)) * 0.5 / k = 1 with preGain == false
@@ -385,6 +385,8 @@ function renderOriginal(settings, fft, playback) {
   getSamples(settings, original);
 
   normalize(original, settings.amplitude);
+
+  settings.reconstructionFilterFrequency = (settings.sampleRate / settings.downsamplingFactor) / 2;
 }
 
 function getInterpolatedSample(array, i) {
@@ -445,28 +447,30 @@ function renderDeltaSigma(settings, fft, playback) {
       settings.buffers.deltaSigma.display[i] = ds_state;
       settings.buffers.reconstructed.display[i] = ds_state;
     }
+  } else {
+    // playback at higher sample rate
+    let fullBuffer = new Float32Array(Math.floor(originalUnfiltered.length * settings.deltaSigmaSamplingRate / WEBAUDIO_MAX_SAMPLERATE));
 
-    // let iirCalculator = new Fili.CalcCascades();
-    //
-    // let characteristic = "butterworth";
-    //
-    // let filterCoeffs = iirCalculator.lowpass({
-    //   order: 6, // cascade 3 biquad filters
-    //   characteristic: characteristic,
-    //   Fs: settings.deltaSigmaSamplingRate, // sampling frequency
-    //   Fc: 20000, // cutoff frequency / center frequency for bandpass, bandstop, peak
-    //   preGain: false // adds one constant multiplication for highpass and lowpass
-    // });
-    //
-    // let filter = new Fili.IirFilter(filterCoeffs);
-    //
-    // upsampledOutput.forEach((x, n, y) => y[n] = filter.singleStep(x));
-    //
-    // const decimationRatio = settings.deltaSigmaSamplingRate / WEBAUDIO_MAX_SAMPLERATE;
-    // console.log(decimationRatio);
-    // for (let i = 0; i < reconstructed.length; ++i) {
-    //   reconstructed[i] = upsampledOutput[Math.min(Math.floor(i * decimationRatio), upsampledOutput.length - 1)];
-    // }
+    let ds_state = 0;
+    let scale = originalUnfiltered.length / fullBuffer.length;
+    for (let i = 0; i < fullBuffer.length; i += 1) {
+
+      if (ds_state > getInterpolatedSample(originalUnfiltered, i * scale)) {
+        ds_state -= step;
+      } else {
+        ds_state += step;
+      }
+      fullBuffer[i] = ds_state;
+    }
+
+    filterSignal(fullBuffer, WEBAUDIO_MAX_SAMPLERATE / 2, 200, 'FIR', undefined, settings.deltaSigmaSamplingRate);
+
+    scale = 1 / scale;
+    for (let i = 0; i < reconstructed.length; i += 1) {
+      let s = getInterpolatedSample(fullBuffer, i * scale);
+      reconstructed[i] = s;
+      deltaSigma[i] = s;
+    }
   }
 }
 

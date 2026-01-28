@@ -305,7 +305,7 @@ class FreqPanel extends Panel{
     let pixels_per_hz = this.plotWidth / this.settings.maxVisibleFrequency;
     this.buffer.strokeWeight(0);
     this.buffer.fill(235);
-    let passbandcutoff = sampleRate/2;
+    let passbandcutoff = this.settings.reconstructionFilterFrequency;
     let passbandpixelwidth = passbandcutoff * pixels_per_hz;
     this.buffer.rect(this.plotLeft, this.plotTop, passbandpixelwidth, this.plotHeight);
     this.buffer.strokeWeight(this.strokeWeight);
